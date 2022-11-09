@@ -319,7 +319,7 @@ public readonly struct Float16
     }
 
     // f16_sqrt
-    public static Float16 SquareRoot(Float16 a, SoftFloatState? state = null)
+    public Float16 SquareRoot(SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
@@ -328,38 +328,20 @@ public readonly struct Float16
 
     #region Comparison Operations
 
-    // f16_eq
-    public static bool CompareEqual(Float16 a, Float16 b, SoftFloatState? state = null)
+    // f16_eq (quiet=true) & f16_eq_signaling (quiet=false)
+    public static bool CompareEqual(Float16 a, Float16 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
 
-    // f16_le
-    public static bool CompareLessThanOrEqual(Float16 a, Float16 b, SoftFloatState? state = null)
+    // f16_le (quiet=false) & f16_le_quiet (quiet=true)
+    public static bool CompareLessThanOrEqual(Float16 a, Float16 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
 
-    // f16_lt
-    public static bool CompareLessThan(Float16 a, Float16 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f16_eq_signaling
-    public static bool CompareEqualSignaling(Float16 a, Float16 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f16_le_quiet
-    public static bool CompareLessThanOrEqualQuiet(Float16 a, Float16 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f16_lt_quiet
-    public static bool CompareLessThanQuiet(Float16 a, Float16 b, SoftFloatState? state = null)
+    // f16_lt (quiet=false) & f16_lt_quiet (quiet=true)
+    public static bool CompareLessThan(Float16 a, Float16 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }

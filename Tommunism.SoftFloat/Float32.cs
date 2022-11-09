@@ -309,7 +309,7 @@ public readonly struct Float32
     }
 
     // f32_sqrt
-    public static Float32 SquareRoot(Float32 a, SoftFloatState? state = null)
+    public Float32 SquareRoot(SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
@@ -318,38 +318,20 @@ public readonly struct Float32
 
     #region Comparison Operations
 
-    // f32_eq
-    public static bool CompareEqual(Float32 a, Float32 b, SoftFloatState? state = null)
+    // f32_eq (quiet=true) & f32_eq_signaling (quiet=false)
+    public static bool CompareEqual(Float32 a, Float32 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
 
-    // f32_le
-    public static bool CompareLessThanOrEqual(Float32 a, Float32 b, SoftFloatState? state = null)
+    // f32_le (quiet=false) & f32_le_quiet (quiet=true)
+    public static bool CompareLessThanOrEqual(Float32 a, Float32 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
 
-    // f32_lt
-    public static bool CompareLessThan(Float32 a, Float32 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f32_eq_signaling
-    public static bool CompareEqualSignaling(Float32 a, Float32 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f32_le_quiet
-    public static bool CompareLessThanOrEqualQuiet(Float32 a, Float32 b, SoftFloatState? state = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    // f32_lt_quiet
-    public static bool CompareLessThanQuiet(Float32 a, Float32 b, SoftFloatState? state = null)
+    // f32_lt (quiet=false) & f32_lt_quiet (quiet=true)
+    public static bool CompareLessThan(Float32 a, Float32 b, bool quiet, SoftFloatState? state = null)
     {
         throw new NotImplementedException();
     }
