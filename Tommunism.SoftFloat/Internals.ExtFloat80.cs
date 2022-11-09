@@ -151,7 +151,7 @@ partial class Internals
                     roundMask |= roundIncrement;
 
                 sig &= ~roundMask;
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
             }
 
             if (0x7FFE < exp || (exp == 0x7FFE && sig + roundIncrement < sig))
@@ -169,7 +169,7 @@ partial class Internals
                     sig = ~roundMask;
                 }
 
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
             }
         }
 
@@ -179,7 +179,7 @@ partial class Internals
             if (roundingMode == RoundingMode.Odd)
             {
                 sig = (sig & ~roundMask) | (roundMask + 1);
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
             }
         }
 
@@ -195,7 +195,7 @@ partial class Internals
             roundMask |= roundIncrement;
 
         sig &= ~roundMask;
-        return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+        return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
     }
 
     // Called when rounding precision is 80 (or anything except 32 or 64).
@@ -223,7 +223,7 @@ partial class Internals
                     if (roundingMode == RoundingMode.Odd)
                     {
                         sig |= 1;
-                        return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                        return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
                     }
                 }
 
@@ -237,7 +237,7 @@ partial class Internals
                     exp = (sig & 0x8000000000000000) != 0 ? 1 : 0;
                 }
 
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
             }
 
             if (0x7FFE < exp || (exp == 0x7FFE && sig == 0xFFFFFFFFFFFFFFFF && roundIncrement))
@@ -255,7 +255,7 @@ partial class Internals
                     sig = ~0UL;
                 }
 
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
             }
         }
 
@@ -263,7 +263,7 @@ partial class Internals
         {
             state.ExceptionFlags |= ExceptionFlags.Inexact;
             if (roundingMode == RoundingMode.Odd)
-                return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig | 1);
+                return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig | 1);
         }
 
         if (roundIncrement)
@@ -280,7 +280,7 @@ partial class Internals
             }
         }
 
-        return ExtFloat80.FromUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
+        return ExtFloat80.FromBitsUI80(signExp: PackToExtF80UI64(sign, exp), signif: sig);
     }
 
     // softfloat_normRoundPackToExtF80
@@ -318,8 +318,8 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
-                    : ExtFloat80.FromUI80((ushort)uiA64, uiA0);
+                    ? ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
+                    : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
             sigZ = sigA + sigB;
@@ -340,8 +340,8 @@ partial class Internals
                 if (expB == 0x7FFF)
                 {
                     return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
-                        : ExtFloat80.FromUI80(PackToExtF80UI64(signZ, 0x7FFF), uiB0);
+                        ? ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
+                        : ExtFloat80.FromBitsUI80(PackToExtF80UI64(signZ, 0x7FFF), uiB0);
                 }
 
                 expZ = expB;
@@ -360,8 +360,8 @@ partial class Internals
                 if (expA == 0x7FFF)
                 {
                     return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
-                        : ExtFloat80.FromUI80((ushort)uiA64, uiA0);
+                        ? ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
+                        : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
                 }
 
                 expZ = expA;
@@ -406,10 +406,10 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 if (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    return ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0));
+                    return ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return ExtFloat80.FromUI80(DefaultNaNExtF80UI64, DefaultNaNExtF80UI0);
+                return ExtFloat80.FromBitsUI80(DefaultNaNExtF80UI64, DefaultNaNExtF80UI0);
             }
 
             expZ = expA;
@@ -429,7 +429,7 @@ partial class Internals
             }
             else
             {
-                return ExtFloat80.FromUI80(PackToExtF80UI64(state.RoundingMode == RoundingMode.Min, 0), 0);
+                return ExtFloat80.FromBitsUI80(PackToExtF80UI64(state.RoundingMode == RoundingMode.Min, 0), 0);
             }
         }
         else if (0 < expDiff)
@@ -437,8 +437,8 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
-                    : ExtFloat80.FromUI80((ushort)uiA64, uiA0);
+                    ? ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
+                    : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
             if (expB == 0)
@@ -461,8 +461,8 @@ partial class Internals
             if (expB == 0x7FFF)
             {
                 return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
-                    : ExtFloat80.FromUI80(PackToExtF80UI64(!signZ, 0x7FFF), 0x8000000000000000);
+                    ? ExtFloat80.FromBitsUI128(PropagateNaNExtF80UI(state, uiA64, uiA0, uiB64, uiB0))
+                    : ExtFloat80.FromBitsUI80(PackToExtF80UI64(!signZ, 0x7FFF), 0x8000000000000000);
             }
 
             if (expA == 0)

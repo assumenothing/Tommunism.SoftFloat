@@ -131,7 +131,7 @@ partial class Internals
             else if (0x1D < exp || 0x8000 <= sig + roundIncrement)
             {
                 state.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
-                return Float16.FromUI16((ushort)(PackToF16UI(sign, 0x1F, 0) - (roundIncrement == 0 ? 1U : 0U)));
+                return Float16.FromBitsUI16((ushort)(PackToF16UI(sign, 0x1F, 0) - (roundIncrement == 0 ? 1U : 0U)));
             }
         }
 
@@ -142,7 +142,7 @@ partial class Internals
             if (roundingMode == RoundingMode.Odd)
             {
                 sig |= 1;
-                return Float16.FromUI16(PackToF16UI(sign, exp, sig));
+                return Float16.FromBitsUI16(PackToF16UI(sign, exp, sig));
             }
         }
 
@@ -150,7 +150,7 @@ partial class Internals
         if (sig == 0)
             exp = 0;
 
-        return Float16.FromUI16(PackToF16UI(sign, exp, sig));
+        return Float16.FromBitsUI16(PackToF16UI(sign, exp, sig));
     }
 
     // softfloat_normRoundPackToF16
@@ -160,7 +160,7 @@ partial class Internals
         exp -= shiftDist;
         if (4 <= shiftDist && (uint)exp < 0x1D)
         {
-            return Float16.FromUI16((ushort)PackToF16UI(sign, sig != 0 ? exp : 0, sig << (shiftDist - 4)));
+            return Float16.FromBitsUI16((ushort)PackToF16UI(sign, sig != 0 ? exp : 0, sig << (shiftDist - 4)));
         }
         else
         {
@@ -187,7 +187,7 @@ partial class Internals
             if (expA == 0)
             {
                 uiZ = uiA + sigB;
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             if (expA == 0x1F)
@@ -195,11 +195,11 @@ partial class Internals
                 if ((sigA | sigB) != 0)
                 {
                     uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 uiZ = uiA;
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             signZ = SignF16UI(uiA);
@@ -208,7 +208,7 @@ partial class Internals
             if ((sigZ & 1) == 0 && expZ < 0x1E)
             {
                 uiZ = PackToF16UI(signZ, expZ, sigZ >> 1);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             sigZ <<= 3;
@@ -223,11 +223,11 @@ partial class Internals
                     if (sigB != 0)
                     {
                         uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                        return Float16.FromUI16((ushort)uiZ);
+                        return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
                     uiZ = PackToF16UI(signZ, 0x1F, 0);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 if (expDiff <= -13)
@@ -236,7 +236,7 @@ partial class Internals
                     if (((uint_fast8_t)expA | sigA) != 0)
                         goto addEpsilon;
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 expZ = expB;
@@ -252,10 +252,10 @@ partial class Internals
                     if (sigA != 0)
                     {
                         uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                        return Float16.FromUI16((ushort)uiZ);
+                        return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 if (13 <= expDiff)
@@ -263,7 +263,7 @@ partial class Internals
                     if (((uint_fast8_t)expB | sigB) != 0)
                         goto addEpsilon;
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 expZ = expA;
@@ -290,7 +290,7 @@ partial class Internals
                 {
                     sigZ >>= 4;
                     uiZ = PackToF16UI(signZ, expZ, sigZ);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
             }
         }
@@ -314,7 +314,7 @@ partial class Internals
         }
 
         state.ExceptionFlags |= ExceptionFlags.Inexact;
-        return Float16.FromUI16((ushort)uiZ);
+        return Float16.FromBitsUI16((ushort)uiZ);
     }
 
     // softfloat_subMagsF16
@@ -338,19 +338,19 @@ partial class Internals
                 if ((sigA | sigB) != 0)
                 {
                     uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 uiZ = DefaultNaNF16UI;
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             sigDiff = (int_fast16_t)sigA - (int_fast16_t)sigB;
             if (sigDiff == 0)
             {
                 uiZ = PackToF16UI(state.RoundingMode == RoundingMode.Min, 0, 0);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             if (expA != 0)
@@ -373,7 +373,7 @@ partial class Internals
             }
 
             uiZ = PackToF16UI(signZ, expZ, (uint_fast16_t)sigDiff << shiftDist);
-            return Float16.FromUI16((ushort)uiZ);
+            return Float16.FromBitsUI16((ushort)uiZ);
         }
         else
         {
@@ -386,11 +386,11 @@ partial class Internals
                     if (sigB != 0)
                     {
                         uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                        return Float16.FromUI16((ushort)uiZ);
+                        return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
                     uiZ = PackToF16UI(signZ, 0x1F, 0);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 if (expDiff <= -13)
@@ -399,7 +399,7 @@ partial class Internals
                     if (((uint_fast16_t)expA | sigA) != 0)
                         goto subEpsilon;
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 expZ = expA + 19;
@@ -415,10 +415,10 @@ partial class Internals
                     if (sigA != 0)
                     {
                         uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                        return Float16.FromUI16((ushort)uiZ);
+                        return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 if (13 <= expDiff)
@@ -426,7 +426,7 @@ partial class Internals
                     if (((uint_fast16_t)expB | sigB) != 0)
                         goto subEpsilon;
 
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 expZ = expB + 19;
@@ -449,7 +449,7 @@ partial class Internals
                 {
                     sigZ >>= 4;
                     uiZ = PackToF16UI(signZ, expZ, sigZ);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
             }
 
@@ -471,7 +471,7 @@ partial class Internals
         }
 
         state.ExceptionFlags |= ExceptionFlags.Inexact;
-        return Float16.FromUI16((ushort)uiZ);
+        return Float16.FromBitsUI16((ushort)uiZ);
     }
 
     // softfloat_mulAddF16
@@ -501,7 +501,7 @@ partial class Internals
             {
                 uiZ = PropagateNaNF16UI(state, uiA, uiB);
                 uiZ = PropagateNaNF16UI(state, uiZ, uiC);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             magBits = (uint_fast16_t)expB | sigB;
@@ -514,7 +514,7 @@ partial class Internals
             {
                 uiZ = PropagateNaNF16UI(state, uiA, uiB);
                 uiZ = PropagateNaNF16UI(state, uiZ, uiC);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             magBits = (uint_fast16_t)expA | sigA;
@@ -527,11 +527,11 @@ partial class Internals
             {
                 uiZ = 0;
                 uiZ = PropagateNaNF16UI(state, uiZ, uiC);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             uiZ = uiC;
-            return Float16.FromUI16((ushort)uiZ);
+            return Float16.FromBitsUI16((ushort)uiZ);
         }
 
         if (expA == 0)
@@ -542,7 +542,7 @@ partial class Internals
                 if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
                     uiZ = PackToF16UI(state.RoundingMode == RoundingMode.Min, 0, 0);
 
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             (expA, sigA) = NormSubnormalF16Sig(sigA);
@@ -556,7 +556,7 @@ partial class Internals
                 if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
                     uiZ = PackToF16UI(state.RoundingMode == RoundingMode.Min, 0, 0);
 
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             (expB, sigB) = NormSubnormalF16Sig(sigB);
@@ -625,7 +625,7 @@ partial class Internals
                 if (sig32Z == 0)
                 {
                     uiZ = PackToF16UI(state.RoundingMode == RoundingMode.Min, 0, 0);
-                    return Float16.FromUI16((ushort)uiZ);
+                    return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 if ((sig32Z & 0x80000000) != 0)
@@ -655,21 +655,21 @@ partial class Internals
         {
             uiZ = PackToF16UI(signProd, 0x1F, 0);
             if (expC != 0x1F)
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
 
             if (sigC != 0)
             {
                 uiZ = PropagateNaNF16UI(state, uiZ, uiC);
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
             }
 
             if (signProd == signC)
-                return Float16.FromUI16((ushort)uiZ);
+                return Float16.FromBitsUI16((ushort)uiZ);
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
         uiZ = DefaultNaNF16UI;
         uiZ = PropagateNaNF16UI(state, uiZ, uiC);
-        return Float16.FromUI16((ushort)uiZ);
+        return Float16.FromBitsUI16((ushort)uiZ);
     }
 }

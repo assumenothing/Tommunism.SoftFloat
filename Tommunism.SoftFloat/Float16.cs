@@ -107,13 +107,13 @@ public readonly struct Float16
     public static explicit operator Float16(Half value) => new(value);
     public static implicit operator Half(Float16 value) => BitConverter.UInt16BitsToHalf(value._v);
 
-    public static Float16 FromUInt16Bits(ushort value) => FromUI16(value);
+    public static Float16 FromUInt16Bits(ushort value) => FromBitsUI16(value);
 
     public ushort ToUInt16Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     // TODO: Allow value to be a full 32-bit integer (reduces total number of "unnecessary" casts).
-    internal static Float16 FromUI16(uint16_t v) => new(v, dummy: false);
+    internal static Float16 FromBitsUI16(uint16_t v) => new(v, dummy: false);
 
     #region Integer-to-floating-point Conversions
 
@@ -128,7 +128,7 @@ public readonly struct Float16
     {
         var shiftDist = CountLeadingZeroes32(a) - 21;
         if (0 <= shiftDist)
-            return FromUI16(a != 0 ? PackToF16UI(false, 0x18 - shiftDist, a << shiftDist) : (uint16_t)0);
+            return FromBitsUI16(a != 0 ? PackToF16UI(false, 0x18 - shiftDist, a << shiftDist) : (uint16_t)0);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -142,7 +142,7 @@ public readonly struct Float16
     {
         var shiftDist = CountLeadingZeroes64(a) - 53;
         if (0 <= shiftDist)
-            return FromUI16(a != 0 ? PackToF16UI(false, 0x18 - shiftDist, (uint_fast16_t)a << shiftDist) : (uint16_t)0);
+            return FromBitsUI16(a != 0 ? PackToF16UI(false, 0x18 - shiftDist, (uint_fast16_t)a << shiftDist) : (uint16_t)0);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -159,7 +159,7 @@ public readonly struct Float16
         var absA = (uint_fast32_t)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes32(absA) - 21;
         if (0 <= shiftDist)
-            return FromUI16(a != 0 ? PackToF16UI(sign, 0x18 - shiftDist, absA << shiftDist) : (uint16_t)0);
+            return FromBitsUI16(a != 0 ? PackToF16UI(sign, 0x18 - shiftDist, absA << shiftDist) : (uint16_t)0);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -176,7 +176,7 @@ public readonly struct Float16
         var absA = (uint_fast64_t)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes64(absA) - 53;
         if (0 <= shiftDist)
-            return FromUI16(a != 0 ? PackToF16UI(sign, 0x18 - shiftDist, (uint_fast16_t)absA << shiftDist) : (uint16_t)0);
+            return FromBitsUI16(a != 0 ? PackToF16UI(sign, 0x18 - shiftDist, (uint_fast16_t)absA << shiftDist) : (uint16_t)0);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)

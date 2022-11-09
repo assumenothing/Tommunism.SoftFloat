@@ -107,12 +107,12 @@ public readonly struct Float32
     public static explicit operator Float32(float value) => new(value);
     public static implicit operator float(Float32 value) => BitConverter.UInt32BitsToSingle(value._v);
 
-    public static Float32 FromUInt32Bits(ushort value) => FromUI32(value);
+    public static Float32 FromUInt32Bits(ushort value) => FromBitsUI32(value);
 
     public uint ToUInt32Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float32 FromUI32(uint v) => new(v, dummy: false);
+    internal static Float32 FromBitsUI32(uint v) => new(v, dummy: false);
 
     #region Integer-to-floating-point Conversions
 
@@ -126,7 +126,7 @@ public readonly struct Float32
     public static Float32 FromUInt32(uint32_t a, SoftFloatState? state = null)
     {
         if (a == 0)
-            return FromUI32(0);
+            return FromBitsUI32(0);
 
         state ??= SoftFloatState.Default;
         return (a & 0x80000000) != 0
@@ -139,7 +139,7 @@ public readonly struct Float32
     {
         var shiftDist = CountLeadingZeroes64(a) - 40;
         if (0 <= shiftDist)
-            return FromUI32(a != 0 ? PackToF32UI(false, 0x95 - shiftDist, (uint_fast32_t)a << shiftDist) : 0U);
+            return FromBitsUI32(a != 0 ? PackToF32UI(false, 0x95 - shiftDist, (uint_fast32_t)a << shiftDist) : 0U);
 
         shiftDist += 7;
         var sig = (shiftDist < 0)
@@ -153,7 +153,7 @@ public readonly struct Float32
     {
         var sign = a < 0;
         if ((a & 0x7FFFFFFF) == 0)
-            return FromUI32(sign ? PackToF32UI(true, 0x9E, 0U) : 0U);
+            return FromBitsUI32(sign ? PackToF32UI(true, 0x9E, 0U) : 0U);
 
         var absA = (uint_fast32_t)(sign ? -a : a);
         return NormRoundPackToF32(state ?? SoftFloatState.Default, sign, 0x9C, absA);
@@ -166,7 +166,7 @@ public readonly struct Float32
         var absA = (uint_fast64_t)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes64(absA) - 40;
         if (0 <= shiftDist)
-            return FromUI32(a != 0 ? PackToF32UI(sign, 0x95 - shiftDist, (uint_fast32_t)absA << shiftDist) : 0U);
+            return FromBitsUI32(a != 0 ? PackToF32UI(sign, 0x95 - shiftDist, (uint_fast32_t)absA << shiftDist) : 0U);
 
         shiftDist += 7;
         var sig = (shiftDist < 0)

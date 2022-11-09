@@ -107,12 +107,12 @@ public readonly struct Float64
     public static explicit operator Float64(double value) => new(value);
     public static implicit operator double(Float64 value) => BitConverter.UInt64BitsToDouble(value._v);
 
-    public static Float64 FromUInt64Bits(ulong value) => FromUI64(value);
+    public static Float64 FromUInt64Bits(ulong value) => FromBitsUI64(value);
 
     public ulong ToUInt64Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float64 FromUI64(ulong v) => new(v, dummy: false);
+    internal static Float64 FromBitsUI64(ulong v) => new(v, dummy: false);
 
     #region Integer-to-floating-point Conversions
 
@@ -127,17 +127,17 @@ public readonly struct Float64
     public static Float64 FromUInt32(uint32_t a, SoftFloatState? state = null)
     {
         if (a == 0)
-            return FromUI64(0);
+            return FromBitsUI64(0);
 
         var shiftDist = CountLeadingZeroes32(a) + 21;
-        return FromUI64(PackToF64UI(false, 0x432 - shiftDist, (uint_fast64_t)a << shiftDist));
+        return FromBitsUI64(PackToF64UI(false, 0x432 - shiftDist, (uint_fast64_t)a << shiftDist));
     }
 
     // ui64_to_f64
     public static Float64 FromUInt64(uint64_t a, SoftFloatState? state = null)
     {
         if (a == 0)
-            return FromUI64(0);
+            return FromBitsUI64(0);
 
         state ??= SoftFloatState.Default;
         return (a & 0x8000000000000000) != 0
@@ -150,12 +150,12 @@ public readonly struct Float64
     public static Float64 FromInt32(int32_t a, SoftFloatState? state = null)
     {
         if (a == 0)
-            return FromUI64(0);
+            return FromBitsUI64(0);
 
         var sign = a < 0;
         var absA = (uint_fast32_t)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes32(absA) + 21;
-        return FromUI64(PackToF64UI(sign, 0x432 - shiftDist, (uint_fast64_t)absA << shiftDist));
+        return FromBitsUI64(PackToF64UI(sign, 0x432 - shiftDist, (uint_fast64_t)absA << shiftDist));
     }
 
     // i64_to_f64
@@ -163,7 +163,7 @@ public readonly struct Float64
     {
         var sign = a < 0;
         if ((a & 0x7FFFFFFFFFFFFFFF) == 0)
-            return FromUI64(sign ? PackToF64UI(true, 0x43E, 0UL) : 0UL);
+            return FromBitsUI64(sign ? PackToF64UI(true, 0x43E, 0UL) : 0UL);
 
         var absA = (uint_fast64_t)(sign ? -a : a);
         return NormRoundPackToF64(state ?? SoftFloatState.Default, sign, 0x43C, absA);

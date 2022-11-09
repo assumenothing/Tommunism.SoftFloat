@@ -83,7 +83,7 @@ public readonly struct Float128
 
     #region Constructors
 
-    internal Float128(UInt128 v)
+    private Float128(UInt128 v)
     {
         _v0 = v.V00;
         _v64 = v.V64;
@@ -110,13 +110,19 @@ public readonly struct Float128
 
     public (ulong hi, ulong lo) ToUInt64x2Bits() => (_v64, _v0);
 
-    // TODO: Add support for .NET 7+ UInt128 bit conversions.
+#if NET7_0
+    // TODO: Figure out the best way to implement conversions to .NET 7+ UInt128 bit conversions.
+
+    public static Float128 FromUInt128Bits(System.UInt128 value) => throw new NotImplementedException();
+
+    public static System.UInt128 ToUInt128Bits() => throw new NotImplementedExeption();
+#endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float128 FromUI128(UInt128 v) => new(v);
+    internal static Float128 FromBitsUI128(UInt128 v) => new(v);
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float128 FromUI128(ulong v64, ulong v0) => new(v64, v0);
+    internal static Float128 FromBitsUI128(ulong v64, ulong v0) => new(v64, v0);
 
     #region Integer-to-floating-point Conversions
 
@@ -137,7 +143,7 @@ public readonly struct Float128
             uiZ64 = PackToF128UI64(false, 0x402E - shiftDist, (uint_fast64_t)a << shiftDist);
         }
 
-        return FromUI128(v64: uiZ64, v0: 0);
+        return FromBitsUI128(v64: uiZ64, v0: 0);
     }
 
     // ui64_to_f128
@@ -160,7 +166,7 @@ public readonly struct Float128
             uiZ0 = zSig.V00;
         }
 
-        return FromUI128(v64: uiZ64, v0: uiZ0);
+        return FromBitsUI128(v64: uiZ64, v0: uiZ0);
     }
 
     // i32_to_f128
@@ -176,7 +182,7 @@ public readonly struct Float128
             uiZ64 = PackToF128UI64(sign, 0x402E - shiftDist, (uint_fast64_t)absA << shiftDist);
         }
 
-        return FromUI128(v64: uiZ64, v0: 0);
+        return FromBitsUI128(v64: uiZ64, v0: 0);
     }
 
     // i64_to_f128
@@ -201,7 +207,7 @@ public readonly struct Float128
             uiZ0 = zSig.V00;
         }
 
-        return FromUI128(v64: uiZ64, v0: uiZ0);
+        return FromBitsUI128(v64: uiZ64, v0: uiZ0);
     }
 
     #endregion
