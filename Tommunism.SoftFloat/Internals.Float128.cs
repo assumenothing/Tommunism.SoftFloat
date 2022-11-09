@@ -1,13 +1,14 @@
 ﻿#region Copyright
-// This is a C# port of the SoftFloat library release 3e by Thomas Kaiser.
-
 /*============================================================================
+
+This is a C# port of the SoftFloat library release 3e by Thomas Kaiser (2022).
+The copyright from the original source code is listed below.
 
 This C source file is part of the SoftFloat IEEE Floating-Point Arithmetic
 Package, Release 3e, by John R. Hauser.
 
-Copyright 2011, 2012, 2013, 2014, 2015 The Regents of the University of
-California.  All rights reserved.
+Copyright 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018 The Regents of the
+University of California.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
