@@ -376,7 +376,7 @@ partial class Internals
     // softfloat_mulAddF32
     public static Float32 MulAddF32(SoftFloatState state, uint_fast32_t uiA, uint_fast32_t uiB, uint_fast32_t uiC, MulAdd op)
     {
-        Debug.Assert(op is MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
+        Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signProd, signZ;
         int_fast16_t expA, expB, expC, expProd, expZ, expDiff;

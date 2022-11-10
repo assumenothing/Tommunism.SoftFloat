@@ -428,7 +428,7 @@ partial class Internals
     // softfloat_mulAddF128
     public static Float128 MulAddF128(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, uint_fast64_t uiC64, uint_fast64_t uiC0, MulAdd op)
     {
-        Debug.Assert(op is MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
+        Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signZ;
         int_fast32_t expA, expB, expC, expZ, shiftDist, expDiff;
