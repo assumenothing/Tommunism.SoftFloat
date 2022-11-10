@@ -168,7 +168,7 @@ internal static class Primitives
     public static int CountLeadingZeroes16(uint_fast16_t a)
     {
         Debug.Assert((a & ~0xFFFFU) == 0);
-        return a != 0 ? BitOperations.LeadingZeroCount(a) - 16 : 16;
+        return BitOperations.LeadingZeroCount(a) - 16;
     }
 
     // softfloat_countLeadingZeros32
@@ -177,7 +177,7 @@ internal static class Primitives
     /// is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountLeadingZeroes32(uint a) => a != 0 ? BitOperations.LeadingZeroCount(a) : 32;
+    public static int CountLeadingZeroes32(uint a) => BitOperations.LeadingZeroCount(a);
 
     // softfloat_countLeadingZeros64
     /// <summary>
@@ -185,7 +185,7 @@ internal static class Primitives
     /// is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountLeadingZeroes64(ulong a) => a != 0 ? BitOperations.LeadingZeroCount(a) : 64;
+    public static int CountLeadingZeroes64(ulong a) => BitOperations.LeadingZeroCount(a);
 
     // softfloat_approxRecip_1k0s
     internal static readonly ushort[] ApproxRecip_1k0s = new ushort[16]
