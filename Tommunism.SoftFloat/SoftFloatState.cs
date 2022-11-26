@@ -46,6 +46,14 @@ using static Specialize;
 
 // TODO: Add a static user-settable factory for creating custom instances when using the static properties?
 
+// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
+
+using int32_t = Int32;
+using int64_t = Int64;
+
+using uint32_t = UInt32;
+using uint64_t = UInt64;
+
 public class SoftFloatState
 {
     #region Fields
@@ -167,6 +175,230 @@ public class SoftFloatState
             throw new SoftFloatException(exceptionFlags);
         }
     }
+
+    #region Float16 Shortcut Methods
+
+    public Float16 ToFloat16(uint32_t value) => Float16.FromUInt32(value, this);
+    public Float16 ToFloat16(uint64_t value) => Float16.FromUInt64(value, this);
+    public Float16 ToFloat16(int32_t value) => Float16.FromInt32(value, this);
+    public Float16 ToFloat16(int64_t value) => Float16.FromInt64(value, this);
+
+    public uint32_t ToUInt32(Float16 value, bool exact) => value.ToUInt32(RoundingMode, exact, this);
+    public uint32_t ToUInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(roundingMode, exact, this);
+    public uint32_t ToUInt32RoundMinMag(Float16 value, bool exact) => value.ToUInt32RoundMinMag(exact, this);
+
+    public uint64_t ToUInt64(Float16 value, bool exact) => value.ToUInt64(RoundingMode, exact, this);
+    public uint64_t ToUInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(roundingMode, exact, this);
+    public uint64_t ToUInt64RoundMinMag(Float16 value, bool exact) => value.ToUInt64RoundMinMag(exact, this);
+
+    public int32_t ToInt32(Float16 value, bool exact) => value.ToInt32(RoundingMode, exact, this);
+    public int32_t ToInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt32(roundingMode, exact, this);
+    public int32_t ToInt32RoundMinMag(Float16 value, bool exact) => value.ToInt32RoundMinMag(exact, this);
+
+    public int64_t ToInt64(Float16 value, bool exact) => value.ToInt64(RoundingMode, exact, this);
+    public int64_t ToInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt64(roundingMode, exact, this);
+    public int64_t ToInt64RoundMinMag(Float16 value, bool exact) => value.ToInt64RoundMinMag(exact, this);
+
+    public Float32 ToFloat32(Float16 value) => value.ToFloat32(this);
+    public Float64 ToFloat64(Float16 value) => value.ToFloat64(this);
+    public ExtFloat80 ToExtFloat80(Float16 value) => value.ToExtFloat80(this);
+    public Float128 ToFloat128(Float16 value) => value.ToFloat128(this);
+
+    public Float16 RoundToInt(Float16 value, bool exact) => value.RoundToInt(RoundingMode, exact, this);
+    public Float16 RoundToInt(Float16 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(roundingMode, exact, this);
+
+    public Float16 Add(Float16 a, Float16 b) => Float16.Add(a, b, this);
+    public Float16 Subtract(Float16 a, Float16 b) => Float16.Subtract(a, b, this);
+    public Float16 Multiply(Float16 a, Float16 b) => Float16.Multiply(a, b, this);
+    public Float16 MultiplyAndAdd(Float16 a, Float16 b, Float16 c) => Float16.MultiplyAndAdd(a, b, c, this);
+    public Float16 Divide(Float16 a, Float16 b) => Float16.Divide(a, b, this);
+    public Float16 Modulus(Float16 a, Float16 b) => Float16.Modulus(a, b, this);
+    public Float16 SquareRoot(Float16 value) => value.SquareRoot(this);
+
+    public bool CompareEqual(Float16 a, Float16 b, bool quiet) => Float16.CompareEqual(a, b, quiet, this);
+    public bool CompareLessThan(Float16 a, Float16 b, bool quiet) => Float16.CompareLessThan(a, b, quiet, this);
+    public bool CompareLessThanOrEqual(Float16 a, Float16 b, bool quiet) => Float16.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
+
+    #region Float32 Shortcut Methods
+
+    public Float32 ToFloat32(uint32_t value) => Float32.FromUInt32(value, this);
+    public Float32 ToFloat32(uint64_t value) => Float32.FromUInt64(value, this);
+    public Float32 ToFloat32(int32_t value) => Float32.FromInt32(value, this);
+    public Float32 ToFloat32(int64_t value) => Float32.FromInt64(value, this);
+
+    public uint32_t ToUInt32(Float32 value, bool exact) => value.ToUInt32(RoundingMode, exact, this);
+    public uint32_t ToUInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(roundingMode, exact, this);
+    public uint32_t ToUInt32RoundMinMag(Float32 value, bool exact) => value.ToUInt32RoundMinMag(exact, this);
+
+    public uint64_t ToUInt64(Float32 value, bool exact) => value.ToUInt64(RoundingMode, exact, this);
+    public uint64_t ToUInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(roundingMode, exact, this);
+    public uint64_t ToUInt64RoundMinMag(Float32 value, bool exact) => value.ToUInt64RoundMinMag(exact, this);
+
+    public int32_t ToInt32(Float32 value, bool exact) => value.ToInt32(RoundingMode, exact, this);
+    public int32_t ToInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt32(roundingMode, exact, this);
+    public int32_t ToInt32RoundMinMag(Float32 value, bool exact) => value.ToInt32RoundMinMag(exact, this);
+
+    public int64_t ToInt64(Float32 value, bool exact) => value.ToInt64(RoundingMode, exact, this);
+    public int64_t ToInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt64(roundingMode, exact, this);
+    public int64_t ToInt64RoundMinMag(Float32 value, bool exact) => value.ToInt64RoundMinMag(exact, this);
+
+    public Float16 ToFloat16(Float32 value) => value.ToFloat16(this);
+    public Float64 ToFloat64(Float32 value) => value.ToFloat64(this);
+    public ExtFloat80 ToExtFloat80(Float32 value) => value.ToExtFloat80(this);
+    public Float128 ToFloat128(Float32 value) => value.ToFloat128(this);
+
+    public Float32 RoundToInt(Float32 value, bool exact) => value.RoundToInt(RoundingMode, exact, this);
+    public Float32 RoundToInt(Float32 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(roundingMode, exact, this);
+
+    public Float32 Add(Float32 a, Float32 b) => Float32.Add(a, b, this);
+    public Float32 Subtract(Float32 a, Float32 b) => Float32.Subtract(a, b, this);
+    public Float32 Multiply(Float32 a, Float32 b) => Float32.Multiply(a, b, this);
+    public Float32 MultiplyAndAdd(Float32 a, Float32 b, Float32 c) => Float32.MultiplyAndAdd(a, b, c, this);
+    public Float32 Divide(Float32 a, Float32 b) => Float32.Divide(a, b, this);
+    public Float32 Modulus(Float32 a, Float32 b) => Float32.Modulus(a, b, this);
+    public Float32 SquareRoot(Float32 value) => value.SquareRoot(this);
+
+    public bool CompareEqual(Float32 a, Float32 b, bool quiet) => Float32.CompareEqual(a, b, quiet, this);
+    public bool CompareLessThan(Float32 a, Float32 b, bool quiet) => Float32.CompareLessThan(a, b, quiet, this);
+    public bool CompareLessThanOrEqual(Float32 a, Float32 b, bool quiet) => Float32.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
+
+    #region Float64 Shortcut Methods
+
+    public Float64 ToFloat64(uint32_t value) => Float64.FromUInt32(value, this);
+    public Float64 ToFloat64(uint64_t value) => Float64.FromUInt64(value, this);
+    public Float64 ToFloat64(int32_t value) => Float64.FromInt32(value, this);
+    public Float64 ToFloat64(int64_t value) => Float64.FromInt64(value, this);
+
+    public uint32_t ToUInt32(Float64 value, bool exact) => value.ToUInt32(RoundingMode, exact, this);
+    public uint32_t ToUInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(roundingMode, exact, this);
+    public uint32_t ToUInt32RoundMinMag(Float64 value, bool exact) => value.ToUInt32RoundMinMag(exact, this);
+
+    public uint64_t ToUInt64(Float64 value, bool exact) => value.ToUInt64(RoundingMode, exact, this);
+    public uint64_t ToUInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(roundingMode, exact, this);
+    public uint64_t ToUInt64RoundMinMag(Float64 value, bool exact) => value.ToUInt64RoundMinMag(exact, this);
+
+    public int32_t ToInt32(Float64 value, bool exact) => value.ToInt32(RoundingMode, exact, this);
+    public int32_t ToInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt32(roundingMode, exact, this);
+    public int32_t ToInt32RoundMinMag(Float64 value, bool exact) => value.ToInt32RoundMinMag(exact, this);
+
+    public int64_t ToInt64(Float64 value, bool exact) => value.ToInt64(RoundingMode, exact, this);
+    public int64_t ToInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt64(roundingMode, exact, this);
+    public int64_t ToInt64RoundMinMag(Float64 value, bool exact) => value.ToInt64RoundMinMag(exact, this);
+
+    public Float16 ToFloat16(Float64 value) => value.ToFloat16(this);
+    public Float32 ToFloat32(Float64 value) => value.ToFloat32(this);
+    public ExtFloat80 ToExtFloat80(Float64 value) => value.ToExtFloat80(this);
+    public Float128 ToFloat128(Float64 value) => value.ToFloat128(this);
+
+    public Float64 RoundToInt(Float64 value, bool exact) => value.RoundToInt(RoundingMode, exact, this);
+    public Float64 RoundToInt(Float64 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(roundingMode, exact, this);
+
+    public Float64 Add(Float64 a, Float64 b) => Float64.Add(a, b, this);
+    public Float64 Subtract(Float64 a, Float64 b) => Float64.Subtract(a, b, this);
+    public Float64 Multiply(Float64 a, Float64 b) => Float64.Multiply(a, b, this);
+    public Float64 MultiplyAndAdd(Float64 a, Float64 b, Float64 c) => Float64.MultiplyAndAdd(a, b, c, this);
+    public Float64 Divide(Float64 a, Float64 b) => Float64.Divide(a, b, this);
+    public Float64 Modulus(Float64 a, Float64 b) => Float64.Modulus(a, b, this);
+    public Float64 SquareRoot(Float64 value) => value.SquareRoot(this);
+
+    public bool CompareEqual(Float64 a, Float64 b, bool quiet) => Float64.CompareEqual(a, b, quiet, this);
+    public bool CompareLessThan(Float64 a, Float64 b, bool quiet) => Float64.CompareLessThan(a, b, quiet, this);
+    public bool CompareLessThanOrEqual(Float64 a, Float64 b, bool quiet) => Float64.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
+
+    #region ExtFloat80 Shortcut Methods
+
+    public ExtFloat80 ToExtFloat80(uint32_t value) => ExtFloat80.FromUInt32(value, this);
+    public ExtFloat80 ToExtFloat80(uint64_t value) => ExtFloat80.FromUInt64(value, this);
+    public ExtFloat80 ToExtFloat80(int32_t value) => ExtFloat80.FromInt32(value, this);
+    public ExtFloat80 ToExtFloat80(int64_t value) => ExtFloat80.FromInt64(value, this);
+
+    public uint32_t ToUInt32(ExtFloat80 value, bool exact) => value.ToUInt32(RoundingMode, exact, this);
+    public uint32_t ToUInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(roundingMode, exact, this);
+    public uint32_t ToUInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt32RoundMinMag(exact, this);
+
+    public uint64_t ToUInt64(ExtFloat80 value, bool exact) => value.ToUInt64(RoundingMode, exact, this);
+    public uint64_t ToUInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(roundingMode, exact, this);
+    public uint64_t ToUInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt64RoundMinMag(exact, this);
+
+    public int32_t ToInt32(ExtFloat80 value, bool exact) => value.ToInt32(RoundingMode, exact, this);
+    public int32_t ToInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt32(roundingMode, exact, this);
+    public int32_t ToInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt32RoundMinMag(exact, this);
+
+    public int64_t ToInt64(ExtFloat80 value, bool exact) => value.ToInt64(RoundingMode, exact, this);
+    public int64_t ToInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt64(roundingMode, exact, this);
+    public int64_t ToInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt64RoundMinMag(exact, this);
+
+    public Float16 ToFloat16(ExtFloat80 value) => value.ToFloat16(this);
+    public Float32 ToFloat32(ExtFloat80 value) => value.ToFloat32(this);
+    public Float64 ToFloat64(ExtFloat80 value) => value.ToFloat64(this);
+    public Float128 ToFloat128(ExtFloat80 value) => value.ToFloat128(this);
+
+    public ExtFloat80 RoundToInt(ExtFloat80 value, bool exact) => value.RoundToInt(RoundingMode, exact, this);
+    public ExtFloat80 RoundToInt(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(roundingMode, exact, this);
+
+    public ExtFloat80 Add(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Add(a, b, this);
+    public ExtFloat80 Subtract(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Subtract(a, b, this);
+    public ExtFloat80 Multiply(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Multiply(a, b, this);
+    public ExtFloat80 Divide(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Divide(a, b, this);
+    public ExtFloat80 Modulus(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Modulus(a, b, this);
+    public ExtFloat80 SquareRoot(ExtFloat80 value) => value.SquareRoot(this);
+
+    public bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareEqual(a, b, quiet, this);
+    public bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareLessThan(a, b, quiet, this);
+    public bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
+
+    #region Float128 Shortcut Methods
+
+    public Float128 ToFloat128(uint32_t value) => Float128.FromUInt32(value, this);
+    public Float128 ToFloat128(uint64_t value) => Float128.FromUInt64(value, this);
+    public Float128 ToFloat128(int32_t value) => Float128.FromInt32(value, this);
+    public Float128 ToFloat128(int64_t value) => Float128.FromInt64(value, this);
+
+    public uint32_t ToUInt32(Float128 value, bool exact) => value.ToUInt32(RoundingMode, exact, this);
+    public uint32_t ToUInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(roundingMode, exact, this);
+    public uint32_t ToUInt32RoundMinMag(Float128 value, bool exact) => value.ToUInt32RoundMinMag(exact, this);
+
+    public uint64_t ToUInt64(Float128 value, bool exact) => value.ToUInt64(RoundingMode, exact, this);
+    public uint64_t ToUInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(roundingMode, exact, this);
+    public uint64_t ToUInt64RoundMinMag(Float128 value, bool exact) => value.ToUInt64RoundMinMag(exact, this);
+
+    public int32_t ToInt32(Float128 value, bool exact) => value.ToInt32(RoundingMode, exact, this);
+    public int32_t ToInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt32(roundingMode, exact, this);
+    public int32_t ToInt32RoundMinMag(Float128 value, bool exact) => value.ToInt32RoundMinMag(exact, this);
+
+    public int64_t ToInt64(Float128 value, bool exact) => value.ToInt64(RoundingMode, exact, this);
+    public int64_t ToInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt64(roundingMode, exact, this);
+    public int64_t ToInt64RoundMinMag(Float128 value, bool exact) => value.ToInt64RoundMinMag(exact, this);
+
+    public Float16 ToFloat16(Float128 value) => value.ToFloat16(this);
+    public Float32 ToFloat32(Float128 value) => value.ToFloat32(this);
+    public Float64 ToFloat64(Float128 value) => value.ToFloat64(this);
+    public ExtFloat80 ToExtFloat80(Float128 value) => value.ToExtFloat80(this);
+
+    public Float128 RoundToInt(Float128 value, bool exact) => value.RoundToInt(RoundingMode, exact, this);
+    public Float128 RoundToInt(Float128 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(roundingMode, exact, this);
+
+    public Float128 Add(Float128 a, Float128 b) => Float128.Add(a, b, this);
+    public Float128 Subtract(Float128 a, Float128 b) => Float128.Subtract(a, b, this);
+    public Float128 Multiply(Float128 a, Float128 b) => Float128.Multiply(a, b, this);
+    public Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c) => Float128.MultiplyAndAdd(a, b, c, this);
+    public Float128 Divide(Float128 a, Float128 b) => Float128.Divide(a, b, this);
+    public Float128 Modulus(Float128 a, Float128 b) => Float128.Modulus(a, b, this);
+    public Float128 SquareRoot(Float128 value) => value.SquareRoot(this);
+
+    public bool CompareEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareEqual(a, b, quiet, this);
+    public bool CompareLessThan(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThan(a, b, quiet, this);
+    public bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
 
     #endregion
 }
