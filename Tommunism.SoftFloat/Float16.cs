@@ -644,6 +644,8 @@ public readonly struct Float16
 
     #region Arithmetic Operations
 
+    public Float16 RoundToInt(bool exact, SoftFloatState state) => RoundToInt(state.RoundingMode, exact, state);
+
     // f16_roundToInt
     public Float16 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatState? state = null)
     {
