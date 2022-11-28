@@ -637,7 +637,7 @@ public readonly struct Float16
             exp--;
         }
 
-        return Float128.FromBitsUI128(PackToF128UI64(sign, exp + 0x3FF0, (uint_fast64_t)frac << 38));
+        return Float128.FromBitsUI128(PackToF128UI64(sign, exp + 0x3FF0, (uint_fast64_t)frac << 38), 0);
     }
 
     #endregion
