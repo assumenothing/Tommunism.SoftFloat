@@ -113,7 +113,7 @@ public readonly struct ExtFloat80
 
     public (ushort signExp, ulong significant) ToUIntBits() => (_signExp, _signif);
 
-#if NET7_0
+#if NET7_0_OR_GREATER
     // TODO: Check value range?
     public static ExtFloat80 FromUIntBits(UInt128 value) => new((ushort)(value >> 64), (ulong)value);
 
