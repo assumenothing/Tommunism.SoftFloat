@@ -180,7 +180,7 @@ partial class Internals
             if (expA == 0x7FF)
             {
                 return Float64.FromBitsUI64(((sigA | sigB) != 0)
-                    ? PropagateNaNF64UI(state, uiA, uiB)
+                    ? PropagateNaNFloat64Bits(state, uiA, uiB)
                     : uiA);
             }
 
@@ -197,7 +197,7 @@ partial class Internals
                 if (expB == 0x7FF)
                 {
                     return Float64.FromBitsUI64((sigB != 0)
-                        ? PropagateNaNF64UI(state, uiA, uiB)
+                        ? PropagateNaNFloat64Bits(state, uiA, uiB)
                         : PackToF64UI(signZ, 0x7FF, 0));
                 }
 
@@ -209,7 +209,7 @@ partial class Internals
                 if (expA == 0x7FF)
                 {
                     return Float64.FromBitsUI64((sigA != 0)
-                        ? PropagateNaNF64UI(state, uiA, uiB)
+                        ? PropagateNaNFloat64Bits(state, uiA, uiB)
                         : uiA);
                 }
 
@@ -247,10 +247,10 @@ partial class Internals
             if (expA == 0x7FF)
             {
                 if ((sigA | sigB) != 0)
-                    return Float64.FromBitsUI64(PropagateNaNF64UI(state, uiA, uiB));
+                    return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, uiA, uiB));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return Float64.FromBitsUI64(DefaultNaNF64UI);
+                return Float64.FromBitsUI64(DefaultNaNFloat64Bits);
             }
 
             sigDiff = (int_fast64_t)sigA - (int_fast64_t)sigB;
@@ -287,7 +287,7 @@ partial class Internals
                 if (expB == 0x7FF)
                 {
                     return Float64.FromBitsUI64((sigB != 0)
-                        ? PropagateNaNF64UI(state, uiA, uiB)
+                        ? PropagateNaNFloat64Bits(state, uiA, uiB)
                         : PackToF64UI(signZ, 0x7FF, 0));
                 }
 
@@ -302,7 +302,7 @@ partial class Internals
                 if (expA == 0x7FF)
                 {
                     return Float64.FromBitsUI64((sigA != 0)
-                        ? PropagateNaNF64UI(state, uiA, uiB)
+                        ? PropagateNaNFloat64Bits(state, uiA, uiB)
                         : uiA);
                 }
 
@@ -343,8 +343,8 @@ partial class Internals
         {
             if (sigA != 0 || (expB == 0x7FF && sigB != 0))
             {
-                uiZ = PropagateNaNF64UI(state, uiA, uiB);
-                return Float64.FromBitsUI64(PropagateNaNF64UI(state, uiZ, uiC));
+                uiZ = PropagateNaNFloat64Bits(state, uiA, uiB);
+                return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, uiZ, uiC));
             }
 
             magBits = (uint_fast64_t)(long)expB | sigB;
@@ -355,8 +355,8 @@ partial class Internals
         {
             if (sigB != 0)
             {
-                uiZ = PropagateNaNF64UI(state, uiA, uiB);
-                return Float64.FromBitsUI64(PropagateNaNF64UI(state, uiZ, uiC));
+                uiZ = PropagateNaNFloat64Bits(state, uiA, uiB);
+                return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, uiZ, uiC));
             }
 
             magBits = (uint_fast64_t)(long)expA | sigA;
@@ -366,7 +366,7 @@ partial class Internals
         if (expC == 0x7FF)
         {
             return Float64.FromBitsUI64((sigC != 0)
-                ? PropagateNaNF64UI(state, 0, uiC)
+                ? PropagateNaNFloat64Bits(state, 0, uiC)
                 : uiC);
         }
 
@@ -517,13 +517,13 @@ partial class Internals
                 return Float64.FromBitsUI64(uiZ);
 
             if (sigC != 0)
-                return Float64.FromBitsUI64(PropagateNaNF64UI(state, uiZ, uiC));
+                return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, uiZ, uiC));
 
             if (signZ == signC)
                 return Float64.FromBitsUI64(uiZ);
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return Float64.FromBitsUI64(PropagateNaNF64UI(state, DefaultNaNF64UI, uiC));
+        return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, DefaultNaNFloat64Bits, uiC));
     }
 }

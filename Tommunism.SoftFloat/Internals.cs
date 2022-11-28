@@ -122,7 +122,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? ui32_fromNegOverflow : ui32_fromPosOverflow;
+        return sign ? UInt32FromNegOverflow : UInt32FromPosOverflow;
     }
 
     // softfloat_roundToUI64
@@ -180,7 +180,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? ui64_fromNegOverflow : ui64_fromPosOverflow;
+        return sign ? UInt64FromNegOverflow : UInt64FromPosOverflow;
     }
 
     // softfloat_roundToI32
@@ -224,7 +224,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? i32_fromNegOverflow : i32_fromPosOverflow;
+        return sign ? Int32FromNegOverflow : Int32FromPosOverflow;
     }
 
     // softfloat_roundToI64
@@ -274,7 +274,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? i64_fromNegOverflow : i64_fromPosOverflow;
+        return sign ? Int64FromNegOverflow : Int64FromPosOverflow;
     }
 
     #endregion

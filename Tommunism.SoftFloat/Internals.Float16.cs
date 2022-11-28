@@ -194,7 +194,7 @@ partial class Internals
             {
                 if ((sigA | sigB) != 0)
                 {
-                    uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                    uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                     return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
@@ -222,7 +222,7 @@ partial class Internals
                 {
                     if (sigB != 0)
                     {
-                        uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                        uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                         return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
@@ -251,7 +251,7 @@ partial class Internals
                 {
                     if (sigA != 0)
                     {
-                        uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                        uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                         return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
@@ -337,12 +337,12 @@ partial class Internals
             {
                 if ((sigA | sigB) != 0)
                 {
-                    uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                    uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                     return Float16.FromBitsUI16((ushort)uiZ);
                 }
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                uiZ = DefaultNaNF16UI;
+                uiZ = DefaultNaNFloat16Bits;
                 return Float16.FromBitsUI16((ushort)uiZ);
             }
 
@@ -385,7 +385,7 @@ partial class Internals
                 {
                     if (sigB != 0)
                     {
-                        uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                        uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                         return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
@@ -414,7 +414,7 @@ partial class Internals
                 {
                     if (sigA != 0)
                     {
-                        uiZ = PropagateNaNF16UI(state, uiA, uiB);
+                        uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
                         return Float16.FromBitsUI16((ushort)uiZ);
                     }
 
@@ -499,8 +499,8 @@ partial class Internals
         {
             if (sigA != 0 || (expB == 0x1F && sigB != 0))
             {
-                uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                uiZ = PropagateNaNF16UI(state, uiZ, uiC);
+                uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
+                uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
                 return Float16.FromBitsUI16((ushort)uiZ);
             }
 
@@ -512,8 +512,8 @@ partial class Internals
         {
             if (sigB != 0)
             {
-                uiZ = PropagateNaNF16UI(state, uiA, uiB);
-                uiZ = PropagateNaNF16UI(state, uiZ, uiC);
+                uiZ = PropagateNaNFloat16Bits(state, uiA, uiB);
+                uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
                 return Float16.FromBitsUI16((ushort)uiZ);
             }
 
@@ -526,7 +526,7 @@ partial class Internals
             if (sigC != 0)
             {
                 uiZ = 0;
-                uiZ = PropagateNaNF16UI(state, uiZ, uiC);
+                uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
                 return Float16.FromBitsUI16((ushort)uiZ);
             }
 
@@ -659,7 +659,7 @@ partial class Internals
 
             if (sigC != 0)
             {
-                uiZ = PropagateNaNF16UI(state, uiZ, uiC);
+                uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
                 return Float16.FromBitsUI16((ushort)uiZ);
             }
 
@@ -668,8 +668,8 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        uiZ = DefaultNaNF16UI;
-        uiZ = PropagateNaNF16UI(state, uiZ, uiC);
+        uiZ = DefaultNaNFloat16Bits;
+        uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
         return Float16.FromBitsUI16((ushort)uiZ);
     }
 }

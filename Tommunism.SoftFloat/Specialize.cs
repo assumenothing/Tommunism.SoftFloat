@@ -80,40 +80,40 @@ internal static class Specialize
     public const Tininess InitialDetectTininess = Tininess.AfterRounding;
 
     // ui32_fromPosOverflow
-    public const uint ui32_fromPosOverflow = 0xFFFFFFFF;
+    public const uint UInt32FromPosOverflow = 0xFFFFFFFF;
 
     // ui32_fromNegOverflow
-    public const uint ui32_fromNegOverflow = 0xFFFFFFFF;
+    public const uint UInt32FromNegOverflow = 0xFFFFFFFF;
 
     // ui32_fromNaN
-    public const uint ui32_fromNaN = 0xFFFFFFFF;
+    public const uint UInt32FromNaN = 0xFFFFFFFF;
 
     // i32_fromPosOverflow
-    public const int i32_fromPosOverflow = -0x7FFFFFFF - 1;
+    public const int Int32FromPosOverflow = -0x7FFFFFFF - 1;
 
     // i32_fromNegOverflow
-    public const int i32_fromNegOverflow = -0x7FFFFFFF - 1;
+    public const int Int32FromNegOverflow = -0x7FFFFFFF - 1;
 
     // i32_fromNaN
-    public const int i32_fromNaN = -0x7FFFFFFF - 1;
+    public const int Int32FromNaN = -0x7FFFFFFF - 1;
 
     // ui64_fromPosOverflow
-    public const ulong ui64_fromPosOverflow = 0xFFFFFFFFFFFFFFFF;
+    public const ulong UInt64FromPosOverflow = 0xFFFFFFFFFFFFFFFF;
 
     // ui64_fromNegOverflow
-    public const ulong ui64_fromNegOverflow = 0xFFFFFFFFFFFFFFFF;
+    public const ulong UInt64FromNegOverflow = 0xFFFFFFFFFFFFFFFF;
 
     // ui64_fromNaN
-    public const ulong ui64_fromNaN = 0xFFFFFFFFFFFFFFFF;
+    public const ulong UInt64FromNaN = 0xFFFFFFFFFFFFFFFF;
 
     // i64_fromPosOverflow
-    public const long i64_fromPosOverflow = -0x7FFFFFFFFFFFFFFF - 1;
+    public const long Int64FromPosOverflow = -0x7FFFFFFFFFFFFFFF - 1;
 
     // i64_fromNegOverflow
-    public const long i64_fromNegOverflow = -0x7FFFFFFFFFFFFFFF - 1;
+    public const long Int64FromNegOverflow = -0x7FFFFFFFFFFFFFFF - 1;
 
     // i64_fromNaN
-    public const long i64_fromNaN = -0x7FFFFFFFFFFFFFFF - 1;
+    public const long Int64FromNaN = -0x7FFFFFFFFFFFFFFF - 1;
 
     #region Float16
 
@@ -121,55 +121,56 @@ internal static class Specialize
     /// <summary>
     /// The bit pattern for a default generated 16-bit floating-point NaN.
     /// </summary>
-    public const uint_fast16_t DefaultNaNF16UI = 0xFE00;
+    public const uint16_t DefaultNaNFloat16Bits = 0xFE00;
+
+    public static Float16 DefaultNaNFloat16 => Float16.FromBitsUI16(DefaultNaNFloat16Bits);
 
     // softfloat_isSigNaNF16UI
     /// <summary>
-    /// Returns true when 16-bit unsigned integer <paramref name="uiA"/> has the bit pattern of a 16-bit floating-point signaling NaN.
+    /// Returns true when 16-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 16-bit floating-point signaling NaN.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSigNaNF16UI(uint_fast16_t uiA) => (uiA & 0x7E00) == 0x7C00 && (uiA & 0x01FF) != 0;
+    public static bool IsSignalNaNFloat16Bits(uint_fast16_t bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
 
     // softfloat_f16UIToCommonNaN
     /// <summary>
-    /// Assuming <paramref name="uiA"/> has the bit pattern of a 16-bit floating-point NaN, converts this NaN to the common NaN form, and
-    /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
-    /// exception is raised.
+    /// Assuming <paramref name="bits"/> has the bit pattern of a 16-bit floating-point NaN, converts this NaN to the common NaN form, and
+    /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
+    /// invalid exception is raised.
     /// </summary>
-    public static void F16UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA, out SoftFloatCommonNaN zPtr)
+    public static void Float16BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNF16UI(uiA))
+        if (IsSignalNaNFloat16Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new SoftFloatCommonNaN()
+        commonNaN = new SoftFloatCommonNaN()
         {
-            Sign = (uiA >> 15) != 0,
-            Value = new UInt128(upper: (ulong)uiA << 54, lower: 0)
+            Sign = (bits >> 15) != 0,
+            Value = new UInt128(upper: (ulong)bits << 54, lower: 0)
         };
     }
 
     // softfloat_commonNaNToF16UI
     /// <summary>
-    /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 16-bit floating-point NaN, and returns the bit pattern of this
-    /// value as an unsigned integer.
+    /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 16-bit floating-point NaN, and returns the bit pattern of
+    /// this value as an unsigned integer.
     /// </summary>
-    public static uint_fast16_t CommonNaNToF16UI(in SoftFloatCommonNaN aPtr) =>
-        (aPtr.Sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(aPtr.Value >> 118);
+    public static uint16_t CommonNaNToFloat16Bits(in SoftFloatCommonNaN commonNaN) =>
+        (uint16_t)((commonNaN.Sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(commonNaN.Value >> 118));
 
     // softfloat_propagateNaNF16UI
     /// <summary>
-    /// Interpreting <paramref name="uiA"/> and <paramref name="uiB"/> as the bit patterns of two 16-bit floating-point values, at least
-    /// one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="uiA"/> or
-    /// <paramref name="uiB"/> has the pattern of a signaling NaN, the invalid exception is raised.
+    /// Interpreting <paramref name="bitsA"/> and <paramref name="bitsB"/> as the bit patterns of two 16-bit floating-point values, at
+    /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
+    /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static uint_fast16_t PropagateNaNF16UI(SoftFloatState state, uint_fast16_t uiA, uint_fast16_t uiB)
+    public static uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
     {
-        var isSigNaNA = IsSigNaNF16UI(uiA);
-        var isSigNaNB = IsSigNaNF16UI(uiB);
+        var isSigNaNA = IsSignalNaNFloat16Bits(bitsA);
+        var isSigNaNB = IsSignalNaNFloat16Bits(bitsB);
 
         // Make NaNs non-signaling.
-        var uiNonsigA = uiA | 0x0200;
-        var uiNonsigB = uiB | 0x0200;
+        var uiNonsigA = bitsA | 0x0200;
+        var uiNonsigB = bitsB | 0x0200;
 
         if (isSigNaNA | isSigNaNB)
         {
@@ -179,20 +180,20 @@ internal static class Specialize
                 if (isSigNaNB)
                     goto returnLargerMag;
 
-                return IsNaNF16UI(uiB) ? uiNonsigB : uiNonsigA;
+                return (uint16_t)(IsNaNF16UI(bitsB) ? uiNonsigB : uiNonsigA);
             }
             else
             {
-                return IsNaNF16UI(uiA) ? uiNonsigA : uiNonsigB;
+                return (uint16_t)(IsNaNF16UI(bitsA) ? uiNonsigA : uiNonsigB);
             }
         }
 
     returnLargerMag:
-        var uiMagA = uiA & 0x7FFF;
-        var uiMagB = uiB & 0x7FFF;
-        if (uiMagA < uiMagB) return uiNonsigB;
-        if (uiMagB < uiMagA) return uiNonsigA;
-        return (uiNonsigA < uiNonsigB) ? uiNonsigA : uiNonsigB;
+        var uiMagA = bitsA & 0x7FFF;
+        var uiMagB = bitsB & 0x7FFF;
+        if (uiMagA < uiMagB) return (uint16_t)uiNonsigB;
+        if (uiMagB < uiMagA) return (uint16_t)uiNonsigA;
+        return (uint16_t)((uiNonsigA < uiNonsigB) ? uiNonsigA : uiNonsigB);
     }
 
     #endregion
@@ -203,55 +204,56 @@ internal static class Specialize
     /// <summary>
     /// The bit pattern for a default generated 32-bit floating-point NaN.
     /// </summary>
-    public const uint_fast32_t DefaultNaNF32UI = 0xFFC00000;
+    public const uint32_t DefaultNaNFloat32Bits = 0xFFC00000;
+
+    public static Float32 DefaultNaNFloat32 => Float32.FromBitsUI32(DefaultNaNFloat32Bits);
 
     // softfloat_isSigNaNF32UI
     /// <summary>
-    /// Returns true when 32-bit unsigned integer <paramref name="uiA"/> has the bit pattern of a 32-bit floating-point signaling NaN.
+    /// Returns true when 32-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 32-bit floating-point signaling NaN.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSigNaNF32UI(uint_fast32_t uiA) => (uiA & 0x7FC00000) == 0x7FC00000 && (uiA & 0x003FFFFF) != 0;
+    public static bool IsSigNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7FC00000 && (bits & 0x003FFFFF) != 0;
 
     // softfloat_f32UIToCommonNaN
     /// <summary>
-    /// Assuming <paramref name="uiA"/> has the bit pattern of a 32-bit floating-point NaN, converts this NaN to the common NaN form, and
-    /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
-    /// exception is raised.
+    /// Assuming <paramref name="bits"/> has the bit pattern of a 32-bit floating-point NaN, converts this NaN to the common NaN form, and
+    /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
+    /// invalid exception is raised.
     /// </summary>
-    public static void F32UIToCommonNaN(SoftFloatState state, uint_fast32_t uiA, out SoftFloatCommonNaN zPtr)
+    public static void Float32BitsToCommonNaN(SoftFloatState state, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNF32UI(uiA))
+        if (IsSigNaNFloat32Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new SoftFloatCommonNaN()
+        commonNaN = new SoftFloatCommonNaN()
         {
-            Sign = (uiA >> 31) != 0,
-            Value = new UInt128(upper: (ulong)uiA << 41, lower: 0)
+            Sign = (bits >> 31) != 0,
+            Value = new UInt128(upper: (ulong)bits << 41, lower: 0)
         };
     }
 
     // softfloat_commonNaNToF32UI
     /// <summary>
-    /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 32-bit floating-point NaN, and returns the bit pattern of this
-    /// value as an unsigned integer.
+    /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 32-bit floating-point NaN, and returns the bit pattern of
+    /// this value as an unsigned integer.
     /// </summary>
-    public static uint_fast32_t CommonNaNToF32UI(in SoftFloatCommonNaN aPtr) =>
-        (aPtr.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(aPtr.Value >> 105);
+    public static uint32_t CommonNaNToFloat32Bits(in SoftFloatCommonNaN commonNaN) =>
+        (commonNaN.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(commonNaN.Value >> 105);
 
     // softfloat_propagateNaNF32UI
     /// <summary>
-    /// Interpreting <paramref name="uiA"/> and <paramref name="uiB"/> as the bit patterns of two 32-bit floating-point values, at least
-    /// one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="uiA"/> or
-    /// <paramref name="uiB"/> has the pattern of a signaling NaN, the invalid exception is raised.
+    /// Interpreting <paramref name="bitsA"/> and <paramref name="bitsB"/> as the bit patterns of two 32-bit floating-point values, at
+    /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
+    /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static uint_fast32_t PropagateNaNF32UI(SoftFloatState state, uint_fast32_t uiA, uint_fast32_t uiB)
+    public static uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
     {
-        var isSigNaNA = IsSigNaNF32UI(uiA);
-        var isSigNaNB = IsSigNaNF32UI(uiB);
+        var isSigNaNA = IsSigNaNFloat32Bits(bitsA);
+        var isSigNaNB = IsSigNaNFloat32Bits(bitsB);
 
         // Make NaNs non-signaling.
-        var uiNonsigA = uiA | 0x00400000;
-        var uiNonsigB = uiB | 0x00400000;
+        var uiNonsigA = bitsA | 0x00400000;
+        var uiNonsigB = bitsB | 0x00400000;
 
         if (isSigNaNA | isSigNaNB)
         {
@@ -261,17 +263,17 @@ internal static class Specialize
                 if (isSigNaNB)
                     goto returnLargerMag;
 
-                return IsNaNF32UI(uiB) ? uiNonsigB : uiNonsigA;
+                return IsNaNF32UI(bitsB) ? uiNonsigB : uiNonsigA;
             }
             else
             {
-                return IsNaNF32UI(uiA) ? uiNonsigA : uiNonsigB;
+                return IsNaNF32UI(bitsA) ? uiNonsigA : uiNonsigB;
             }
         }
 
     returnLargerMag:
-        var uiMagA = uiA & 0x7FFFFFFF;
-        var uiMagB = uiB & 0x7FFFFFFF;
+        var uiMagA = bitsA & 0x7FFFFFFF;
+        var uiMagB = bitsB & 0x7FFFFFFF;
         if (uiMagA < uiMagB) return uiNonsigB;
         if (uiMagB < uiMagA) return uiNonsigA;
         return (uiNonsigA < uiNonsigB) ? uiNonsigA : uiNonsigB;
@@ -285,56 +287,57 @@ internal static class Specialize
     /// <summary>
     /// The bit pattern for a default generated 64-bit floating-point NaN.
     /// </summary>
-    public const uint_fast64_t DefaultNaNF64UI = 0xFFF8000000000000;
+    public const uint64_t DefaultNaNFloat64Bits = 0xFFF8000000000000;
+
+    public static Float64 DefaultNaNFloat64 => Float64.FromBitsUI64(DefaultNaNFloat64Bits);
 
     // softfloat_isSigNaNF64UI
     /// <summary>
-    /// Returns true when 64-bit unsigned integer <paramref name="uiA"/> has the bit pattern of a 64-bit floating-point signaling NaN.
+    /// Returns true when 64-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 64-bit floating-point signaling NaN.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSigNaNF64UI(uint_fast64_t uiA) =>
-        (uiA & 0x7FF8000000000000) == 0x7FF8000000000000 && (uiA & 0x0007FFFFFFFFFFFF) != 0;
+    public static bool IsSigNaNFloat64Bits(uint_fast64_t bits) =>
+        (bits & 0x7FF8000000000000) == 0x7FF8000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
 
     // softfloat_f64UIToCommonNaN
     /// <summary>
-    /// Assuming <paramref name="uiA"/> has the bit pattern of a 64-bit floating-point NaN, converts this NaN to the common NaN form, and
-    /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
-    /// exception is raised.
+    /// Assuming <paramref name="bits"/> has the bit pattern of a 64-bit floating-point NaN, converts this NaN to the common NaN form, and
+    /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
+    /// invalid exception is raised.
     /// </summary>
-    public static void F64UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA, out SoftFloatCommonNaN zPtr)
+    public static void Float64BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNF64UI(uiA))
+        if (IsSigNaNFloat64Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new SoftFloatCommonNaN()
+        commonNaN = new SoftFloatCommonNaN()
         {
-            Sign = (uiA >> 63) != 0,
-            Value = new UInt128(upper: uiA << 12, lower: 0)
+            Sign = (bits >> 63) != 0,
+            Value = new UInt128(upper: bits << 12, lower: 0)
         };
     }
 
     // softfloat_commonNaNToF64UI
     /// <summary>
-    /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 64-bit floating-point NaN, and returns the bit pattern of this
-    /// value as an unsigned integer.
+    /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 64-bit floating-point NaN, and returns the bit pattern of
+    /// this value as an unsigned integer.
     /// </summary>
-    public static uint_fast64_t CommonNaNToF64UI(in SoftFloatCommonNaN aPtr) =>
-        (aPtr.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (uint_fast64_t)(aPtr.Value >> 76);
+    public static uint64_t CommonNaNToFloat64Bits(in SoftFloatCommonNaN commonNaN) =>
+        (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (uint_fast64_t)(commonNaN.Value >> 76);
 
     // softfloat_propagateNaNF64UI
     /// <summary>
-    /// Interpreting <paramref name="uiA"/> and <paramref name="uiB"/> as the bit patterns of two 64-bit floating-point values, at least
-    /// one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="uiA"/> or
-    /// <paramref name="uiB"/> has the pattern of a signaling NaN, the invalid exception is raised.
+    /// Interpreting <paramref name="bitsA"/> and <paramref name="bitsB"/> as the bit patterns of two 64-bit floating-point values, at
+    /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
+    /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static uint_fast64_t PropagateNaNF64UI(SoftFloatState state, uint_fast64_t uiA, uint_fast64_t uiB)
+    public static uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
     {
-        var isSigNaNA = IsSigNaNF64UI(uiA);
-        var isSigNaNB = IsSigNaNF64UI(uiB);
+        var isSigNaNA = IsSigNaNFloat64Bits(bitsA);
+        var isSigNaNB = IsSigNaNFloat64Bits(bitsB);
 
         // Make NaNs non-signaling.
-        var uiNonsigA = uiA | 0x0008000000000000;
-        var uiNonsigB = uiB | 0x0008000000000000;
+        var uiNonsigA = bitsA | 0x0008000000000000;
+        var uiNonsigB = bitsB | 0x0008000000000000;
 
         if (isSigNaNA | isSigNaNB)
         {
@@ -344,17 +347,17 @@ internal static class Specialize
                 if (isSigNaNB)
                     goto returnLargerMag;
 
-                return IsNaNF64UI(uiB) ? uiNonsigB : uiNonsigA;
+                return IsNaNF64UI(bitsB) ? uiNonsigB : uiNonsigA;
             }
             else
             {
-                return IsNaNF64UI(uiA) ? uiNonsigA : uiNonsigB;
+                return IsNaNF64UI(bitsA) ? uiNonsigA : uiNonsigB;
             }
         }
 
     returnLargerMag:
-        var uiMagA = uiA & 0x7FFFFFFFFFFFFFFF;
-        var uiMagB = uiB & 0x7FFFFFFFFFFFFFFF;
+        var uiMagA = bitsA & 0x7FFFFFFFFFFFFFFF;
+        var uiMagB = bitsB & 0x7FFFFFFFFFFFFFFF;
         if (uiMagA < uiMagB) return uiNonsigB;
         if (uiMagB < uiMagA) return uiNonsigA;
         return (uiNonsigA < uiNonsigB) ? uiNonsigA : uiNonsigB;
@@ -368,67 +371,69 @@ internal static class Specialize
     /// <summary>
     /// The bit pattern for the upper 16 bits of a default generated 80-bit extended floating-point NaN.
     /// </summary>
-    public const uint16_t DefaultNaNExtF80UI64 = 0xFFFF;
+    public const uint16_t DefaultNaNExtFloat80BitsUpper = 0xFFFF;
 
     // defaultNaNExtF80UI0
     /// <summary>
     /// The bit pattern for the lower 64 bits of a default generated 80-bit extended floating-point NaN.
     /// </summary>
-    public const uint64_t DefaultNaNExtF80UI0 = 0xC000000000000000;
+    public const uint64_t DefaultNaNExtFloat80BitsLower = 0xC000000000000000;
+
+    public static ExtFloat80 DefaultNaNExtFloat80 => ExtFloat80.FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
 
     // softfloat_isSigNaNExtF80UI
     /// <summary>
-    /// Returns true when the 80-bit unsigned integer formed from concatenating 16-bit <paramref name="uiA64"/> and 64-bit
-    /// <paramref name="uiA0"/> has the bit pattern of an 80-bit extended floating-point signaling NaN.
+    /// Returns true when the 80-bit unsigned integer formed from concatenating 16-bit <paramref name="bits64"/> and 64-bit
+    /// <paramref name="bits0"/> has the bit pattern of an 80-bit extended floating-point signaling NaN.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSigNaNExtF80UI(uint_fast16_t uiA64, uint_fast64_t uiA0) =>
-        (uiA64 & 0x7FFF) == 0x7FFF && (uiA0 & 0x4000000000000000) == 0 && (uiA0 & 0x3FFFFFFFFFFFFFFF) != 0;
+    public static bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
+        (bits64 & 0x7FFF) == 0x7FFF && (bits0 & 0x4000000000000000) == 0 && (bits0 & 0x3FFFFFFFFFFFFFFF) != 0;
 
     // softfloat_extF80UIToCommonNaN
     /// <summary>
-    /// Assuming the unsigned integer formed from concatenating <paramref name="uiA64"/> and <paramref name="uiA0"/> has the bit pattern of
-    /// an 80-bit extended floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the
-    /// location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid exception is raised.
+    /// Assuming the unsigned integer formed from concatenating <paramref name="bits64"/> and <paramref name="bits0"/> has the bit pattern
+    /// of an 80-bit extended floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the
+    /// location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static void ExtF80UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, out SoftFloatCommonNaN zPtr)
+    public static void ExtFloat80BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNExtF80UI(uiA64, uiA0))
+        if (IsSigNaNExtFloat80Bits(bits64, bits0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new SoftFloatCommonNaN()
+        commonNaN = new SoftFloatCommonNaN()
         {
-            Sign = (uiA64 >> 15) != 0,
-            Value = new UInt128(upper: uiA0 << 1, lower: 0)
+            Sign = (bits64 >> 15) != 0,
+            Value = new UInt128(upper: bits0 << 1, lower: 0)
         };
     }
 
     // softfloat_commonNaNToExtF80UI
     /// <summary>
-    /// Converts the common NaN pointed to by <paramref name="aPtr"/> into an 80-bit extended floating-point NaN, and returns the bit
+    /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into an 80-bit extended floating-point NaN, and returns the bit
     /// pattern of this value as an unsigned integer.
     /// </summary>
-    public static UInt128 CommonNaNToExtF80UI(in SoftFloatCommonNaN aPtr) => new(
-        upper: (aPtr.Sign ? (1UL << 15) : 0) | 0x7FFF,
-        lower: 0xC000000000000000 | (uint64_t)(aPtr.Value >> 65)
+    public static UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) => new(
+        upper: (commonNaN.Sign ? (1UL << 15) : 0) | 0x7FFF,
+        lower: 0xC000000000000000 | (uint64_t)(commonNaN.Value >> 65)
     );
 
     // softfloat_propagateNaNExtF80UI
     /// <summary>
-    /// Interpreting the unsigned integer formed from concatenating <paramref name="uiA64"/> and <paramref name="uiA0"/> as an 80-bit
-    /// extended floating-point value, and likewise interpreting the unsigned integer formed from concatenating <paramref name="uiB64"/>
-    /// and <paramref name="uiB0"/> as another 80-bit extended floating-point value, and assuming at least on of these floating-point
+    /// Interpreting the unsigned integer formed from concatenating <paramref name="bitsA64"/> and <paramref name="bitsA0"/> as an 80-bit
+    /// extended floating-point value, and likewise interpreting the unsigned integer formed from concatenating <paramref name="bitsB64"/>
+    /// and <paramref name="bitsB0"/> as another 80-bit extended floating-point value, and assuming at least on of these floating-point
     /// values is a NaN, returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN,
     /// the invalid exception is raised.
     /// </summary>
-    public static UInt128 PropagateNaNExtF80UI(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0)
+    public static UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
     {
-        var isSigNaNA = IsSigNaNExtF80UI(uiA64, uiA0);
-        var isSigNaNB = IsSigNaNExtF80UI(uiB64, uiB0);
+        var isSigNaNA = IsSigNaNExtFloat80Bits(bitsA64, bitsA0);
+        var isSigNaNB = IsSigNaNExtFloat80Bits(bitsB64, bitsB0);
 
         // Make NaNs non-signaling.
-        var uiNonsigA0 = uiA0 | 0xC000000000000000;
-        var uiNonsigB0 = uiB0 | 0xC000000000000000;
+        var uiNonsigA0 = bitsA0 | 0xC000000000000000;
+        var uiNonsigB0 = bitsB0 | 0xC000000000000000;
 
         if (isSigNaNA | isSigNaNB)
         {
@@ -438,28 +443,28 @@ internal static class Specialize
                 if (isSigNaNB)
                     goto returnLargerMag;
 
-                return IsNaNExtF80UI((int_fast16_t)uiB64, uiB0)
-                    ? new UInt128(upper: uiB64, lower: uiNonsigB0)
-                    : new UInt128(upper: uiA64, lower: uiNonsigA0);
+                return IsNaNExtF80UI((int_fast16_t)bitsB64, bitsB0)
+                    ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
+                    : new UInt128(upper: bitsA64, lower: uiNonsigA0);
             }
             else
             {
-                return IsNaNExtF80UI((int_fast16_t)uiA64, uiA0)
-                    ? new UInt128(upper: uiA64, lower: uiNonsigA0)
-                    : new UInt128(upper: uiB64, lower: uiNonsigB0);
+                return IsNaNExtF80UI((int_fast16_t)bitsA64, bitsA0)
+                    ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
+                    : new UInt128(upper: bitsB64, lower: uiNonsigB0);
             }
         }
 
     returnLargerMag:
-        var uiMagA64 = uiA64 & 0x7FFF;
-        var uiMagB64 = uiB64 & 0x7FFF;
+        var uiMagA64 = bitsA64 & 0x7FFF;
+        var uiMagB64 = bitsB64 & 0x7FFF;
 
         int cmp = uiMagA64.CompareTo(uiMagB64);
-        if (cmp == 0) cmp = uiA0.CompareTo(uiB0);
-        if (cmp == 0) cmp = uiB64.CompareTo(uiA64);
+        if (cmp == 0) cmp = bitsA0.CompareTo(bitsB0);
+        if (cmp == 0) cmp = bitsB64.CompareTo(bitsA64);
         return cmp <= 0
-            ? new UInt128(upper: uiB64, lower: uiNonsigB0)
-            : new UInt128(upper: uiA64, lower: uiNonsigA0);
+            ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
+            : new UInt128(upper: bitsA64, lower: uiNonsigA0);
     }
 
     #endregion
@@ -470,38 +475,40 @@ internal static class Specialize
     /// <summary>
     /// The bit pattern for the upper 64 bits of a default generated 128-bit floating-point NaN.
     /// </summary>
-    public const uint_fast64_t DefaultNaNF128UI64 = 0xFFFF800000000000;
+    public const uint_fast64_t DefaultNaNFloat128BitsUpper = 0xFFFF800000000000;
 
     // defaultNaNF128UI0
     /// <summary>
     /// The bit pattern for the lowper 64 bits of a default generated 128-bit floating-point NaN.
     /// </summary>
-    public const uint_fast64_t DefaultNaNF128UI0 = 0x0000000000000000;
+    public const uint_fast64_t DefaultNaNFloat128BitsLower = 0x0000000000000000;
+
+    public static Float128 DefaultNaNFloat128 => Float128.FromBitsUI128(v64: DefaultNaNFloat128BitsUpper, v0: DefaultNaNFloat128BitsLower);
 
     // softfloat_isSigNaNF128UI
     /// <summary>
-    /// Returns true when the 128-bit unsigned integer formed from concatenating 64-bit <paramref name="uiA64"/> and 64-bit
-    /// <paramref name="uiA0"/> has the bit pattern of a 128-bit floating-point signaling NaN.
+    /// Returns true when the 128-bit unsigned integer formed from concatenating 64-bit <paramref name="bits64"/> and 64-bit
+    /// <paramref name="bits0"/> has the bit pattern of a 128-bit floating-point signaling NaN.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSigNaNF128UI(uint_fast64_t uiA64, uint_fast64_t uiA0) =>
-        (uiA64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (uiA0 != 0 || (uiA64 & 0x00007FFFFFFFFFFF) != 0);
+    public static bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
+        (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
 
     // softfloat_f128UIToCommonNaN
     /// <summary>
-    /// Assuming the unsigned integer formed from concatenating <paramref name="uiA64"/> and <paramref name="uiA0"/> has the bit pattern of
-    /// an 128-bit floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the location
-    /// pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid exception is raised.
+    /// Assuming the unsigned integer formed from concatenating <paramref name="bits64"/> and <paramref name="bits0"/> has the bit pattern
+    /// of an 128-bit floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the location
+    /// pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static void F128UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, out SoftFloatCommonNaN zPtr)
+    public static void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNF128UI(uiA64, uiA0))
+        if (IsSigNaNFloat128Bits(bits64, bits0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        var NaNSig = ShortShiftLeft128(uiA64, uiA0, 16);
-        zPtr = new SoftFloatCommonNaN()
+        var NaNSig = ShortShiftLeft128(bits64, bits0, 16);
+        commonNaN = new SoftFloatCommonNaN()
         {
-            Sign = (uiA64 >> 63) != 0,
+            Sign = (bits64 >> 63) != 0,
             Value = new UInt128(upper: NaNSig.V64, lower: NaNSig.V00)
         };
     }
@@ -511,29 +518,29 @@ internal static class Specialize
     /// Converts the common NaN pointed to by 'aPtr' into a 128-bit floating-point NaN, and returns the bit pattern of this value as an
     /// unsigned integer.
     /// </summary>
-    public static UInt128 CommonNaNToF128UI(in SoftFloatCommonNaN aPtr)
+    public static UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN)
     {
-        var uiZ = aPtr.Value >> 16;
-        uiZ |= new UInt128(upper: (aPtr.Sign ? (1UL << 63) : 0) | 0x7FFF800000000000, lower: 0);
+        var uiZ = commonNaN.Value >> 16;
+        uiZ |= new UInt128(upper: (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FFF800000000000, lower: 0);
         return uiZ;
     }
 
     // softfloat_propagateNaNF128UI
     /// <summary>
-    /// Interpreting the unsigned integer formed from concatenating <paramref name="uiA64"/> and <paramref name="uiA0"/> as a 128-bit
-    /// floating-point value, and likewise interpreting the unsigned integer formed from concatenating <paramref name="uiB64"/> and
-    /// <paramref name="uiB0"/> as another 128-bit floating-point value, and assuming at least on of these floating-point values is a NaN,
+    /// Interpreting the unsigned integer formed from concatenating <paramref name="bitsA64"/> and <paramref name="bitsA0"/> as a 128-bit
+    /// floating-point value, and likewise interpreting the unsigned integer formed from concatenating <paramref name="bitsB64"/> and
+    /// <paramref name="bitsB0"/> as another 128-bit floating-point value, and assuming at least on of these floating-point values is a NaN,
     /// returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public static UInt128 PropagateNaNF128UI(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0)
+    public static UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
     {
-        var isSigNaNA = IsSigNaNF128UI(uiA64, uiA0);
-        var isSigNaNB = IsSigNaNF128UI(uiB64, uiB0);
+        var isSigNaNA = IsSigNaNFloat128Bits(bitsA64, bitsA0);
+        var isSigNaNB = IsSigNaNFloat128Bits(bitsB64, bitsB0);
 
         // Make NaNs non-signaling.
-        var uiNonsigA0 = uiA0 | 0x0000800000000000;
-        var uiNonsigB0 = uiB0 | 0x0000800000000000;
+        var uiNonsigA0 = bitsA0 | 0x0000800000000000;
+        var uiNonsigB0 = bitsB0 | 0x0000800000000000;
 
         if (isSigNaNA | isSigNaNB)
         {
@@ -543,28 +550,28 @@ internal static class Specialize
                 if (isSigNaNB)
                     goto returnLargerMag;
 
-                return IsNaNF128UI(uiB64, uiB0)
-                    ? new UInt128(upper: uiB64, lower: uiNonsigB0)
-                    : new UInt128(upper: uiA64, lower: uiNonsigA0);
+                return IsNaNF128UI(bitsB64, bitsB0)
+                    ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
+                    : new UInt128(upper: bitsA64, lower: uiNonsigA0);
             }
             else
             {
-                return IsNaNF128UI(uiA64, uiA0)
-                    ? new UInt128(upper: uiA64, lower: uiNonsigA0)
-                    : new UInt128(upper: uiB64, lower: uiNonsigB0);
+                return IsNaNF128UI(bitsA64, bitsA0)
+                    ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
+                    : new UInt128(upper: bitsB64, lower: uiNonsigB0);
             }
         }
 
     returnLargerMag:
-        var uiMagA64 = uiA64 & 0x7FFFFFFFFFFFFFFF;
-        var uiMagB64 = uiB64 & 0x7FFFFFFFFFFFFFFF;
+        var uiMagA64 = bitsA64 & 0x7FFFFFFFFFFFFFFF;
+        var uiMagB64 = bitsB64 & 0x7FFFFFFFFFFFFFFF;
 
         int cmp = uiMagA64.CompareTo(uiMagB64);
-        if (cmp == 0) cmp = uiA0.CompareTo(uiB0);
-        if (cmp == 0) cmp = uiB64.CompareTo(uiA64);
+        if (cmp == 0) cmp = bitsA0.CompareTo(bitsB0);
+        if (cmp == 0) cmp = bitsB64.CompareTo(bitsA64);
         return cmp <= 0
-            ? new UInt128(upper: uiB64, lower: uiNonsigB0)
-            : new UInt128(upper: uiA64, lower: uiNonsigA0);
+            ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
+            : new UInt128(upper: bitsA64, lower: uiNonsigA0);
     }
 
     #endregion
