@@ -714,11 +714,15 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 Mul64ByShifted32To128(ulong a, uint b)
     {
+#if NET7_0_OR_GREATER
+        return (UInt128)a * ((UInt128)b << 32);
+#else
         var mid = (ulong)(uint)a * b;
         return new SFUInt128(
             v64: (ulong)(uint)(a >> 32) * b + (mid >> 32),
             v0: mid << 32
         );
+#endif
     }
 
     // softfloat_mul64To128
@@ -727,6 +731,9 @@ internal static class Primitives
     /// </summary>
     public static SFUInt128 Mul64To128(ulong a, ulong b)
     {
+#if NET7_0_OR_GREATER
+        return (UInt128)a * b;
+#else
         SFUInt128 z;
 
         var a32 = (uint)(a >> 32);
@@ -745,6 +752,7 @@ internal static class Primitives
         z.V00 += mid;
         z.V64 += z.V00 < mid ? 1UL : 0UL;
         return z;
+#endif
     }
 
     // softfloat_mul128By32
@@ -755,12 +763,16 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 Mul128By32(ulong a64, ulong a0, uint b)
     {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) * b;
+#else
         SFUInt128 z;
         z.V00 = a0 * b;
         var mid = (ulong)(uint)(a0 >> 32) * b;
         var carry = (uint)(z.V00 >> 32) - (uint)mid;
         z.V64 = a64 * b + (uint)((mid + carry) >> 32);
         return z;
+#endif
     }
 
     // softfloat_mul128To256M
@@ -774,6 +786,22 @@ internal static class Primitives
     {
         Debug.Assert(zPtr.Length >= 4, "Z is too small.");
 
+#if NET7_0_OR_GREATER
+        UInt128 z0, mid1, mid, z128;
+        z0 = (UInt128)a0 * b0;
+        mid1 = (UInt128)a64 * b0;
+        mid = mid1 + (UInt128)a0 * b64;
+        z128 = (UInt128)a64 * b64;
+        z128 += new UInt128(upper: mid < mid1 ? 1UL : 0, lower: (ulong)(mid >> 64));
+        mid <<= 64;
+        z0 += mid;
+        z128 += z0 < mid ? UInt128.One : UInt128.Zero;
+
+        zPtr[IndexWord(4, 0)] = (ulong)z0;
+        zPtr[IndexWord(4, 1)] = (ulong)(z0 >> 64);
+        zPtr[IndexWord(4, 2)] = (ulong)z128;
+        zPtr[IndexWord(4, 3)] = (ulong)(z128 >> 64);
+#else
         SFUInt128 p0, p64, p128;
         ulong z64, z128, z192;
 
@@ -792,5 +820,6 @@ internal static class Primitives
         z128 += p64.V64;
         zPtr[IndexWord(4, 2)] = z128;
         zPtr[IndexWord(4, 3)] = z192 + (z128 < p64.V64 ? 1UL : 0UL);
+#endif
     }
 }
