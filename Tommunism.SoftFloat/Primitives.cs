@@ -388,7 +388,7 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt64Extra ShiftRightJam64Extra(ulong a, ulong extra, int dist)
     {
-        Unsafe.SkipInit(out UInt64Extra z);
+        UInt64Extra z;
         if (dist < 64)
         {
             z.V = a >> dist;
@@ -462,7 +462,7 @@ internal static class Primitives
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
 
-        Unsafe.SkipInit(out SFUInt128 zv);
+        SFUInt128 zv;
         ulong zextra;
 
         var negDist = -dist;
@@ -631,7 +631,7 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 Add128(ulong a64, ulong a0, ulong b64, ulong b0)
     {
-        Unsafe.SkipInit(out SFUInt128 z);
+        SFUInt128 z;
         z.V00 = a0 + b0;
         z.V64 = a64 + b64 + (z.V00 < a0 ? 1UL : 0UL);
         return z;
@@ -727,7 +727,7 @@ internal static class Primitives
     /// </summary>
     public static SFUInt128 Mul64To128(ulong a, ulong b)
     {
-        Unsafe.SkipInit(out SFUInt128 z);
+        SFUInt128 z;
 
         var a32 = (uint)(a >> 32);
         var a0 = (uint)a;
@@ -747,9 +747,6 @@ internal static class Primitives
         return z;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Mul128By32(SFUInt128 a, uint b) => Mul128By32(a.V64, a.V00, b);
-
     // softfloat_mul128By32
     /// <summary>
     /// Returns the product of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/>, multiplied by
@@ -758,7 +755,7 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 Mul128By32(ulong a64, ulong a0, uint b)
     {
-        Unsafe.SkipInit(out SFUInt128 z);
+        SFUInt128 z;
         z.V00 = a0 * b;
         var mid = (ulong)(uint)(a0 >> 32) * b;
         var carry = (uint)(z.V00 >> 32) - (uint)mid;

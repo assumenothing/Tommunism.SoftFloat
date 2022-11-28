@@ -1012,7 +1012,7 @@ public readonly struct ExtFloat80
             if (--ix < 0)
                 break;
 
-            rem = ShortShiftLeft128(rem.V64, rem.V00, 29);
+            rem <<= 29;
             term = Mul64ByShifted32To128(sigB, q);
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)

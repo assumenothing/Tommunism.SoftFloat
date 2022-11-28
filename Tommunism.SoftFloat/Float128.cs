@@ -1202,7 +1202,7 @@ public readonly struct Float128
                 break;
 
             rem <<= 29;
-            term = Mul128By32(sigB, q);
+            term = sigB * q;
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
@@ -1216,7 +1216,7 @@ public readonly struct Float128
         if (((q + 1) & 7) < 2)
         {
             rem <<= 29;
-            term = Mul128By32(sigB, q);
+            term = sigB * q;
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
@@ -1339,7 +1339,7 @@ public readonly struct Float128
 
                 q = (uint_fast32_t)((q64 + 0x80000000) >> 32);
                 rem <<= 29;
-                term = Mul128By32(sigB, q);
+                term = sigB * q;
                 rem -= term;
                 if ((rem.V64 & 0x8000000000000000) != 0)
                     rem += sigB;
@@ -1350,7 +1350,7 @@ public readonly struct Float128
             // ('expDiff' cannot be less than -29 here.)
             q = (uint32_t)(q64 >> 32) >> (~expDiff & 31);
             rem <<= expDiff + 30;
-            term = Mul128By32(sigB, q);
+            term = sigB * q;
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
@@ -1482,7 +1482,7 @@ public readonly struct Float128
         {
             term = (SFUInt128)sig64Z << 32;
             term += (SFUInt128)((uint_fast64_t)q << 6);
-            term = Mul128By32(term, q);
+            term *= q;
             rem = y - term;
             if ((rem.V64 & 0x8000000000000000) == 0)
                 break;

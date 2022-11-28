@@ -402,8 +402,8 @@ partial class Internals
         if (sig128Z.V64 < 0x2000000000000000)
         {
             --expZ;
-            //sig128Z = Add128(sig128Z.V64, sig128Z.V00, sig128Z.V64, sig128Z.V00);
-            sig128Z = ShortShiftLeft128(sig128Z.V64, sig128Z.V00, 1); // faster if inlined? probably not by much, if any
+            //sig128Z += sig128Z;
+            sig128Z <<= 1; // faster than above add if inlined? probably not by much, if any
         }
 
         if (expC == 0)
