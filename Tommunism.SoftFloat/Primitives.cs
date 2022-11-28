@@ -716,8 +716,8 @@ internal static class Primitives
     {
         var mid = (ulong)(uint)a * b;
         return new SFUInt128(
-            v0: mid << 32,
-            v64: (ulong)(uint)(a >> 32) * b + (mid >> 32)
+            v64: (ulong)(uint)(a >> 32) * b + (mid >> 32),
+            v0: mid << 32
         );
     }
 

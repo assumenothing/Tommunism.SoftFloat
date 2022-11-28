@@ -169,25 +169,31 @@ internal struct SFUInt256 : IEquatable<SFUInt256>, IReadOnlyList<ulong>
 
     public SFUInt128 V000_UI128
     {
-        get => BitConverter.IsLittleEndian ? new SFUInt128(v0: _v0, v64: _v1) : new SFUInt128(v0: _v3, v64: _v2);
+        get => BitConverter.IsLittleEndian
+            ? new SFUInt128(v64: _v1, v0: _v0)
+            : new SFUInt128(v64: _v2, v0: _v3);
+
         set
         {
             if (BitConverter.IsLittleEndian)
                 (_v1, _v0) = value;
             else
-                (_v3, _v2) = value;
+                (_v2, _v3) = value;
         }
     }
 
     public SFUInt128 V128_UI128
     {
-        get => BitConverter.IsLittleEndian ? new SFUInt128(v0: _v2, v64: _v3) : new SFUInt128(v0: _v1, v64: _v0);
+        get => BitConverter.IsLittleEndian
+            ? new SFUInt128(v64: _v3, v0: _v2)
+            : new SFUInt128(v64: _v0, v0: _v1);
+
         set
         {
             if (BitConverter.IsLittleEndian)
                 (_v3, _v2) = value;
             else
-                (_v1, _v0) = value;
+                (_v0, _v1) = value;
         }
     }
 

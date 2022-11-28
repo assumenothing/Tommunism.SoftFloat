@@ -64,7 +64,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     #region Constructors
 
-    public SFUInt128(ulong v0, ulong v64) => (V00, V64) = (v0, v64);
+    public SFUInt128(ulong v64, ulong v0) => (V00, V64) = (v0, v64);
 
     #endregion
 
@@ -95,7 +95,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     public override string ToString() => $"0x{V64:x16}{V00:x16}";
 
-    public static explicit operator SFUInt128(ulong value) => new(v0: value, v64: 0);
+    public static explicit operator SFUInt128(ulong value) => new(v64: 0, v0: value);
 
     public static explicit operator ulong(SFUInt128 value) => value.V00;
 
