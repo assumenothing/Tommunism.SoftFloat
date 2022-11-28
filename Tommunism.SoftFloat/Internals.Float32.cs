@@ -291,8 +291,7 @@ partial class Internals
                 }
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                uiZ = DefaultNaNFloat32Bits;
-                return Float32.FromBitsUI32(uiZ);
+                return DefaultNaNFloat32;
             }
 
             sigDiff = (int_fast32_t)sigA - (int_fast32_t)sigB;
@@ -568,8 +567,7 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        uiZ = DefaultNaNFloat32Bits;
-        uiZ = PropagateNaNFloat32Bits(state, uiZ, uiC);
+        uiZ = PropagateNaNFloat32Bits(state, DefaultNaNFloat32Bits, uiC);
         return Float32.FromBitsUI32(uiZ);
     }
 }

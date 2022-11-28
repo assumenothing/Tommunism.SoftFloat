@@ -342,8 +342,7 @@ partial class Internals
                 }
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                uiZ = DefaultNaNFloat16Bits;
-                return Float16.FromBitsUI16((ushort)uiZ);
+                return DefaultNaNFloat16;
             }
 
             sigDiff = (int_fast16_t)sigA - (int_fast16_t)sigB;
@@ -668,8 +667,7 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        uiZ = DefaultNaNFloat16Bits;
-        uiZ = PropagateNaNFloat16Bits(state, uiZ, uiC);
+        uiZ = PropagateNaNFloat16Bits(state, DefaultNaNFloat16Bits, uiC);
         return Float16.FromBitsUI16((ushort)uiZ);
     }
 }

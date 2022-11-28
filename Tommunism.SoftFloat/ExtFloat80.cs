@@ -861,7 +861,7 @@ public readonly struct ExtFloat80
             if (((uint_fast32_t)expB | sigB) == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+                return DefaultNaNExtFloat80;
             }
             else
             {
@@ -876,7 +876,7 @@ public readonly struct ExtFloat80
             if (((uint_fast32_t)expB | sigB) == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+                return DefaultNaNExtFloat80;
             }
             else
             {
@@ -973,7 +973,7 @@ public readonly struct ExtFloat80
                 if (sigA == 0)
                 {
                     (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                    return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+                    return DefaultNaNExtFloat80;
                 }
 
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Infinite);
@@ -1081,7 +1081,7 @@ public readonly struct ExtFloat80
                 return FromBitsUI128(PropagateNaNExtFloat80Bits(state ?? SoftFloatState.Default, uiA64, uiA0, uiB64, uiB0));
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+            return DefaultNaNExtFloat80;
         }
         else if (expB == 0x7FFF)
         {
@@ -1101,7 +1101,7 @@ public readonly struct ExtFloat80
             if (sigB == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+                return DefaultNaNExtFloat80;
             }
 
             (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
@@ -1238,7 +1238,7 @@ public readonly struct ExtFloat80
                 return this;
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+            return DefaultNaNExtFloat80;
         }
 
         if (signA)
@@ -1247,7 +1247,7 @@ public readonly struct ExtFloat80
                 return FromBitsUI80(PackToExtF80UI64(signA, 0), 0);
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+            return DefaultNaNExtFloat80;
         }
 
         if (expA == 0)

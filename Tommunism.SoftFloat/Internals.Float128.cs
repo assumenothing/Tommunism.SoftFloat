@@ -341,7 +341,7 @@ partial class Internals
                     return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return Float128.FromBitsUI128(v64: DefaultNaNFloat128BitsUpper, v0: DefaultNaNFloat128BitsLower);
+                return DefaultNaNFloat128;
             }
 
             expZ = expA;
@@ -732,7 +732,6 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        uiZ = new SFUInt128(v64: DefaultNaNFloat128BitsUpper, v0: DefaultNaNFloat128BitsLower);
-        return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
+        return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, DefaultNaNFloat128BitsUpper, DefaultNaNFloat128BitsLower, uiC64, uiC0));
     }
 }

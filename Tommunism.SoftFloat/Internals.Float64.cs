@@ -250,7 +250,7 @@ partial class Internals
                     return Float64.FromBitsUI64(PropagateNaNFloat64Bits(state, uiA, uiB));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return Float64.FromBitsUI64(DefaultNaNFloat64Bits);
+                return DefaultNaNFloat64;
             }
 
             sigDiff = (int_fast64_t)sigA - (int_fast64_t)sigB;

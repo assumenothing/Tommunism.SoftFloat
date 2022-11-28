@@ -794,7 +794,7 @@ public readonly struct Float32
             if (magBits == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+                return DefaultNaNFloat32;
             }
             else
             {
@@ -811,7 +811,7 @@ public readonly struct Float32
             if (magBits == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+                return DefaultNaNFloat32;
             }
             else
             {
@@ -886,7 +886,7 @@ public readonly struct Float32
 
                 state ??= SoftFloatState.Default;
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+                return DefaultNaNFloat32;
             }
 
             return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
@@ -908,7 +908,7 @@ public readonly struct Float32
                 {
                     state ??= SoftFloatState.Default;
                     state.RaiseFlags(ExceptionFlags.Invalid);
-                    return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+                    return DefaultNaNFloat32;
                 }
 
                 state ??= SoftFloatState.Default;
@@ -971,7 +971,7 @@ public readonly struct Float32
 
             state ??= SoftFloatState.Default;
             state.RaiseFlags(ExceptionFlags.Invalid);
-            return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+            return DefaultNaNFloat32;
         }
 
         if (expB == 0xFF)
@@ -988,7 +988,7 @@ public readonly struct Float32
             {
                 state ??= SoftFloatState.Default;
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+                return DefaultNaNFloat32;
             }
 
             (expB, sigB) = NormSubnormalF32Sig(sigB);
@@ -1096,7 +1096,7 @@ public readonly struct Float32
 
             state ??= SoftFloatState.Default;
             state.RaiseFlags(ExceptionFlags.Invalid);
-            return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+            return DefaultNaNFloat32;
         }
 
         if (signA)
@@ -1106,7 +1106,7 @@ public readonly struct Float32
 
             state ??= SoftFloatState.Default;
             state.RaiseFlags(ExceptionFlags.Invalid);
-            return Float32.FromBitsUI32(DefaultNaNFloat32Bits);
+            return DefaultNaNFloat32;
         }
 
         if (expA == 0)

@@ -409,7 +409,7 @@ partial class Internals
                     return ExtFloat80.FromBitsUI128(PropagateNaNExtFloat80Bits(state, uiA64, uiA0, uiB64, uiB0));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return ExtFloat80.FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
+                return DefaultNaNExtFloat80;
             }
 
             expZ = expA;

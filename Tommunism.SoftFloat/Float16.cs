@@ -796,7 +796,7 @@ public readonly struct Float16
             if (((uint_fast8_t)expB | sigB) == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+                return DefaultNaNFloat16;
             }
 
             return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
@@ -809,7 +809,7 @@ public readonly struct Float16
             if (((uint_fast8_t)expA | sigA) == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+                return DefaultNaNFloat16;
             }
 
             return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
@@ -880,7 +880,7 @@ public readonly struct Float16
                     return FromBitsUI16((ushort)PropagateNaNFloat16Bits(state ?? SoftFloatState.Default, uiA, uiB));
 
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+                return DefaultNaNFloat16;
             }
 
             return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
@@ -900,7 +900,7 @@ public readonly struct Float16
                 if (((uint_fast8_t)expA | sigA) == 0)
                 {
                     (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                    return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+                    return DefaultNaNFloat16;
                 }
 
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Infinite);
@@ -962,7 +962,7 @@ public readonly struct Float16
                 return FromBitsUI16((ushort)PropagateNaNFloat16Bits(state ?? SoftFloatState.Default, uiA, uiB));
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+            return DefaultNaNFloat16;
         }
         else if (expB == 0x1F)
         {
@@ -977,7 +977,7 @@ public readonly struct Float16
             if (sigB == 0)
             {
                 (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-                return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+                return DefaultNaNFloat16;
             }
 
             (expB, sigB) = NormSubnormalF16Sig(sigB);
@@ -1086,7 +1086,7 @@ public readonly struct Float16
                 return this;
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+            return DefaultNaNFloat16;
         }
 
         if (signA)
@@ -1095,7 +1095,7 @@ public readonly struct Float16
                 return this;
 
             (state ?? SoftFloatState.Default).RaiseFlags(ExceptionFlags.Invalid);
-            return FromBitsUI16((ushort)DefaultNaNFloat16Bits);
+            return DefaultNaNFloat16;
         }
 
         if (expA == 0)
