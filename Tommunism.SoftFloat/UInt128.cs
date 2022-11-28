@@ -95,7 +95,7 @@ internal struct UInt128 : IEquatable<UInt128>, IComparable<UInt128>
 
     public override string ToString() => $"0x{V64:x16}{V00:x16}";
 
-    public static implicit operator UInt128(ulong value) => new(v0: value, v64: 0);
+    public static explicit operator UInt128(ulong value) => new(v0: value, v64: 0);
 
     public static explicit operator ulong(UInt128 value) => value.V00;
 

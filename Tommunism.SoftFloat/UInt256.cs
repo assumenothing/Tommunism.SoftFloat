@@ -266,9 +266,9 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static implicit operator UInt256(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
+    public static explicit operator UInt256(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
 
-    public static implicit operator UInt256(UInt128 value) => new(v0: value, v128: UInt128.Zero);
+    public static explicit operator UInt256(UInt128 value) => new(v0: value, v128: UInt128.Zero);
 
     public static explicit operator ulong(UInt256 value) => value.V000;
 
