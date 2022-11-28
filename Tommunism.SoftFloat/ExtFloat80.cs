@@ -113,7 +113,12 @@ public readonly struct ExtFloat80
 
     public (ushort signExp, ulong significant) ToUIntBits() => (_signExp, _signif);
 
-    // TODO: Add support for .NET 7+ UInt128 bit conversions.
+#if NET7_0
+    // TODO: Check value range?
+    public static ExtFloat80 FromUIntBits(UInt128 value) => new((ushort)(value >> 64), (ulong)value);
+
+    public UInt128 ToUInt128Bits() => new(_signExp, _signif);
+#endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     internal static ExtFloat80 FromBitsUI128(SFUInt128 v)

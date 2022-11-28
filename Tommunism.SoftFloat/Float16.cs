@@ -107,7 +107,7 @@ public readonly struct Float16
     public static explicit operator Float16(Half value) => new(value);
     public static implicit operator Half(Float16 value) => BitConverter.UInt16BitsToHalf(value._v);
 
-    public static Float16 FromUInt16Bits(ushort value) => FromBitsUI16(value);
+    public static Float16 FromUIntBits(ushort value) => FromBitsUI16(value);
 
     public ushort ToUInt16Bits() => _v;
 

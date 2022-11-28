@@ -107,7 +107,7 @@ public readonly struct Float32
     public static explicit operator Float32(float value) => new(value);
     public static implicit operator float(Float32 value) => BitConverter.UInt32BitsToSingle(value._v);
 
-    public static Float32 FromUInt32Bits(ushort value) => FromBitsUI32(value);
+    public static Float32 FromUIntBits(uint value) => FromBitsUI32(value);
 
     public uint ToUInt32Bits() => _v;
 

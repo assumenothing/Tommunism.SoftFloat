@@ -111,9 +111,9 @@ public readonly struct Float128
     public (ulong hi, ulong lo) ToUInt64x2Bits() => (_v64, _v0);
 
 #if NET7_0
-    public static Float128 FromUInt128Bits(UInt128 value) => new(v64: (ulong)(value >> 64), v0: (ulong)value);
+    public static Float128 FromUIntBits(UInt128 value) => new(v64: (ulong)(value >> 64), v0: (ulong)value);
 
-    public static UInt128 ToUInt128Bits() => return new UInt128(_v64, _v0);
+    public UInt128 ToUInt128Bits() => new(_v64, _v0);
 #endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.

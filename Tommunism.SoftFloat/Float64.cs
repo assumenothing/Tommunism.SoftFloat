@@ -107,7 +107,7 @@ public readonly struct Float64
     public static explicit operator Float64(double value) => new(value);
     public static implicit operator double(Float64 value) => BitConverter.UInt64BitsToDouble(value._v);
 
-    public static Float64 FromUInt64Bits(ulong value) => FromBitsUI64(value);
+    public static Float64 FromUIntBits(ulong value) => FromBitsUI64(value);
 
     public ulong ToUInt64Bits() => _v;
 
