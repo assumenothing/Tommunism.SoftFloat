@@ -115,15 +115,6 @@ internal static class Specialize
     // i64_fromNaN
     public const long i64_fromNaN = -0x7FFFFFFFFFFFFFFF - 1;
 
-    /// <summary>
-    /// "Common NaN" structure, used to transfer NaN representations from one format to another.
-    /// </summary>
-    public struct CommonNaN
-    {
-        public bool sign;
-        public SFUInt128 v; // TODO: Make this a UInt128 field.
-    }
-
     #region Float16
 
     // defaultNaNF16UI
@@ -145,15 +136,15 @@ internal static class Specialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public static void F16UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA, out CommonNaN zPtr)
+    public static void F16UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA, out SoftFloatCommonNaN zPtr)
     {
         if (IsSigNaNF16UI(uiA))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new CommonNaN()
+        zPtr = new SoftFloatCommonNaN()
         {
-            sign = (uiA >> 15) != 0,
-            v = new SFUInt128(v64: (ulong)uiA << 54, v0: 0)
+            Sign = (uiA >> 15) != 0,
+            Value = new UInt128(upper: (ulong)uiA << 54, lower: 0)
         };
     }
 
@@ -162,8 +153,8 @@ internal static class Specialize
     /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 16-bit floating-point NaN, and returns the bit pattern of this
     /// value as an unsigned integer.
     /// </summary>
-    public static uint_fast16_t CommonNaNToF16UI(in CommonNaN aPtr) =>
-        (aPtr.sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(aPtr.v.V64 >> 54);
+    public static uint_fast16_t CommonNaNToF16UI(in SoftFloatCommonNaN aPtr) =>
+        (aPtr.Sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(aPtr.Value >> 118);
 
     // softfloat_propagateNaNF16UI
     /// <summary>
@@ -227,15 +218,15 @@ internal static class Specialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public static void F32UIToCommonNaN(SoftFloatState state, uint_fast32_t uiA, out CommonNaN zPtr)
+    public static void F32UIToCommonNaN(SoftFloatState state, uint_fast32_t uiA, out SoftFloatCommonNaN zPtr)
     {
         if (IsSigNaNF32UI(uiA))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new CommonNaN()
+        zPtr = new SoftFloatCommonNaN()
         {
-            sign = (uiA >> 31) != 0,
-            v = new SFUInt128(v64: (ulong)uiA << 41, v0: 0)
+            Sign = (uiA >> 31) != 0,
+            Value = new UInt128(upper: (ulong)uiA << 41, lower: 0)
         };
     }
 
@@ -244,8 +235,8 @@ internal static class Specialize
     /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 32-bit floating-point NaN, and returns the bit pattern of this
     /// value as an unsigned integer.
     /// </summary>
-    public static uint_fast32_t CommonNaNToF32UI(in CommonNaN aPtr) =>
-        (aPtr.sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(aPtr.v.V64 >> 41);
+    public static uint_fast32_t CommonNaNToF32UI(in SoftFloatCommonNaN aPtr) =>
+        (aPtr.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(aPtr.Value >> 105);
 
     // softfloat_propagateNaNF32UI
     /// <summary>
@@ -310,15 +301,15 @@ internal static class Specialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public static void F64UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA, out CommonNaN zPtr)
+    public static void F64UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA, out SoftFloatCommonNaN zPtr)
     {
         if (IsSigNaNF64UI(uiA))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new CommonNaN()
+        zPtr = new SoftFloatCommonNaN()
         {
-            sign = (uiA >> 63) != 0,
-            v = new SFUInt128(v64: uiA << 12, v0: 0)
+            Sign = (uiA >> 63) != 0,
+            Value = new UInt128(upper: uiA << 12, lower: 0)
         };
     }
 
@@ -327,8 +318,8 @@ internal static class Specialize
     /// Converts the common NaN pointed to by <paramref name="aPtr"/> into a 64-bit floating-point NaN, and returns the bit pattern of this
     /// value as an unsigned integer.
     /// </summary>
-    public static uint_fast64_t CommonNaNToF64UI(in CommonNaN aPtr) =>
-        (aPtr.sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (aPtr.v.V64 >> 12);
+    public static uint_fast64_t CommonNaNToF64UI(in SoftFloatCommonNaN aPtr) =>
+        (aPtr.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (uint_fast64_t)(aPtr.Value >> 76);
 
     // softfloat_propagateNaNF64UI
     /// <summary>
@@ -400,15 +391,15 @@ internal static class Specialize
     /// an 80-bit extended floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the
     /// location pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static void ExtF80UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, out CommonNaN zPtr)
+    public static void ExtF80UIToCommonNaN(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, out SoftFloatCommonNaN zPtr)
     {
         if (IsSigNaNExtF80UI(uiA64, uiA0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
-        zPtr = new CommonNaN()
+        zPtr = new SoftFloatCommonNaN()
         {
-            sign = (uiA64 >> 15) != 0,
-            v = new SFUInt128(v64: uiA0 << 1, v0: 0)
+            Sign = (uiA64 >> 15) != 0,
+            Value = new UInt128(upper: uiA0 << 1, lower: 0)
         };
     }
 
@@ -417,9 +408,9 @@ internal static class Specialize
     /// Converts the common NaN pointed to by <paramref name="aPtr"/> into an 80-bit extended floating-point NaN, and returns the bit
     /// pattern of this value as an unsigned integer.
     /// </summary>
-    public static SFUInt128 CommonNaNToExtF80UI(in CommonNaN aPtr) => new(
-        v64: (aPtr.sign ? (1UL << 15) : 0) | 0x7FFF,
-        v0: 0xC000000000000000 | (aPtr.v.V64 >> 1)
+    public static UInt128 CommonNaNToExtF80UI(in SoftFloatCommonNaN aPtr) => new(
+        upper: (aPtr.Sign ? (1UL << 15) : 0) | 0x7FFF,
+        lower: 0xC000000000000000 | (uint64_t)(aPtr.Value >> 65)
     );
 
     // softfloat_propagateNaNExtF80UI
@@ -430,7 +421,7 @@ internal static class Specialize
     /// values is a NaN, returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN,
     /// the invalid exception is raised.
     /// </summary>
-    public static SFUInt128 PropagateNaNExtF80UI(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0)
+    public static UInt128 PropagateNaNExtF80UI(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0)
     {
         var isSigNaNA = IsSigNaNExtF80UI(uiA64, uiA0);
         var isSigNaNB = IsSigNaNExtF80UI(uiB64, uiB0);
@@ -448,14 +439,14 @@ internal static class Specialize
                     goto returnLargerMag;
 
                 return IsNaNExtF80UI((int_fast16_t)uiB64, uiB0)
-                    ? new SFUInt128(v64: uiB64, v0: uiNonsigB0)
-                    : new SFUInt128(v64: uiA64, v0: uiNonsigA0);
+                    ? new UInt128(upper: uiB64, lower: uiNonsigB0)
+                    : new UInt128(upper: uiA64, lower: uiNonsigA0);
             }
             else
             {
                 return IsNaNExtF80UI((int_fast16_t)uiA64, uiA0)
-                    ? new SFUInt128(v64: uiA64, v0: uiNonsigA0)
-                    : new SFUInt128(v64: uiB64, v0: uiNonsigB0);
+                    ? new UInt128(upper: uiA64, lower: uiNonsigA0)
+                    : new UInt128(upper: uiB64, lower: uiNonsigB0);
             }
         }
 
@@ -467,8 +458,8 @@ internal static class Specialize
         if (cmp == 0) cmp = uiA0.CompareTo(uiB0);
         if (cmp == 0) cmp = uiB64.CompareTo(uiA64);
         return cmp <= 0
-            ? new SFUInt128(v64: uiB64, v0: uiNonsigB0)
-            : new SFUInt128(v64: uiA64, v0: uiNonsigA0);
+            ? new UInt128(upper: uiB64, lower: uiNonsigB0)
+            : new UInt128(upper: uiA64, lower: uiNonsigA0);
     }
 
     #endregion
@@ -502,16 +493,16 @@ internal static class Specialize
     /// an 128-bit floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the location
     /// pointed to by <paramref name="zPtr"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public static void F128UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, out CommonNaN zPtr)
+    public static void F128UIToCommonNaN(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, out SoftFloatCommonNaN zPtr)
     {
         if (IsSigNaNF128UI(uiA64, uiA0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         var NaNSig = ShortShiftLeft128(uiA64, uiA0, 16);
-        zPtr = new CommonNaN()
+        zPtr = new SoftFloatCommonNaN()
         {
-            sign = (uiA64 >> 63) != 0,
-            v = new SFUInt128(v64: NaNSig.V64, v0: NaNSig.V00)
+            Sign = (uiA64 >> 63) != 0,
+            Value = new UInt128(upper: NaNSig.V64, lower: NaNSig.V00)
         };
     }
 
@@ -520,10 +511,10 @@ internal static class Specialize
     /// Converts the common NaN pointed to by 'aPtr' into a 128-bit floating-point NaN, and returns the bit pattern of this value as an
     /// unsigned integer.
     /// </summary>
-    public static SFUInt128 CommonNaNToF128UI(in CommonNaN aPtr)
+    public static UInt128 CommonNaNToF128UI(in SoftFloatCommonNaN aPtr)
     {
-        var uiZ = aPtr.v >> 16;
-        uiZ.V64 |= (aPtr.sign ? (1UL << 63) : 0) | 0x7FFF800000000000;
+        var uiZ = aPtr.Value >> 16;
+        uiZ |= new UInt128(upper: (aPtr.Sign ? (1UL << 63) : 0) | 0x7FFF800000000000, lower: 0);
         return uiZ;
     }
 
@@ -535,7 +526,7 @@ internal static class Specialize
     /// returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public static SFUInt128 PropagateNaNF128UI(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0)
+    public static UInt128 PropagateNaNF128UI(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0)
     {
         var isSigNaNA = IsSigNaNF128UI(uiA64, uiA0);
         var isSigNaNB = IsSigNaNF128UI(uiB64, uiB0);
@@ -553,14 +544,14 @@ internal static class Specialize
                     goto returnLargerMag;
 
                 return IsNaNF128UI(uiB64, uiB0)
-                    ? new SFUInt128(v64: uiB64, v0: uiNonsigB0)
-                    : new SFUInt128(v64: uiA64, v0: uiNonsigA0);
+                    ? new UInt128(upper: uiB64, lower: uiNonsigB0)
+                    : new UInt128(upper: uiA64, lower: uiNonsigA0);
             }
             else
             {
                 return IsNaNF128UI(uiA64, uiA0)
-                    ? new SFUInt128(v64: uiA64, v0: uiNonsigA0)
-                    : new SFUInt128(v64: uiB64, v0: uiNonsigB0);
+                    ? new UInt128(upper: uiA64, lower: uiNonsigA0)
+                    : new UInt128(upper: uiB64, lower: uiNonsigB0);
             }
         }
 
@@ -572,8 +563,8 @@ internal static class Specialize
         if (cmp == 0) cmp = uiA0.CompareTo(uiB0);
         if (cmp == 0) cmp = uiB64.CompareTo(uiA64);
         return cmp <= 0
-            ? new SFUInt128(v64: uiB64, v0: uiNonsigB0)
-            : new SFUInt128(v64: uiA64, v0: uiNonsigA0);
+            ? new UInt128(upper: uiB64, lower: uiNonsigB0)
+            : new UInt128(upper: uiA64, lower: uiNonsigA0);
     }
 
     #endregion
