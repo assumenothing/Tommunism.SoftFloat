@@ -664,7 +664,7 @@ public readonly struct Float64
     {
         uint_fast64_t frac;
         int_fast16_t exp;
-        UInt128 frac128;
+        SFUInt128 frac128;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -848,7 +848,7 @@ public readonly struct Float64
         uint_fast64_t uiA, sigA, uiB, sigB, magBits, sigZ;
         int_fast16_t expA, expB, expZ;
         bool signA, signB, signZ;
-        UInt128 sig128Z;
+        SFUInt128 sig128Z;
 
         uiA = a._v;
         signA = SignF64UI(uiA);

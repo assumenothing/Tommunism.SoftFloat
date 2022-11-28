@@ -116,7 +116,7 @@ public readonly struct ExtFloat80
     // TODO: Add support for .NET 7+ UInt128 bit conversions.
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static ExtFloat80 FromBitsUI128(UInt128 v)
+    internal static ExtFloat80 FromBitsUI128(SFUInt128 v)
     {
         Debug.Assert((v.V64 & ~0xFFFFU) == 0);
         return FromBitsUI80((ushort)v.V64, v.V00);
@@ -658,7 +658,7 @@ public readonly struct ExtFloat80
     {
         uint_fast16_t uiA64, exp;
         uint_fast64_t uiA0, frac;
-        UInt128 frac128;
+        SFUInt128 frac128;
         bool sign;
 
         uiA64 = _signExp;
@@ -833,7 +833,7 @@ public readonly struct ExtFloat80
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, sigA, uiB0, sigB;
         int_fast32_t expA, expB, expZ;
-        UInt128 sig128Z;
+        SFUInt128 sig128Z;
         bool signA, signB, signZ;
 
         uiA64 = a._signExp;
@@ -921,7 +921,7 @@ public readonly struct ExtFloat80
         uint_fast16_t uiA64, uiB64, recip32, q;
         uint_fast64_t uiA0, sigA, uiB0, sigB, sigZ, q64, sigZExtra;
         int_fast32_t expA, expB, expZ;
-        UInt128 rem, term;
+        SFUInt128 rem, term;
         int ix;
         bool signA, signB, signZ;
 
@@ -1057,7 +1057,7 @@ public readonly struct ExtFloat80
         uint_fast16_t uiA64, uiB64, q, recip32;
         uint_fast64_t uiA0, sigA, uiB0, sigB, q64;
         int_fast32_t expA, expB, expDiff;
-        UInt128 rem, shiftedSigB, term, altRem, meanRem;
+        SFUInt128 rem, shiftedSigB, term, altRem, meanRem;
         bool signA, signRem;
 
         uiA64 = a._signExp;
@@ -1215,7 +1215,7 @@ public readonly struct ExtFloat80
         uint_fast16_t uiA64, sig32A, recipSqrt32, sig32Z;
         uint_fast64_t uiA0, sigA, q, x64, sigZ, sigZExtra;
         int_fast32_t expA, expZ;
-        UInt128 rem, y, term;
+        SFUInt128 rem, y, term;
         bool signA;
 
         uiA64 = _signExp;

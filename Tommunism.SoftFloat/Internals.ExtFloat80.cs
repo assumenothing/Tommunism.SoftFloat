@@ -393,7 +393,7 @@ partial class Internals
     {
         int_fast32_t expA, expB, expDiff, expZ;
         uint_fast64_t sigA, sigB, sigExtra;
-        UInt128 sig128;
+        SFUInt128 sig128;
 
         expA = ExpExtF80UI64(uiA64);
         sigA = uiA0;

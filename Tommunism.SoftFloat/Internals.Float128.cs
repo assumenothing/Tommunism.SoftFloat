@@ -97,10 +97,10 @@ partial class Internals
     public static bool IsNaNF128UI(ulong a64, ulong a0) => (~a64 & 0x7FFF000000000000) == 0 && (a0 != 0 || (a64 & 0x0000FFFFFFFFFFFF) != 0);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int_fast32_t exp, UInt128 sig) NormSubnormalF128Sig(UInt128 sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
+    public static (int_fast32_t exp, SFUInt128 sig) NormSubnormalF128Sig(SFUInt128 sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
 
     // softfloat_normSubnormalF128Sig
-    public static (int_fast32_t exp, UInt128 sig) NormSubnormalF128Sig(uint_fast64_t sig64, uint_fast64_t sig0)
+    public static (int_fast32_t exp, SFUInt128 sig) NormSubnormalF128Sig(uint_fast64_t sig64, uint_fast64_t sig0)
     {
         int shiftDist;
         if (sig64 == 0)
@@ -109,11 +109,11 @@ partial class Internals
             return (
                 exp: -64 - shiftDist,
                 sig: (shiftDist < 0)
-                    ? new UInt128(
+                    ? new SFUInt128(
                         v64: sig0 >> (-shiftDist),
                         v0: sig0 << shiftDist
                     )
-                    : new UInt128(
+                    : new SFUInt128(
                         v64: sig0 << shiftDist,
                         v0: 0
                     )
@@ -130,7 +130,7 @@ partial class Internals
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 RoundPackToF128(SoftFloatState state, bool sign, int_fast32_t exp, UInt128 sig, uint_fast64_t sigExtra) =>
+    public static Float128 RoundPackToF128(SoftFloatState state, bool sign, int_fast32_t exp, SFUInt128 sig, uint_fast64_t sigExtra) =>
         RoundPackToF128(state, sign, exp, sig.V00, sig.V64, sigExtra);
 
     // softfloat_roundPackToF128
@@ -188,7 +188,7 @@ partial class Internals
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 NormRoundPackToF128(SoftFloatState state, bool sign, int_fast32_t exp, UInt128 sig) =>
+    public static Float128 NormRoundPackToF128(SoftFloatState state, bool sign, int_fast32_t exp, SFUInt128 sig) =>
         NormRoundPackToF128(state, sign, exp, sig.V64, sig.V00);
 
     // softfloat_normRoundPackToF128
@@ -227,13 +227,13 @@ partial class Internals
     public static Float128 AddMagsF128(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, bool signZ)
     {
         int_fast32_t expA, expB, expDiff, expZ;
-        UInt128 sigA, sigB, sigZ;
+        SFUInt128 sigA, sigB, sigZ;
         uint_fast64_t sigZExtra;
 
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
 
         expDiff = expA - expB;
         if (expDiff == 0)
@@ -322,12 +322,12 @@ partial class Internals
     public static Float128 SubMagsF128(SoftFloatState state, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, bool signZ)
     {
         int_fast32_t expA, expB, expDiff, expZ;
-        UInt128 sigA, sigB, sigZ;
+        SFUInt128 sigA, sigB, sigZ;
 
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
 
         sigA <<= 4;
         sigB <<= 4;
@@ -432,19 +432,19 @@ partial class Internals
 
         bool signA, signB, signC, signZ;
         int_fast32_t expA, expB, expC, expZ, shiftDist, expDiff;
-        UInt128 sigA, sigB, sigC, uiZ, sigZ, x128;
+        SFUInt128 sigA, sigB, sigC, uiZ, sigZ, x128;
         uint_fast64_t magBits, sigZExtra, sig256Z0;
-        UInt256 sig256Z, sig256C;
+        SFUInt256 sig256Z, sig256C;
 
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
         signC = SignF128UI64(uiC64) ^ (op == MulAdd.SubC);
         expC = ExpF128UI64(uiC64);
-        sigC = new UInt128(v64: FracF128UI64(uiC64), v0: uiC0);
+        sigC = new SFUInt128(v64: FracF128UI64(uiC64), v0: uiC0);
         signZ = signA ^ signB ^ (op == MulAdd.SubProd);
 
         if (expA == 0x7FFF)
@@ -475,7 +475,7 @@ partial class Internals
         {
             if (!sigC.IsZero)
             {
-                uiZ = UInt128.Zero;
+                uiZ = SFUInt128.Zero;
                 return Float128.FromBitsUI128(PropagateNaNF128UI(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
             }
 
@@ -487,8 +487,8 @@ partial class Internals
             if (sigA.IsZero)
             {
                 return Float128.FromBitsUI128((((uint_fast32_t)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
-                    ? new UInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0)
-                    : new UInt128(v64: uiC64, v0: uiC0));
+                    ? new SFUInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0)
+                    : new SFUInt128(v64: uiC64, v0: uiC0));
             }
 
             (expA, sigA) = NormSubnormalF128Sig(sigA);
@@ -499,8 +499,8 @@ partial class Internals
             if (sigB.IsZero)
             {
                 return Float128.FromBitsUI128((((uint_fast32_t)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
-                    ? new UInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0)
-                    : new UInt128(v64: uiC64, v0: uiC0));
+                    ? new SFUInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0)
+                    : new SFUInt128(v64: uiC64, v0: uiC0));
             }
 
             (expB, sigB) = NormSubnormalF128Sig(sigB);
@@ -573,7 +573,7 @@ partial class Internals
             else
             {
                 // Compiler thinks that it isn't used, because of the SkipInit hacks later in the code.
-                sig256C = new UInt256(v128: sigC, v0: UInt128.Zero);
+                sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
                 sig256C = ShiftRightJam256M(sig256C, expDiff);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
@@ -610,7 +610,7 @@ partial class Internals
                     sigZ = sigC - sigZ;
                     sigZExtra = sig256Z.V064 | sig256Z.V000; // part of !IsZero check
                     if (sigZExtra != 0)
-                        sigZ -= new UInt128(v64: 0, v0: 1);
+                        sigZ -= new SFUInt128(v64: 0, v0: 1);
 
                     if ((sigZ.V64 & 0x0100000000000000) == 0)
                     {
@@ -624,7 +624,7 @@ partial class Internals
                 }
                 else
                 {
-                    sig256C = new UInt256(v128: sigC, v0: UInt128.Zero);
+                    sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
                     sig256Z = sig256C - sig256Z;
                 }
             }
@@ -632,7 +632,7 @@ partial class Internals
             {
                 sigZ -= sigC;
                 if (sigZ.IsZero && sig256Z.V000_UI128.IsZero)
-                    return Float128.FromBitsUI128(new UInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0));
+                    return Float128.FromBitsUI128(new SFUInt128(v64: PackToF128UI64(state.RoundingMode == RoundingMode.Min, 0, 0), v0: 0));
 
                 sig256Z.V128_UI128 = sigZ;
                 if ((sigZ.V64 & 0x8000000000000000) != 0)
@@ -704,7 +704,7 @@ partial class Internals
             {
                 shiftDist = -shiftDist;
                 sigZ <<= shiftDist;
-                x128 = new UInt128(v64: 0, v0: sigZExtra) << shiftDist;
+                x128 = new SFUInt128(v64: 0, v0: sigZExtra) << shiftDist;
                 sigZ.V00 |= x128.V64;
                 sigZExtra = x128.V00;
             }
@@ -720,7 +720,7 @@ partial class Internals
     infProdArg:
         if (magBits != 0)
         {
-            uiZ = new UInt128(v64: PackToF128UI64(signZ, 0x7FFF, 0), v0: 0);
+            uiZ = new SFUInt128(v64: PackToF128UI64(signZ, 0x7FFF, 0), v0: 0);
             if (expC != 0x7FFF)
                 return Float128.FromBitsUI128(uiZ);
 
@@ -732,7 +732,7 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        uiZ = new UInt128(v64: DefaultNaNF128UI64, v0: DefaultNaNF128UI0);
+        uiZ = new SFUInt128(v64: DefaultNaNF128UI64, v0: DefaultNaNF128UI0);
         return Float128.FromBitsUI128(PropagateNaNF128UI(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
     }
 }

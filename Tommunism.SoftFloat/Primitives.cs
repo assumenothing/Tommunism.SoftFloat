@@ -291,10 +291,10 @@ internal static class Primitives
     /// <paramref name="dist"/>, which must be in the range 1 to 63.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 ShortShiftLeft128(ulong a64, ulong a0, int dist)
+    public static SFUInt128 ShortShiftLeft128(ulong a64, ulong a0, int dist)
     {
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
-        return new UInt128(
+        return new SFUInt128(
             v64: (a64 << dist) | (a0 >> (-dist)),
             v0: a0 << dist
         );
@@ -306,10 +306,10 @@ internal static class Primitives
     /// <paramref name="dist"/>, which must be in the range 1 to 63.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 ShortShiftRight128(ulong a64, ulong a0, int dist)
+    public static SFUInt128 ShortShiftRight128(ulong a64, ulong a0, int dist)
     {
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
-        return new UInt128(
+        return new SFUInt128(
             v64: a0 >> dist,
             v0: (a64 << (-dist)) | (a0 >> dist)
         );
@@ -337,18 +337,18 @@ internal static class Primitives
     /// least-significant bit of the shifted value by setting the least-significant bit to 1. This shifted-and-jammed value is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 ShortShiftRightJam128(ulong a64, ulong a0, int dist)
+    public static SFUInt128 ShortShiftRightJam128(ulong a64, ulong a0, int dist)
     {
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
         var negDist = -dist;
-        return new UInt128(
+        return new SFUInt128(
             v64: a64 >> dist,
             v0: (a64 << negDist) | (a0 >> dist) | ((a0 << negDist) != 0 ? 1UL : 0UL)
         );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128Extra ShortShiftRightJam128Extra(UInt128 a, ulong extra, int dist) => ShortShiftRightJam128Extra(a.V64, a.V00, extra, dist);
+    public static UInt128Extra ShortShiftRightJam128Extra(SFUInt128 a, ulong extra, int dist) => ShortShiftRightJam128Extra(a.V64, a.V00, extra, dist);
 
     // softfloat_shortShiftRightJam128Extra
     /// <summary>
@@ -361,7 +361,7 @@ internal static class Primitives
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
         var negDist = -dist;
         return new UInt128Extra(
-            v: new UInt128(
+            v: new SFUInt128(
                 v64: a64 >> dist,
                 v0: (a64 << negDist) | (a0 >> dist)
             ),
@@ -405,7 +405,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 ShiftRightJam128(UInt128 a, int dist) => ShiftRightJam128(a, dist);
+    public static SFUInt128 ShiftRightJam128(SFUInt128 a, int dist) => ShiftRightJam128(a, dist);
 
     // softfloat_shiftRightJam128
     /// <summary>
@@ -417,20 +417,20 @@ internal static class Primitives
     /// The value of <paramref name="dist"/> can be arbitrarily large. In particular, if <paramref name="dist"/> is greater than 128, the
     /// result will be either 0 or 1, depending on whether the original 128 bits are all zeros.
     /// </remarks>
-    public static UInt128 ShiftRightJam128(ulong a64, ulong a0, int dist)
+    public static SFUInt128 ShiftRightJam128(ulong a64, ulong a0, int dist)
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
         if (dist < 64)
         {
             var negDist = -dist;
-            return new UInt128(
+            return new SFUInt128(
                 v64: a64 >> dist,
                 v0: (a64 << negDist) | (a0 >> dist) | ((a0 << negDist) != 0 ? 1UL : 0UL)
             );
         }
         else
         {
-            return new UInt128(
+            return new SFUInt128(
                 v64: 0,
                 v0: (dist < 127)
                     ? (a64 >> dist) | (((a64 & ((1UL << dist) - 1)) | a0) != 0 ? 1UL : 0UL)
@@ -440,7 +440,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128Extra ShiftRightJam128Extra(UInt128 a, ulong extra, int dist) => ShiftRightJam128Extra(a.V64, a.V00, extra, dist);
+    public static UInt128Extra ShiftRightJam128Extra(SFUInt128 a, ulong extra, int dist) => ShiftRightJam128Extra(a.V64, a.V00, extra, dist);
 
     // softfloat_shiftRightJam128Extra
     /// <summary>
@@ -462,7 +462,7 @@ internal static class Primitives
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
 
-        Unsafe.SkipInit(out UInt128 zv);
+        Unsafe.SkipInit(out SFUInt128 zv);
         ulong zextra;
 
         var negDist = -dist;
@@ -503,11 +503,11 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt256 ShiftRightJam256M(UInt256 a, int dist)
+    public static SFUInt256 ShiftRightJam256M(SFUInt256 a, int dist)
     {
         Span<ulong> result = stackalloc ulong[4];
         ShiftRightJam256M(a.AsSpan(), dist, result);
-        return new UInt256(result);
+        return new SFUInt256(result);
     }
 
     // softfloat_shiftRightJam256M
@@ -629,9 +629,9 @@ internal static class Primitives
     /// lost.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 Add128(ulong a64, ulong a0, ulong b64, ulong b0)
+    public static SFUInt128 Add128(ulong a64, ulong a0, ulong b64, ulong b0)
     {
-        Unsafe.SkipInit(out UInt128 z);
+        Unsafe.SkipInit(out SFUInt128 z);
         z.V00 = a0 + b0;
         z.V64 = a64 + b64 + (z.V00 < a0 ? 1UL : 0UL);
         return z;
@@ -674,7 +674,7 @@ internal static class Primitives
     /// borrow out (carry out) is lost.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 Sub128(ulong a64, ulong a0, ulong b64, ulong b0) => new(
+    public static SFUInt128 Sub128(ulong a64, ulong a0, ulong b64, ulong b0) => new(
         v0: a0 - b0,
         v64: a64 - b64 - (a0 < b0 ? 1UL : 0UL)
     );
@@ -712,10 +712,10 @@ internal static class Primitives
     /// Returns the 128-bit product of <paramref name="a"/>, <paramref name="b"/>, and 2^32.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 Mul64ByShifted32To128(ulong a, uint b)
+    public static SFUInt128 Mul64ByShifted32To128(ulong a, uint b)
     {
         var mid = (ulong)(uint)a * b;
-        return new UInt128(
+        return new SFUInt128(
             v0: mid << 32,
             v64: (ulong)(uint)(a >> 32) * b + (mid >> 32)
         );
@@ -725,9 +725,9 @@ internal static class Primitives
     /// <summary>
     /// Returns the 128-bit product of <paramref name="a"/> and <paramref name="b"/>.
     /// </summary>
-    public static UInt128 Mul64To128(ulong a, ulong b)
+    public static SFUInt128 Mul64To128(ulong a, ulong b)
     {
-        Unsafe.SkipInit(out UInt128 z);
+        Unsafe.SkipInit(out SFUInt128 z);
 
         var a32 = (uint)(a >> 32);
         var a0 = (uint)a;
@@ -748,7 +748,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 Mul128By32(UInt128 a, uint b) => Mul128By32(a.V64, a.V00, b);
+    public static SFUInt128 Mul128By32(SFUInt128 a, uint b) => Mul128By32(a.V64, a.V00, b);
 
     // softfloat_mul128By32
     /// <summary>
@@ -756,9 +756,9 @@ internal static class Primitives
     /// <paramref name="b"/>. The multiplication is modulo 2^128; any overflow bits are discarded.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128 Mul128By32(ulong a64, ulong a0, uint b)
+    public static SFUInt128 Mul128By32(ulong a64, ulong a0, uint b)
     {
-        Unsafe.SkipInit(out UInt128 z);
+        Unsafe.SkipInit(out SFUInt128 z);
         z.V00 = a0 * b;
         var mid = (ulong)(uint)(a0 >> 32) * b;
         var carry = (uint)(z.V00 >> 32) - (uint)mid;
@@ -777,7 +777,7 @@ internal static class Primitives
     {
         Debug.Assert(zPtr.Length >= 4, "Z is too small.");
 
-        UInt128 p0, p64, p128;
+        SFUInt128 p0, p64, p128;
         ulong z64, z128, z192;
 
         p0 = Mul64To128(a0, b0);

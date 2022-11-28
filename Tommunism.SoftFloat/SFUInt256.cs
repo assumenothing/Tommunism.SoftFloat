@@ -52,13 +52,13 @@ using static Primitives;
 // NOTE: Most spans, indexing, or enumeration in this implementation is highly dependent on the host endianness.
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 4)]
-internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
+internal struct SFUInt256 : IEquatable<SFUInt256>, IReadOnlyList<ulong>
 {
     #region Fields
 
-    public static readonly UInt256 Zero = new();
-    public static readonly UInt256 MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
-    public static readonly UInt256 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+    public static readonly SFUInt256 Zero = new();
+    public static readonly SFUInt256 MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
+    public static readonly SFUInt256 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
     // The meaning of these fields are dependent on the host's endianness.
     internal ulong _v0, _v1, _v2, _v3;
@@ -67,10 +67,10 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
 
     #region Constructors
 
-    public UInt256(ulong v192, ulong v128, ulong v64, ulong v0) =>
+    public SFUInt256(ulong v192, ulong v128, ulong v64, ulong v0) =>
         (_v0, _v1, _v2, _v3) = BitConverter.IsLittleEndian ? (v0, v64, v128, v192) : (v192, v128, v64, v0);
 
-    public UInt256(UInt128 v128, UInt128 v0)
+    public SFUInt256(SFUInt128 v128, SFUInt128 v0)
     {
         if (BitConverter.IsLittleEndian)
         {
@@ -84,13 +84,13 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
         }
     }
 
-    internal UInt256(ReadOnlySpan<ulong> span)
+    internal SFUInt256(ReadOnlySpan<ulong> span)
     {
         Debug.Assert(span.Length >= 4, "Span is too small.");
         (_v0, _v1, _v2, _v3) = (span[0], span[1], span[2], span[3]);
     }
 
-    public UInt256(ReadOnlySpan<ulong> span, bool isLittleEndian)
+    public SFUInt256(ReadOnlySpan<ulong> span, bool isLittleEndian)
     {
         Debug.Assert(span.Length >= 4, "Span is too small.");
         (_v0, _v1, _v2, _v3) = isLittleEndian
@@ -167,9 +167,9 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
         }
     }
 
-    public UInt128 V000_UI128
+    public SFUInt128 V000_UI128
     {
-        get => BitConverter.IsLittleEndian ? new UInt128(v0: _v0, v64: _v1) : new UInt128(v0: _v3, v64: _v2);
+        get => BitConverter.IsLittleEndian ? new SFUInt128(v0: _v0, v64: _v1) : new SFUInt128(v0: _v3, v64: _v2);
         set
         {
             if (BitConverter.IsLittleEndian)
@@ -179,9 +179,9 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
         }
     }
 
-    public UInt128 V128_UI128
+    public SFUInt128 V128_UI128
     {
-        get => BitConverter.IsLittleEndian ? new UInt128(v0: _v2, v64: _v3) : new UInt128(v0: _v1, v64: _v0);
+        get => BitConverter.IsLittleEndian ? new SFUInt128(v0: _v2, v64: _v3) : new SFUInt128(v0: _v1, v64: _v0);
         set
         {
             if (BitConverter.IsLittleEndian)
@@ -232,16 +232,16 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Span<ulong> AsSpan()
     {
-        Debug.Assert(Unsafe.SizeOf<UInt256>() == sizeof(ulong) * 4);
+        Debug.Assert(Unsafe.SizeOf<SFUInt256>() == sizeof(ulong) * 4);
         return MemoryMarshal.CreateSpan(ref _v0, 4);
     }
 
     public void Deconstruct(out ulong v192, out ulong v128, out ulong v64, out ulong v0) =>
         (v192, v128, v64, v0) = BitConverter.IsLittleEndian ? (_v3, _v2, _v1, _v0) : (_v0, _v1, _v2, _v3);
 
-    public override bool Equals(object? obj) => obj is UInt256 int256 && Equals(int256);
+    public override bool Equals(object? obj) => obj is SFUInt256 int256 && Equals(int256);
 
-    public bool Equals(UInt256 other) =>
+    public bool Equals(SFUInt256 other) =>
         _v0 == other._v0 && _v1 == other._v1 && _v2 == other._v2 && _v3 == other._v3;
 
     public IEnumerator<ulong> GetEnumerator()
@@ -266,37 +266,37 @@ internal struct UInt256 : IEquatable<UInt256>, IReadOnlyList<ulong>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static explicit operator UInt256(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
+    public static explicit operator SFUInt256(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
 
-    public static explicit operator UInt256(UInt128 value) => new(v0: value, v128: UInt128.Zero);
+    public static explicit operator SFUInt256(SFUInt128 value) => new(v0: value, v128: SFUInt128.Zero);
 
-    public static explicit operator ulong(UInt256 value) => value.V000;
+    public static explicit operator ulong(SFUInt256 value) => value.V000;
 
-    public static explicit operator UInt128(UInt256 value) => value.V000_UI128;
+    public static explicit operator SFUInt128(SFUInt256 value) => value.V000_UI128;
 
-    public static bool operator ==(UInt256 left, UInt256 right) => left.Equals(right);
+    public static bool operator ==(SFUInt256 left, SFUInt256 right) => left.Equals(right);
 
-    public static bool operator !=(UInt256 left, UInt256 right) => !(left == right);
+    public static bool operator !=(SFUInt256 left, SFUInt256 right) => !(left == right);
 
-    public static UInt256 operator +(UInt256 left, UInt256 right)
+    public static SFUInt256 operator +(SFUInt256 left, SFUInt256 right)
     {
         Span<ulong> result = stackalloc ulong[4];
         Add256M(left.AsSpan(), right.AsSpan(), result);
-        return new UInt256(result);
+        return new SFUInt256(result);
     }
 
-    public static UInt256 operator -(UInt256 left, UInt256 right)
+    public static SFUInt256 operator -(SFUInt256 left, SFUInt256 right)
     {
         Span<ulong> result = stackalloc ulong[4];
         Sub256M(left.AsSpan(), right.AsSpan(), result);
-        return new UInt256(result);
+        return new SFUInt256(result);
     }
 
-    public static UInt256 operator -(UInt256 value)
+    public static SFUInt256 operator -(SFUInt256 value)
     {
         Span<ulong> result = stackalloc ulong[4];
         Sub256M(Zero.AsSpan(), value.AsSpan(), result);
-        return new UInt256(result);
+        return new SFUInt256(result);
     }
 
     #endregion

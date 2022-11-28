@@ -83,7 +83,7 @@ public readonly struct Float128
 
     #region Constructors
 
-    private Float128(UInt128 v)
+    private Float128(SFUInt128 v)
     {
         _v0 = v.V00;
         _v64 = v.V64;
@@ -119,7 +119,7 @@ public readonly struct Float128
 #endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float128 FromBitsUI128(UInt128 v) => new(v);
+    internal static Float128 FromBitsUI128(SFUInt128 v) => new(v);
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     internal static Float128 FromBitsUI128(ulong v64, ulong v0) => new(v64, v0);
@@ -160,7 +160,7 @@ public readonly struct Float128
         {
             var shiftDist = CountLeadingZeroes64(a) + 49;
             var zSig = (64 <= shiftDist)
-                ? new UInt128(v64: a << (shiftDist - 64), v0: 0)
+                ? new SFUInt128(v64: a << (shiftDist - 64), v0: 0)
                 : ShortShiftLeft128(0, a, shiftDist);
             uiZ64 = PackToF128UI64(false, 0x406E - shiftDist, zSig.V64);
             uiZ0 = zSig.V00;
@@ -201,7 +201,7 @@ public readonly struct Float128
             var absA = (uint_fast64_t)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes64(absA) + 49;
             var zSig = (64 <= shiftDist)
-                ? new UInt128(v64: absA << (shiftDist - 64), v0: 0)
+                ? new SFUInt128(v64: absA << (shiftDist - 64), v0: 0)
                 : ShortShiftLeft128(0, absA, shiftDist);
             uiZ64 = PackToF128UI64(sign, 0x406E - shiftDist, zSig.V64);
             uiZ0 = zSig.V00;
@@ -726,7 +726,7 @@ public readonly struct Float128
     {
         uint_fast64_t uiA64, uiA0, frac64, frac0;
         int_fast32_t exp;
-        UInt128 frac128;
+        SFUInt128 frac128;
         bool sign;
 
         uiA64 = _v64;
@@ -766,7 +766,7 @@ public readonly struct Float128
     {
         uint_fast64_t uiA64, uiA0, frac64, frac0;
         int_fast32_t exp;
-        UInt128 sig128;
+        SFUInt128 sig128;
         bool sign;
 
         uiA64 = _v64;
@@ -813,7 +813,7 @@ public readonly struct Float128
     {
         uint_fast64_t uiA64, uiA0, lastBitMask0, roundBitsMask, lastBitMask64;
         int_fast32_t exp;
-        UInt128 uiZ;
+        SFUInt128 uiZ;
         bool roundNearEven;
 
         uiA64 = _v64;
@@ -835,7 +835,7 @@ public readonly struct Float128
 
             lastBitMask0 = (uint_fast64_t)2 << (0x406E - exp);
             roundBitsMask = lastBitMask0 - 1;
-            uiZ = new UInt128(v64: uiA64, v0: uiA0);
+            uiZ = new SFUInt128(v64: uiA64, v0: uiA0);
             roundNearEven = roundingMode == RoundingMode.NearEven;
             if (roundNearEven || roundingMode == RoundingMode.NearMaxMag)
             {
@@ -876,7 +876,7 @@ public readonly struct Float128
                     state.ExceptionFlags |= ExceptionFlags.Inexact;
                 }
 
-                uiZ = new UInt128(v64: uiA64 & PackToF128UI64(true, 0, 0), v0: 0);
+                uiZ = new SFUInt128(v64: uiA64 & PackToF128UI64(true, 0, 0), v0: 0);
                 switch (roundingMode)
                 {
                     case RoundingMode.NearEven:
@@ -917,7 +917,7 @@ public readonly struct Float128
                 return Float128.FromBitsUI128(uiZ);
             }
 
-            uiZ = new UInt128(v64: uiA64, v0: 0);
+            uiZ = new SFUInt128(v64: uiA64, v0: 0);
             lastBitMask64 = (uint_fast64_t)1 << (0x402F - exp);
             roundBitsMask = lastBitMask64 - 1;
             if (roundingMode == RoundingMode.NearMaxMag)
@@ -942,7 +942,7 @@ public readonly struct Float128
         if (uiZ.V64 != uiA64 || uiZ.V00 != uiA0)
         {
             if (roundingMode == RoundingMode.Odd)
-                uiZ = new UInt128(v64: lastBitMask64, v0: lastBitMask0);
+                uiZ = new SFUInt128(v64: lastBitMask64, v0: lastBitMask0);
 
             if (exact)
             {
@@ -997,20 +997,20 @@ public readonly struct Float128
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, magBits, sigZExtra;
         int_fast32_t expA, expB, expZ;
-        UInt128 sigA, sigB, sigZ;
-        UInt256 sig256Z;
+        SFUInt128 sigA, sigB, sigZ;
+        SFUInt256 sig256Z;
         bool signA, signB, signZ;
 
         uiA64 = a._v64;
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
         signZ = signA ^ signB;
 
         if (expA == 0x7FFF)
@@ -1111,7 +1111,7 @@ public readonly struct Float128
         Span<uint_fast32_t> qs = stackalloc uint_fast32_t[3];
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64, sigZExtra;
         int_fast32_t expA, expB, expZ;
-        UInt128 sigA, sigB, rem, term, sigZ;
+        SFUInt128 sigA, sigB, rem, term, sigZ;
         uint_fast32_t recip32, q;
         bool signA, signB, signZ;
 
@@ -1119,12 +1119,12 @@ public readonly struct Float128
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
         signZ = signA ^ signB;
 
         if (expA == 0x7FFF)
@@ -1251,7 +1251,7 @@ public readonly struct Float128
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64;
         int_fast32_t expA, expB, expDiff;
-        UInt128 sigA, sigB, rem, term, altRem, meanRem;
+        SFUInt128 sigA, sigB, rem, term, altRem, meanRem;
         uint_fast32_t q, recip32;
         bool signA, signRem;
 
@@ -1259,11 +1259,11 @@ public readonly struct Float128
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         expB = ExpF128UI64(uiB64);
-        sigB = new UInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+        sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
 
         if (expA == 0x7FFF)
         {
@@ -1391,7 +1391,7 @@ public readonly struct Float128
         Span<uint32_t> qs = stackalloc uint32_t[3];
         uint_fast64_t uiA64, uiA0, x64, sig64Z, sigZExtra;
         int_fast32_t expA, expZ;
-        UInt128 sigA, rem, y, term, sigZ;
+        SFUInt128 sigA, rem, y, term, sigZ;
         uint_fast32_t sig32A, recipSqrt32, sig32Z, q;
         bool signA;
 
@@ -1399,7 +1399,7 @@ public readonly struct Float128
         uiA0 = _v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new UInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+        sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
 
         if (expA == 0x7FFF)
         {
@@ -1482,8 +1482,8 @@ public readonly struct Float128
         // (Repeating this loop is a rare occurrence.)
         while (true)
         {
-            term = (UInt128)sig64Z << 32;
-            term += (UInt128)((uint_fast64_t)q << 6);
+            term = (SFUInt128)sig64Z << 32;
+            term += (SFUInt128)((uint_fast64_t)q << 6);
             term = Mul128By32(term, q);
             rem = y - term;
             if ((rem.V64 & 0x8000000000000000) == 0)
@@ -1496,8 +1496,8 @@ public readonly struct Float128
 
         q = (uint_fast32_t)((((rem.V64 >> 2) * recipSqrt32) >> 32) + 2);
         sigZExtra = (uint64_t)((uint_fast64_t)q << 59);
-        term = (UInt128)qs[1] << 53;
-        sigZ = new UInt128(v64: (uint_fast64_t)qs[2] << 18, v0: ((uint_fast64_t)qs[0] << 24) + (q >> 5)) + term;
+        term = (SFUInt128)qs[1] << 53;
+        sigZ = new SFUInt128(v64: (uint_fast64_t)qs[2] << 18, v0: ((uint_fast64_t)qs[0] << 24) + (q >> 5)) + term;
 
         if ((q & 0xF) <= 2)
         {

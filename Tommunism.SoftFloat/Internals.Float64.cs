@@ -325,7 +325,7 @@ partial class Internals
         bool signA, signB, signC, signZ;
         int_fast16_t expA, expB, expC, expZ, expDiff;
         uint_fast64_t sigA, sigB, sigC, magBits, uiZ, sigZ;
-        UInt128 sig128Z, sig128C;
+        SFUInt128 sig128Z, sig128C;
         int_fast8_t shiftDist;
 
         signA = SignF64UI(uiA);

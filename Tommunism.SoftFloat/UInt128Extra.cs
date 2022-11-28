@@ -45,9 +45,9 @@ namespace Tommunism.SoftFloat;
 internal struct UInt128Extra : IEquatable<UInt128Extra>
 {
     public ulong Extra;
-    public UInt128 V;
+    public SFUInt128 V;
 
-    public UInt128Extra(ulong extra, UInt128 v)
+    public UInt128Extra(ulong extra, SFUInt128 v)
     {
         Extra = extra;
         V = v;
@@ -56,10 +56,10 @@ internal struct UInt128Extra : IEquatable<UInt128Extra>
     public UInt128Extra(ulong extra, ulong v0, ulong v64)
     {
         Extra = extra;
-        V = new UInt128(v0: v0, v64: v64);
+        V = new SFUInt128(v0: v0, v64: v64);
     }
 
-    public void Deconstruct(out ulong extra, out UInt128 v)
+    public void Deconstruct(out ulong extra, out SFUInt128 v)
     {
         extra = Extra;
         v = V;
