@@ -747,6 +747,9 @@ internal static class Primitives
         return z;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt128 Mul128By32(UInt128 a, uint b) => Mul128By32(a.V64, a.V00, b);
+
     // softfloat_mul128By32
     /// <summary>
     /// Returns the product of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/>, multiplied by
