@@ -91,6 +91,10 @@ partial class Internals
         return (sign ? (1UL << 63) : 0UL) | (((uint_fast64_t)exp & 0x7FF) << 52) | (sig & 0x000FFFFFFFFFFFFF);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Float64 PackToF64(bool sign, int_fast16_t exp, uint_fast64_t sig) =>
+        Float64.FromBitsUI64(PackToF64UI(sign, exp, sig));
+
     // isNaNF64UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNaNF64UI(uint_fast64_t a) => (~a & 0x7FF0000000000000) == 0 && (a & 0x000FFFFFFFFFFFFF) != 0;
@@ -139,14 +143,14 @@ partial class Internals
         {
             state.ExceptionFlags |= ExceptionFlags.Inexact;
             if (roundingMode == RoundingMode.Odd)
-                return Float64.FromBitsUI64(PackToF64UI(sign, exp, sig | 1));
+                return PackToF64(sign, exp, sig | 1);
         }
 
         sig &= ~(((roundBits ^ 0x200) == 0 & roundNearEven) ? 1UL : 0);
         if (sig == 0)
             exp = 0;
 
-        return Float64.FromBitsUI64(PackToF64UI(sign, exp, sig));
+        return PackToF64(sign, exp, sig);
     }
 
     // softfloat_normRoundPackToF64
@@ -155,7 +159,7 @@ partial class Internals
         var shiftDist = CountLeadingZeroes64(sig) - 1;
         exp -= shiftDist;
         return (10 <= shiftDist && ((uint)exp < 0x7FD))
-            ? Float64.FromBitsUI64(PackToF64UI(sign, sig != 0 ? exp : 0, sig << (shiftDist - 10)))
+            ? PackToF64(sign, sig != 0 ? exp : 0, sig << (shiftDist - 10))
             : RoundPackToF64(state, sign, exp, sig << shiftDist);
     }
 
@@ -195,9 +199,9 @@ partial class Internals
             {
                 if (expB == 0x7FF)
                 {
-                    return Float64.FromBitsUI64((sigB != 0)
-                        ? state.PropagateNaNFloat64Bits(uiA, uiB)
-                        : PackToF64UI(signZ, 0x7FF, 0));
+                    return (sigB != 0)
+                        ? Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiA, uiB))
+                        : PackToF64(signZ, 0x7FF, 0);
                 }
 
                 expZ = expB;
@@ -254,7 +258,7 @@ partial class Internals
 
             sigDiff = (int_fast64_t)sigA - (int_fast64_t)sigB;
             if (sigDiff == 0)
-                return Float64.FromBitsUI64(PackToF64UI(state.RoundingMode == RoundingMode.Min, 0, 0));
+                return PackToF64(state.RoundingMode == RoundingMode.Min, 0, 0);
 
             if (expA != 0)
                 --expA;
@@ -274,7 +278,7 @@ partial class Internals
                 expZ = 0;
             }
 
-            return Float64.FromBitsUI64(PackToF64UI(signZ, expZ, (uint_fast64_t)sigDiff << shiftDist));
+            return PackToF64(signZ, expZ, (uint_fast64_t)sigDiff << shiftDist);
         }
         else
         {
@@ -285,9 +289,9 @@ partial class Internals
                 signZ = !signZ;
                 if (expB == 0x7FF)
                 {
-                    return Float64.FromBitsUI64((sigB != 0)
-                        ? state.PropagateNaNFloat64Bits(uiA, uiB)
-                        : PackToF64UI(signZ, 0x7FF, 0));
+                    return (sigB != 0)
+                        ? Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiA, uiB))
+                        : PackToF64(signZ, 0x7FF, 0);
                 }
 
                 sigA += expA != 0 ? 0x4000000000000000 : sigA;
@@ -367,9 +371,10 @@ partial class Internals
         {
             if (sigA == 0)
             {
-                return Float64.FromBitsUI64((((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
-                   ? PackToF64UI(state.RoundingMode == RoundingMode.Min, 0, 0)
-                   : uiC);
+                if (((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
+                    return PackToF64(state.RoundingMode == RoundingMode.Min, 0, 0);
+
+                return Float64.FromBitsUI64(uiC);
             }
 
             (expA, sigA) = NormSubnormalF64Sig(sigA);
@@ -379,9 +384,10 @@ partial class Internals
         {
             if (sigB == 0)
             {
-                return Float64.FromBitsUI64((((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
-                   ? PackToF64UI(state.RoundingMode == RoundingMode.Min, 0, 0)
-                   : uiC);
+                if (((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
+                    return PackToF64(state.RoundingMode == RoundingMode.Min, 0, 0);
+
+                return Float64.FromBitsUI64(uiC);
             }
 
             (expB, sigB) = NormSubnormalF64Sig(sigB);
@@ -464,7 +470,7 @@ partial class Internals
             {
                 sig128Z.V64 -= sigC;
                 if ((sig128Z.V64 | sig128Z.V00) == 0)
-                    return Float64.FromBitsUI64(PackToF64UI(state.RoundingMode == RoundingMode.Min, 0, 0));
+                    return PackToF64(state.RoundingMode == RoundingMode.Min, 0, 0);
 
                 if ((sig128Z.V64 & 0x8000000000000000) != 0)
                 {

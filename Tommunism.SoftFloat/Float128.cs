@@ -126,66 +126,51 @@ public readonly struct Float128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static Float128 FromUInt32(uint32_t a, SoftFloatState? state = null)
     {
-        var uiZ64 = 0UL;
         if (a != 0)
         {
             var shiftDist = CountLeadingZeroes32(a) + 17;
-            uiZ64 = PackToF128UI64(false, 0x402E - shiftDist, (uint_fast64_t)a << shiftDist);
+            return PackToF128(false, 0x402E - shiftDist, (uint_fast64_t)a << shiftDist, 0);
         }
 
-        return FromBitsUI128(v64: uiZ64, v0: 0);
+        return FromBitsUI128(v64: 0, v0: 0);
     }
 
     // ui64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static Float128 FromUInt64(uint64_t a, SoftFloatState? state = null)
     {
-        uint_fast64_t uiZ64, uiZ0;
-        if (a == 0)
-        {
-            uiZ64 = 0;
-            uiZ0 = 0;
-        }
-        else
+        if (a != 0)
         {
             var shiftDist = CountLeadingZeroes64(a) + 49;
             var zSig = (64 <= shiftDist)
                 ? new SFUInt128(v64: a << (shiftDist - 64), v0: 0)
                 : ShortShiftLeft128(0, a, shiftDist);
-            uiZ64 = PackToF128UI64(false, 0x406E - shiftDist, zSig.V64);
-            uiZ0 = zSig.V00;
+            return PackToF128(false, 0x406E - shiftDist, zSig.V64, zSig.V00);
         }
 
-        return FromBitsUI128(v64: uiZ64, v0: uiZ0);
+        return FromBitsUI128(v64: 0, v0: 0);
     }
 
     // i32_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static Float128 FromInt32(int32_t a, SoftFloatState? state = null)
     {
-        var uiZ64 = 0UL;
         if (a != 0)
         {
             var sign = a < 0;
             var absA = (uint_fast32_t)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes32(absA) + 17;
-            uiZ64 = PackToF128UI64(sign, 0x402E - shiftDist, (uint_fast64_t)absA << shiftDist);
+            return PackToF128(sign, 0x402E - shiftDist, (uint_fast64_t)absA << shiftDist, 0);
         }
 
-        return FromBitsUI128(v64: uiZ64, v0: 0);
+        return FromBitsUI128(v64: 0, v0: 0);
     }
 
     // i64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static Float128 FromInt64(int64_t a, SoftFloatState? state = null)
     {
-        uint_fast64_t uiZ64, uiZ0;
-        if (a == 0)
-        {
-            uiZ64 = 0;
-            uiZ0 = 0;
-        }
-        else
+        if (a != 0)
         {
             var sign = a < 0;
             var absA = (uint_fast64_t)(sign ? -a : a);
@@ -193,11 +178,10 @@ public readonly struct Float128
             var zSig = (64 <= shiftDist)
                 ? new SFUInt128(v64: absA << (shiftDist - 64), v0: 0)
                 : ShortShiftLeft128(0, absA, shiftDist);
-            uiZ64 = PackToF128UI64(sign, 0x406E - shiftDist, zSig.V64);
-            uiZ0 = zSig.V00;
+            return PackToF128(sign, 0x406E - shiftDist, zSig.V64, zSig.V00);
         }
 
-        return FromBitsUI128(v64: uiZ64, v0: uiZ0);
+        return FromBitsUI128(v64: 0, v0: 0);
     }
 
     #endregion
@@ -654,12 +638,12 @@ public readonly struct Float128
                 return Float16.FromBitsUI16(state.CommonNaNToFloat16Bits(in commonNaN));
             }
 
-            return Float16.FromBitsUI16(PackToF16UI(sign, 0x1F, 0));
+            return PackToF16(sign, 0x1F, 0);
         }
 
         frac16 = (uint_fast16_t)ShortShiftRightJam64(frac64, 34);
         if (((uint_fast32_t)exp | frac16) == 0)
-            return Float16.FromBitsUI16(PackToF16UI(sign, 0, 0));
+            return PackToF16(sign, 0, 0);
 
         exp -= 0x3FF1;
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x40)
@@ -692,12 +676,12 @@ public readonly struct Float128
                 return Float32.FromBitsUI32(state.CommonNaNToFloat32Bits(in commonNaN));
             }
 
-            return Float32.FromBitsUI32(PackToF32UI(sign, 0xFF, 0));
+            return PackToF32(sign, 0xFF, 0);
         }
 
         frac32 = (uint_fast32_t)ShortShiftRightJam64(frac64, 18);
         if (((uint_fast32_t)exp | frac32) == 0)
-            return Float32.FromBitsUI32(PackToF32UI(sign, 0, 0));
+            return PackToF32(sign, 0, 0);
 
         exp -= 0x3F81;
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x1000)
@@ -731,13 +715,13 @@ public readonly struct Float128
                 return Float64.FromBitsUI64(state.CommonNaNToFloat64Bits(in commonNaN));
             }
 
-            return Float64.FromBitsUI64(PackToF64UI(sign, 0x7FF, 0));
+            return PackToF64(sign, 0x7FF, 0);
         }
 
         frac128 = ShortShiftLeft128(frac64, frac0, 14);
         frac64 = frac128.V64 | (frac128.V00 != 0 ? 1U : 0);
         if (((uint_fast32_t)exp | frac64) != 0)
-            Float64.FromBitsUI64(PackToF64UI(sign, 0, 0));
+            return PackToF64(sign, 0, 0);
 
         exp -= 0x3C01;
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x1000)
@@ -771,13 +755,13 @@ public readonly struct Float128
                 return ExtFloat80.FromBitsUI128(state.CommonNaNToExtFloat80Bits(in commonNaN));
             }
 
-            return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0x7FFF), 0x8000000000000000);
+            return PackToExtF80(sign, 0x7FFF, 0x8000000000000000);
         }
 
         if (exp == 0)
         {
             if ((frac64 | frac0) == 0)
-                return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0), 0);
+                return PackToExtF80(sign, 0, 0);
 
             (exp, (frac64, frac0)) = NormSubnormalF128Sig(frac64, frac0);
         }
@@ -1015,7 +999,7 @@ public readonly struct Float128
                 return state.DefaultNaNFloat128;
             }
 
-            return Float128.FromBitsUI128(PackToF128UI64(signZ, 0x7FFF, 0), 0);
+            return PackToF128(signZ, 0x7FFF, 0, 0);
         }
 
         if (expB == 0x7FFF)
@@ -1034,13 +1018,13 @@ public readonly struct Float128
                 return state.DefaultNaNFloat128;
             }
 
-            return Float128.FromBitsUI128(PackToF128UI64(signZ, 0x7FFF, 0), 0);
+            return PackToF128(signZ, 0x7FFF, 0, 0);
         }
 
         if (expA == 0)
         {
             if (sigA.IsZero)
-                return Float128.FromBitsUI128(PackToF128UI64(signZ, 0, 0), 0);
+                return PackToF128(signZ, 0, 0, 0);
 
             (expA, sigA) = NormSubnormalF128Sig(sigA);
         }
@@ -1048,7 +1032,7 @@ public readonly struct Float128
         if (expB == 0)
         {
             if (sigB.IsZero)
-                return Float128.FromBitsUI128(PackToF128UI64(signZ, 0, 0), 0);
+                return PackToF128(signZ, 0, 0, 0);
 
             (expB, sigB) = NormSubnormalF128Sig(sigB);
         }
@@ -1131,7 +1115,7 @@ public readonly struct Float128
                 return state.DefaultNaNFloat128;
             }
 
-            return Float128.FromBitsUI128(PackToF128UI64(signZ, 0x7FFF, 0), 0);
+            return PackToF128(signZ, 0x7FFF, 0, 0);
         }
 
         if (expB == 0x7FFF)
@@ -1142,7 +1126,7 @@ public readonly struct Float128
                 return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0));
             }
 
-            return Float128.FromBitsUI128(PackToF128UI64(signZ, 0, 0), 0);
+            return PackToF128(signZ, 0, 0, 0);
         }
 
         if (expB == 0)
@@ -1157,7 +1141,7 @@ public readonly struct Float128
                 }
 
                 state.RaiseFlags(ExceptionFlags.Infinite);
-                return Float128.FromBitsUI128(PackToF128UI64(signZ, 0x7FFF, 0), 0);
+                return PackToF128(signZ, 0x7FFF, 0, 0);
             }
 
             (expB, sigB) = NormSubnormalF128Sig(sigB);
@@ -1166,7 +1150,7 @@ public readonly struct Float128
         if (expA == 0)
         {
             if (sigA.IsZero)
-                return Float128.FromBitsUI128(PackToF128UI64(signZ, 0, 0), 0);
+                return PackToF128(signZ, 0, 0, 0);
 
             (expA, sigA) = NormSubnormalF128Sig(sigA);
         }

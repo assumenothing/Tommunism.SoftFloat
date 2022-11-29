@@ -519,13 +519,13 @@ public readonly struct Float32
             }
             else
             {
-                return Float16.FromBitsUI16(PackToF16UI(sign, 0x1F, 0));
+                return PackToF16(sign, 0x1F, 0);
             }
         }
 
         frac16 = frac >> 9 | ((frac & 0x1FF) != 0 ? 1U : 0);
         if (((uint_fast16_t)exp | frac16) == 0)
-            return Float16.FromBitsUI16(PackToF16UI(sign, 0, 0));
+            return PackToF16(sign, 0, 0);
 
         state ??= SoftFloatState.Default;
         return RoundPackToF16(state, sign, exp - 0x71, frac16 | 0x4000);
@@ -552,20 +552,20 @@ public readonly struct Float32
             }
             else
             {
-                return Float64.FromBitsUI64(PackToF64UI(sign, 0x7FF, 0));
+                return PackToF64(sign, 0x7FF, 0);
             }
         }
 
         if (exp == 0)
         {
             if (frac == 0)
-                return Float64.FromBitsUI64(PackToF64UI(sign, 0, 0));
+                return PackToF64(sign, 0, 0);
 
             (exp, frac) = NormSubnormalF32Sig(frac);
             exp--;
         }
 
-        return Float64.FromBitsUI64(PackToF64UI(sign, exp + 0x380, (uint_fast64_t)frac << 29));
+        return PackToF64(sign, exp + 0x380, (uint_fast64_t)frac << 29);
     }
 
     // f32_to_extF80
@@ -589,19 +589,19 @@ public readonly struct Float32
             }
             else
             {
-                return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0x7FFF), 0x8000000000000000);
+                return PackToExtF80(sign, 0x7FFF, 0x8000000000000000);
             }
         }
 
         if (exp == 0)
         {
             if (frac == 0)
-                return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0), 0);
+                return PackToExtF80(sign, 0, 0);
 
             (exp, frac) = NormSubnormalF32Sig(frac);
         }
 
-        return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, exp + 0x3F80), (uint_fast64_t)(frac | 0x00800000) << 40);
+        return PackToExtF80(sign, exp + 0x3F80, (uint_fast64_t)(frac | 0x00800000) << 40);
     }
 
     // f32_to_f128
@@ -625,20 +625,20 @@ public readonly struct Float32
             }
             else
             {
-                return Float128.FromBitsUI128(v64: PackToF128UI64(sign, 0x7FFF, 0), v0: 0);
+                return PackToF128(sign, 0x7FFF, 0, 0);
             }
         }
 
         if (exp == 0)
         {
             if (frac == 0)
-                return Float128.FromBitsUI128(v64: PackToF128UI64(sign, 0, 0), v0: 0);
+                return PackToF128(sign, 0, 0, 0);
 
             (exp, frac) = NormSubnormalF32Sig(frac);
             exp--;
         }
 
-        return Float128.FromBitsUI128(v64: PackToF128UI64(sign, exp + 0x3F80, (uint_fast64_t)frac << 25), v0: 0);
+        return PackToF128(sign, exp + 0x3F80, (uint_fast64_t)frac << 25, 0);
     }
 
     #endregion
@@ -806,7 +806,7 @@ public readonly struct Float32
             }
             else
             {
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+                return PackToF32(signZ, 0xFF, 0);
             }
         }
 
@@ -827,14 +827,14 @@ public readonly struct Float32
             }
             else
             {
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+                return PackToF32(signZ, 0xFF, 0);
             }
         }
 
         if (expA == 0)
         {
             if (sigA == 0)
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0, 0));
+                return PackToF32(signZ, 0, 0);
 
             (expA, sigA) = NormSubnormalF32Sig(sigA);
         }
@@ -842,7 +842,7 @@ public readonly struct Float32
         if (expB == 0)
         {
             if (sigB == 0)
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0, 0));
+                return PackToF32(signZ, 0, 0);
 
             (expB, sigB) = NormSubnormalF32Sig(sigB);
         }
@@ -904,7 +904,7 @@ public readonly struct Float32
                 return state.DefaultNaNFloat32;
             }
 
-            return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+            return PackToF32(signZ, 0xFF, 0);
         }
 
         if (expB == 0xFF)
@@ -915,7 +915,7 @@ public readonly struct Float32
                 return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
             }
 
-            return Float32.FromBitsUI32(PackToF32UI(signZ, 0, 0));
+            return PackToF32(signZ, 0, 0);
         }
 
         if (expB == 0)
@@ -930,7 +930,7 @@ public readonly struct Float32
                 }
 
                 state.RaiseFlags(ExceptionFlags.Infinite);
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+                return PackToF32(signZ, 0xFF, 0);
             }
 
             (expB, sigB) = NormSubnormalF32Sig(sigB);
@@ -939,7 +939,7 @@ public readonly struct Float32
         if (expA == 0)
         {
             if (sigA == 0)
-                return Float32.FromBitsUI32(PackToF32UI(signZ, 0, 0));
+                return PackToF32(signZ, 0, 0);
 
             (expA, sigA) = NormSubnormalF32Sig(sigA);
         }

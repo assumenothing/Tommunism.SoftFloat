@@ -91,6 +91,10 @@ partial class Internals
         return (sign ? (1U << 31) : 0U) | (((uint_fast32_t)exp & 0xFF) << 23) | (sig & 0x007FFFFF);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Float32 PackToF32(bool sign, int_fast16_t exp, uint_fast32_t sig) =>
+        Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
+
     // isNaNF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNaNF32UI(uint_fast32_t a) => (~a & 0x7F800000) == 0 && (a & 0x007FFFFF) != 0;
@@ -141,7 +145,7 @@ partial class Internals
             if (roundingMode == RoundingMode.Odd)
             {
                 sig |= 1;
-                return Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
+                return PackToF32(sign, exp, sig);
             }
         }
 
@@ -149,7 +153,7 @@ partial class Internals
         if (sig == 0)
             exp = 0;
 
-        return Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
+        return PackToF32(sign, exp, sig);
     }
 
     // softfloat_normRoundPackToF32
@@ -159,7 +163,7 @@ partial class Internals
         exp -= shiftDist;
         if (7 <= shiftDist && (uint)exp < 0xFD)
         {
-            return Float32.FromBitsUI32(PackToF32UI(sign, sig != 0 ? exp : 0, sig << (shiftDist - 7)));
+            return PackToF32(sign, sig != 0 ? exp : 0, sig << (shiftDist - 7));
         }
         else
         {
@@ -197,7 +201,7 @@ partial class Internals
             expZ = expA;
             sigZ = 0x01000000 + sigA + sigB;
             if ((sigZ & 1) == 0 && expZ < 0xFE)
-                return Float32.FromBitsUI32(PackToF32UI(signZ, expZ, sigZ >> 1));
+                return PackToF32(signZ, expZ, sigZ >> 1);
 
             sigZ <<= 6;
         }
@@ -213,7 +217,7 @@ partial class Internals
                     if (sigB != 0)
                         return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
 
-                    return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+                    return PackToF32(signZ, 0xFF, 0);
                 }
 
                 expZ = expB;
@@ -274,7 +278,7 @@ partial class Internals
 
             sigDiff = (int_fast32_t)sigA - (int_fast32_t)sigB;
             if (sigDiff == 0)
-                return Float32.FromBitsUI32(PackToF32UI(state.RoundingMode == RoundingMode.Min, 0, 0));
+                return PackToF32(state.RoundingMode == RoundingMode.Min, 0, 0);
 
             if (expA != 0)
                 --expA;
@@ -295,7 +299,7 @@ partial class Internals
                 expZ = 0;
             }
 
-            return Float32.FromBitsUI32(PackToF32UI(signZ, expZ, (uint_fast32_t)sigDiff << shiftDist));
+            return PackToF32(signZ, expZ, (uint_fast32_t)sigDiff << shiftDist);
         }
         else
         {
@@ -311,7 +315,7 @@ partial class Internals
                     if (sigB != 0)
                         return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
 
-                    return Float32.FromBitsUI32(PackToF32UI(signZ, 0xFF, 0));
+                    return PackToF32(signZ, 0xFF, 0);
                 }
 
                 expZ = expB - 1;
@@ -390,11 +394,10 @@ partial class Internals
         {
             if (sigA == 0)
             {
-                uiZ = uiC;
                 if (((uint_fast32_t)expC | sigC) == 0 && signProd != signC)
-                    uiZ = PackToF32UI(state.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF32(state.RoundingMode == RoundingMode.Min, 0, 0);
 
-                return Float32.FromBitsUI32(uiZ);
+                return Float32.FromBitsUI32(uiC);
             }
 
             (expA, sigA) = NormSubnormalF32Sig(sigA);
@@ -404,11 +407,10 @@ partial class Internals
         {
             if (sigB == 0)
             {
-                uiZ = uiC;
                 if (((uint_fast32_t)expC | sigC) == 0 && signProd != signC)
-                    uiZ = PackToF32UI(state.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF32(state.RoundingMode == RoundingMode.Min, 0, 0);
 
-                return Float32.FromBitsUI32(uiZ);
+                return Float32.FromBitsUI32(uiC);
             }
 
             (expB, sigB) = NormSubnormalF32Sig(sigB);
@@ -475,7 +477,7 @@ partial class Internals
                 expZ = expProd;
                 sig64Z = sigProd - sig64C;
                 if (sig64Z == 0)
-                    return Float32.FromBitsUI32(PackToF32UI(state.RoundingMode == RoundingMode.Min, 0, 0));
+                    return PackToF32(state.RoundingMode == RoundingMode.Min, 0, 0);
 
                 if ((sig64Z & 0x8000000000000000) != 0)
                 {

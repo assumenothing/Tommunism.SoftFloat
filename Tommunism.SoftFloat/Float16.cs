@@ -530,18 +530,18 @@ public readonly struct Float16
                 return Float32.FromBitsUI32(state.CommonNaNToFloat32Bits(commonNaN));
             }
 
-            return Float32.FromBitsUI32(PackToF32UI(sign, 0xFF, 0));
+            return PackToF32(sign, 0xFF, 0);
         }
         else if (exp == 0)
         {
             if (frac == 0)
-                return Float32.FromBitsUI32(PackToF32UI(sign, 0, 0));
+                return PackToF32(sign, 0, 0);
 
             (exp, frac) = NormSubnormalF16Sig(frac);
             exp--;
         }
 
-        return Float32.FromBitsUI32(PackToF32UI(sign, exp + 0x70, frac << 13));
+        return PackToF32(sign, exp + 0x70, frac << 13);
     }
 
     // f16_to_f64
@@ -565,18 +565,18 @@ public readonly struct Float16
                 return Float64.FromBitsUI64(state.CommonNaNToFloat64Bits(in commonNaN));
             }
 
-            return Float64.FromBitsUI64(PackToF64UI(sign, 0x7FF, 0));
+            return PackToF64(sign, 0x7FF, 0);
         }
         else if (exp == 0)
         {
             if (frac == 0)
-                return Float64.FromBitsUI64(PackToF64UI(sign, 0, 0));
+                return PackToF64(sign, 0, 0);
 
             (exp, frac) = NormSubnormalF16Sig(frac);
             exp--;
         }
 
-        return Float64.FromBitsUI64(PackToF64UI(sign, exp + 0x3F0, (uint_fast64_t)frac << 42));
+        return PackToF64(sign, exp + 0x3F0, (uint_fast64_t)frac << 42);
     }
 
     // f16_to_extF80
@@ -600,17 +600,17 @@ public readonly struct Float16
                 return ExtFloat80.FromBitsUI128(state.CommonNaNToExtFloat80Bits(in commonNaN));
             }
 
-            return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0x7FFF), 0x8000000000000000);
+            return PackToExtF80(sign, 0x7FFF, 0x8000000000000000);
         }
         else if (exp == 0)
         {
             if (frac == 0)
-                return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, 0), 0);
+                return PackToExtF80(sign, 0, 0);
 
             (exp, frac) = NormSubnormalF16Sig(frac);
         }
 
-        return ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, exp + 0x3FF0), (uint_fast64_t)(frac | 0x0400) << 53);
+        return PackToExtF80(sign, exp + 0x3FF0, (uint_fast64_t)(frac | 0x0400) << 53);
     }
 
     // f16_to_f128
@@ -634,18 +634,18 @@ public readonly struct Float16
                 return Float128.FromBitsUI128(state.CommonNaNToFloat128Bits(in commonNaN));
             }
 
-            return Float128.FromBitsUI128(PackToF128UI64(sign, 0x7FFF, 0), 0);
+            return PackToF128(sign, 0x7FFF, 0, 0);
         }
         else if (exp == 0)
         {
             if (frac == 0)
-                return Float128.FromBitsUI128(PackToF128UI64(sign, 0, 0), 0);
+                return PackToF128(sign, 0, 0, 0);
 
             (exp, frac) = NormSubnormalF16Sig(frac);
             exp--;
         }
 
-        return Float128.FromBitsUI128(PackToF128UI64(sign, exp + 0x3FF0, (uint_fast64_t)frac << 38), 0);
+        return PackToF128(sign, exp + 0x3FF0, (uint_fast64_t)frac << 38, 0);
     }
 
     #endregion
@@ -811,7 +811,7 @@ public readonly struct Float16
                 return state.DefaultNaNFloat16;
             }
 
-            return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
+            return PackToF16(signZ, 0x1F, 0);
         }
         else if (expB == 0x1F)
         {
@@ -828,13 +828,13 @@ public readonly struct Float16
                 return state.DefaultNaNFloat16;
             }
 
-            return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
+            return PackToF16(signZ, 0x1F, 0);
         }
 
         if (expA == 0)
         {
             if (sigA == 0)
-                return FromBitsUI16(PackToF16UI(signZ, 0, 0));
+                return PackToF16(signZ, 0, 0);
 
             (expA, sigA) = NormSubnormalF16Sig(sigA);
         }
@@ -842,7 +842,7 @@ public readonly struct Float16
         if (expB == 0)
         {
             if (sigB == 0)
-                return FromBitsUI16(PackToF16UI(signZ, 0, 0));
+                return PackToF16(signZ, 0, 0);
 
             (expB, sigB) = NormSubnormalF16Sig(sigB);
         }
@@ -906,7 +906,7 @@ public readonly struct Float16
                 return state.DefaultNaNFloat16;
             }
 
-            return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
+            return PackToF16(signZ, 0x1F, 0);
         }
         else if (expB == 0x1F)
         {
@@ -916,7 +916,7 @@ public readonly struct Float16
                 return FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
             }
 
-            return FromBitsUI16(PackToF16UI(signZ, 0, 0));
+            return PackToF16(signZ, 0, 0);
         }
 
         if (expB == 0)
@@ -931,7 +931,7 @@ public readonly struct Float16
                 }
 
                 state.RaiseFlags(ExceptionFlags.Infinite);
-                return FromBitsUI16(PackToF16UI(signZ, 0x1F, 0));
+                return PackToF16(signZ, 0x1F, 0);
             }
 
             (expB, sigB) = NormSubnormalF16Sig(sigB);
@@ -940,7 +940,7 @@ public readonly struct Float16
         if (expA == 0)
         {
             if (sigA == 0)
-                return FromBitsUI16(PackToF16UI(signZ, 0, 0));
+                return PackToF16(signZ, 0, 0);
 
             (expA, sigA) = NormSubnormalF16Sig(sigA);
         }

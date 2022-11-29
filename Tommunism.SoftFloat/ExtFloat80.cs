@@ -173,46 +173,32 @@ public readonly struct ExtFloat80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static ExtFloat80 FromInt32(int32_t a, SoftFloatState? state = null)
     {
-        uint_fast16_t uiZ64;
         uint_fast32_t absA;
         if (a != 0)
         {
             var sign = a < 0;
             absA = (uint_fast32_t)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes32(absA);
-            uiZ64 = PackToExtF80UI64(sign, 0x401E - shiftDist);
-            absA <<= shiftDist;
-        }
-        else
-        {
-            uiZ64 = 0;
-            absA = 0;
+            return PackToExtF80(sign, 0x401E - shiftDist, (uint_fast64_t)absA << (shiftDist + 32));
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: (uint_fast64_t)absA << 32);
+        return FromBitsUI80(0, 0);
     }
 
     // i64_to_extF80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
     public static ExtFloat80 FromInt64(int64_t a, SoftFloatState? state = null)
     {
-        uint_fast16_t uiZ64;
         uint_fast64_t absA;
         if (a != 0)
         {
             var sign = a < 0;
             absA = (uint_fast64_t)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes64(absA);
-            uiZ64 = PackToExtF80UI64(sign, 0x403E - shiftDist);
-            absA <<= shiftDist;
-        }
-        else
-        {
-            uiZ64 = 0;
-            absA = 0;
+            return PackToExtF80(sign, 0x403E - shiftDist, absA << shiftDist);
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: absA);
+        return FromBitsUI80(0, 0);
     }
 
     #endregion
@@ -567,13 +553,13 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return Float16.FromBitsUI16(PackToF16UI(sign, 0x1f, 0));
+                return PackToF16(sign, 0x1f, 0);
             }
         }
 
         sig16 = (uint_fast16_t)ShortShiftRightJam64(sig, 49);
         if (((uint_fast32_t)exp | sig16) == 0)
-            return Float16.FromBitsUI16(PackToF16UI(sign, 0, 0));
+            return PackToF16(sign, 0, 0);
 
         exp -= 0x3FF1;
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x40)
@@ -608,13 +594,13 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return Float32.FromBitsUI32(PackToF32UI(sign, 0xFF, 0));
+                return PackToF32(sign, 0xFF, 0);
             }
         }
 
         sig32 = (uint_fast32_t)ShortShiftRightJam64(sig, 33);
         if (((uint_fast32_t)exp | sig32) == 0)
-            return Float32.FromBitsUI32(PackToF32UI(sign, 0, 0));
+            return PackToF32(sign, 0, 0);
 
         exp -= 0x3F81;
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x1000)
@@ -639,7 +625,7 @@ public readonly struct ExtFloat80
         sig = uiA0;
 
         if (((uint_fast32_t)exp | sig) == 0)
-            return Float64.FromBitsUI64(PackToF64UI(sign, 0, 0));
+            return PackToF64(sign, 0, 0);
 
         if (exp == 0x7FFF)
         {
@@ -651,7 +637,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return Float64.FromBitsUI64(PackToF64UI(sign, 0x7FF, 0));
+                return PackToF64(sign, 0x7FF, 0);
             }
         }
 
@@ -687,10 +673,7 @@ public readonly struct ExtFloat80
         {
             sign = SignExtF80UI64(uiA64);
             frac128 = ShortShiftLeft128(0, frac, 49);
-            return Float128.FromBitsUI128(
-                v64: PackToF128UI64(sign, (int_fast16_t)exp, frac128.V64),
-                v0: frac128.V00
-            );
+            return PackToF128(sign, (int_fast16_t)exp, frac128.V64, frac128.V00);
         }
     }
 
@@ -881,7 +864,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0x7FFF), 0x8000000000000000);
+                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
             }
         }
         else if (expB == 0x7FFF)
@@ -900,7 +883,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0x7FFF), 0x8000000000000000);
+                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
             }
         }
 
@@ -910,7 +893,7 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0), 0);
+                return PackToExtF80(signZ, 0, 0);
 
             (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
             expA += expTmp;
@@ -922,7 +905,7 @@ public readonly struct ExtFloat80
         if ((sigB & 0x8000000000000000) == 0)
         {
             if (sigB == 0)
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0), 0);
+                return PackToExtF80(signZ, 0, 0);
 
             (var expTmp, sigA) = NormSubnormalExtF80Sig(sigB);
             expB += expTmp;
@@ -976,7 +959,7 @@ public readonly struct ExtFloat80
                 return FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0));
             }
 
-            return FromBitsUI80(PackToExtF80UI64(signZ, 0x7FFF), 0x8000000000000000);
+            return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
         }
         else if (expB == 0x7FFF)
         {
@@ -986,7 +969,7 @@ public readonly struct ExtFloat80
                 return FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0));
             }
 
-            return FromBitsUI80(PackToExtF80UI64(signZ, 0), 0);
+            return PackToExtF80(signZ, 0, 0);
         }
 
         if (expB == 0)
@@ -1004,7 +987,7 @@ public readonly struct ExtFloat80
                 }
 
                 state.RaiseFlags(ExceptionFlags.Infinite);
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0x7FFF), 0x8000000000000000);
+                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
             }
 
             (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
@@ -1017,7 +1000,7 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return FromBitsUI80(PackToExtF80UI64(signZ, 0), 0);
+                return PackToExtF80(signZ, 0, 0);
 
             (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
             expA += expTmp;
@@ -1155,7 +1138,7 @@ public readonly struct ExtFloat80
                     expA = 0;
                 }
 
-                return FromBitsUI80(PackToExtF80UI64(signA, expA), sigA);
+                return PackToExtF80(signA, expA, sigA);
             }
 
             (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
@@ -1171,7 +1154,7 @@ public readonly struct ExtFloat80
                 expA = 0;
             }
 
-            return FromBitsUI80(PackToExtF80UI64(signA, expA), sigA);
+            return PackToExtF80(signA, expA, sigA);
         }
 
         rem = ShortShiftLeft128(0, sigB, 32);
@@ -1282,7 +1265,7 @@ public readonly struct ExtFloat80
         if (signA)
         {
             if (sigA == 0)
-                return FromBitsUI80(PackToExtF80UI64(signA, 0), 0);
+                return PackToExtF80(signA, 0, 0);
 
             state ??= SoftFloatState.Default;
             state.RaiseFlags(ExceptionFlags.Invalid);
@@ -1295,7 +1278,7 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return FromBitsUI80(PackToExtF80UI64(signA, 0), 0);
+                return PackToExtF80(signA, 0, 0);
 
             (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
             expA += expTmp;
