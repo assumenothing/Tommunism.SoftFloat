@@ -141,7 +141,7 @@ partial class Internals
             if (roundingMode == RoundingMode.Odd)
             {
                 sig |= 1;
-                return Float32.FromBitsUI32(PackToF16UI(sign, exp, sig));
+                return Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
             }
         }
 
@@ -149,7 +149,7 @@ partial class Internals
         if (sig == 0)
             exp = 0;
 
-        return Float32.FromBitsUI32(PackToF16UI(sign, exp, sig));
+        return Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
     }
 
     // softfloat_normRoundPackToF32
