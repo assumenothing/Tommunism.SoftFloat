@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Tommunism.SoftFloat;
 
@@ -386,7 +385,6 @@ internal static class Specialize
     /// Returns true when the 80-bit unsigned integer formed from concatenating 16-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of an 80-bit extended floating-point signaling NaN.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
         (bits64 & 0x7FFF) == 0x7FFF && (bits0 & 0x4000000000000000) == 0 && (bits0 & 0x3FFFFFFFFFFFFFFF) != 0;
 
@@ -490,7 +488,6 @@ internal static class Specialize
     /// Returns true when the 128-bit unsigned integer formed from concatenating 64-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of a 128-bit floating-point signaling NaN.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
         (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
 

@@ -42,8 +42,6 @@ using System;
 
 namespace Tommunism.SoftFloat;
 
-using static Specialize;
-
 // TODO: Add a static user-settable factory for creating custom instances when using the static properties?
 
 // Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
@@ -61,7 +59,21 @@ public class SoftFloatState
     [ThreadStatic]
     private static SoftFloatState? _currentThreadState;
 
-    private static readonly SoftFloatState _sharedState = new();
+    private static SoftFloatState? _sharedState;
+
+    #endregion
+
+    #region Constructors
+
+    public SoftFloatState() : this(SoftFloatSpecialize.Default)
+    {
+    }
+
+    public SoftFloatState(SoftFloatSpecialize specialize)
+    {
+        Specialize = specialize;
+        DetectTininess = specialize.InitialDetectTininess;
+    }
 
     #endregion
 
@@ -118,13 +130,32 @@ public class SoftFloatState
     /// <summary>
     /// Gets a software floating-point state that is shared with all threads. This is not thread safe!
     /// </summary>
-    public static SoftFloatState SharedState => _sharedState;
+    public static SoftFloatState SharedState
+    {
+        get
+        {
+            // Get or create shared state.
+            var state = _sharedState;
+            if (state == null)
+            {
+                state = new SoftFloatState();
+                _sharedState = state;
+            }
+
+            return state;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the specialization details to use when performing floating-point operations.
+    /// </summary>
+    public SoftFloatSpecialize Specialize { get; set; }
 
     // softfloat_detectTininess
     /// <summary>
     /// Gets or sets software floating-point underflow tininess-detection mode.
     /// </summary>
-    public Tininess DetectTininess { get; set; } = InitialDetectTininess;
+    public Tininess DetectTininess { get; set; }
 
     // softfloat_roundingMode
     /// <summary>
