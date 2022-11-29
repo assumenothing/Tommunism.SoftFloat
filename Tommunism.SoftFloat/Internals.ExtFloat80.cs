@@ -321,7 +321,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0))
+                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
@@ -343,7 +343,7 @@ partial class Internals
                 if (expB == 0x7FFF)
                 {
                     return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0))
+                        ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                         : PackToExtF80(signZ, 0x7FFF, uiB0);
                 }
 
@@ -363,7 +363,7 @@ partial class Internals
                 if (expA == 0x7FFF)
                 {
                     return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0))
+                        ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                         : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
                 }
 
@@ -409,7 +409,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 if (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    return ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0));
+                    return state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 return state.DefaultNaNExtFloat80;
@@ -440,7 +440,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0))
+                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
@@ -464,7 +464,7 @@ partial class Internals
             if (expB == 0x7FFF)
             {
                 return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? ExtFloat80.FromBitsUI128(state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0))
+                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : PackToExtF80(!signZ, 0x7FFF, 0x8000000000000000);
             }
 

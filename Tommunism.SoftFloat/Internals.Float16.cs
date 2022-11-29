@@ -193,7 +193,7 @@ partial class Internals
             if (expA == 0x1F)
             {
                 if ((sigA | sigB) != 0)
-                    return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                    return state.PropagateNaNFloat16(uiA, uiB);
 
                 return Float16.FromBitsUI16((ushort)uiA);
             }
@@ -214,7 +214,7 @@ partial class Internals
                 if (expB == 0x1F)
                 {
                     if (sigB != 0)
-                        return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                        return state.PropagateNaNFloat16(uiA, uiB);
 
                     return PackToF16(signZ, 0x1F, 0);
                 }
@@ -239,7 +239,7 @@ partial class Internals
                 if (expA == 0x1F)
                 {
                     if (sigA != 0)
-                        return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                        return state.PropagateNaNFloat16(uiA, uiB);
 
                     return Float16.FromBitsUI16((ushort)uiZ);
                 }
@@ -321,7 +321,7 @@ partial class Internals
             if (expA == 0x1F)
             {
                 if ((sigA | sigB) != 0)
-                    return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                    return state.PropagateNaNFloat16(uiA, uiB);
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 return state.DefaultNaNFloat16;
@@ -361,7 +361,7 @@ partial class Internals
                 if (expB == 0x1F)
                 {
                     if (sigB != 0)
-                        return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                        return state.PropagateNaNFloat16(uiA, uiB);
 
                     return PackToF16(signZ, 0x1F, 0);
                 }
@@ -386,7 +386,7 @@ partial class Internals
                 if (expA == 0x1F)
                 {
                     if (sigA != 0)
-                        return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB));
+                        return state.PropagateNaNFloat16(uiA, uiB);
 
                     return Float16.FromBitsUI16((ushort)uiZ);
                 }
@@ -467,7 +467,7 @@ partial class Internals
         if (expA == 0x1F)
         {
             if (sigA != 0 || (expB == 0x1F && sigB != 0))
-                return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB, uiC));
+                return state.PropagateNaNFloat16(uiA, uiB, uiC);
 
             magBits = (uint_fast16_t)expB | sigB;
             goto infProdArg;
@@ -476,7 +476,7 @@ partial class Internals
         if (expB == 0x1F)
         {
             if (sigB != 0)
-                return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiA, uiB, uiC));
+                return state.PropagateNaNFloat16(uiA, uiB, uiC);
 
             magBits = (uint_fast16_t)expA | sigA;
             goto infProdArg;
@@ -485,7 +485,7 @@ partial class Internals
         if (expC == 0x1F)
         {
             if (sigC != 0)
-                return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(0, uiC));
+                return state.PropagateNaNFloat16(0, uiC);
 
             return Float16.FromBitsUI16((ushort)uiC);
         }
@@ -609,13 +609,13 @@ partial class Internals
                 return Float16.FromBitsUI16((ushort)uiZ);
 
             if (sigC != 0)
-                return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(uiZ, uiC));
+                return state.PropagateNaNFloat16(uiZ, uiC);
 
             if (signProd == signC)
                 return Float16.FromBitsUI16((ushort)uiZ);
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return Float16.FromBitsUI16(state.PropagateNaNFloat16Bits(state.DefaultNaNFloat16Bits, uiC));
+        return state.PropagateNaNFloat16(state.DefaultNaNFloat16Bits, uiC);
     }
 }

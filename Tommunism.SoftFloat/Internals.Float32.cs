@@ -192,7 +192,7 @@ partial class Internals
             if (expA == 0xFF)
             {
                 if ((sigA | sigB) != 0)
-                    return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                    return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                 return Float32.FromBitsUI32(uiA);
             }
@@ -215,7 +215,7 @@ partial class Internals
                 if (expB == 0xFF)
                 {
                     if (sigB != 0)
-                        return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                        return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                     return PackToF32(signZ, 0xFF, 0);
                 }
@@ -229,7 +229,7 @@ partial class Internals
                 if (expA == 0xFF)
                 {
                     if (sigA != 0)
-                        return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                        return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                     return Float32.FromBitsUI32(uiA);
                 }
@@ -270,7 +270,7 @@ partial class Internals
             if (expA == 0xFF)
             {
                 if ((sigA | sigB) != 0)
-                    return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                    return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 return state.DefaultNaNFloat32;
@@ -313,7 +313,7 @@ partial class Internals
                 if (expB == 0xFF)
                 {
                     if (sigB != 0)
-                        return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                        return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                     return PackToF32(signZ, 0xFF, 0);
                 }
@@ -328,7 +328,7 @@ partial class Internals
                 if (expA == 0xFF)
                 {
                     if (sigA != 0)
-                        return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB));
+                        return state.PropagateNaNFloat32Bits(uiA, uiB);
 
                     return Float32.FromBitsUI32(uiA);
                 }
@@ -367,7 +367,7 @@ partial class Internals
         if (expA == 0xFF)
         {
             if (sigA != 0 || (expB == 0xFF && sigB != 0))
-                return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB, uiC));
+                return state.PropagateNaNFloat32Bits(uiA, uiB, uiC);
 
             magBits = (uint_fast32_t)expB | sigB;
             goto infProdArg;
@@ -376,7 +376,7 @@ partial class Internals
         if (expB == 0xFF)
         {
             if (sigB != 0)
-                return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiA, uiB, uiC));
+                return state.PropagateNaNFloat32Bits(uiA, uiB, uiC);
 
             magBits = (uint_fast32_t)expA | sigA;
             goto infProdArg;
@@ -385,7 +385,7 @@ partial class Internals
         if (expC == 0xFF)
         {
             if (sigC != 0)
-                return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(0, uiC));
+                return state.PropagateNaNFloat32Bits(0, uiC);
 
             return Float32.FromBitsUI32(uiC);
         }
@@ -509,13 +509,13 @@ partial class Internals
                 return Float32.FromBitsUI32(uiZ);
 
             if (sigC != 0)
-                return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(uiZ, uiC));
+                return state.PropagateNaNFloat32Bits(uiZ, uiC);
 
             if (signProd == signC)
                 return Float32.FromBitsUI32(uiZ);
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return Float32.FromBitsUI32(state.PropagateNaNFloat32Bits(state.DefaultNaNFloat32Bits, uiC));
+        return state.PropagateNaNFloat32Bits(state.DefaultNaNFloat32Bits, uiC);
     }
 }
