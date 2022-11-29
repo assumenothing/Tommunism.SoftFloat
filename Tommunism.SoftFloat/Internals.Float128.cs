@@ -449,10 +449,7 @@ partial class Internals
         if (expA == 0x7FFF)
         {
             if (!sigA.IsZero || (expB == 0x7FFF && !sigB.IsZero))
-            {
-                uiZ = state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
-                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
-            }
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0, uiC64, uiC0));
 
             magBits = (uint_fast32_t)expB | sigB.V64 | sigB.V00;
             goto infProdArg;
@@ -461,10 +458,7 @@ partial class Internals
         if (expB == 0x7FFF)
         {
             if (!sigB.IsZero)
-            {
-                uiZ = state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
-                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
-            }
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0, uiC64, uiC0));
 
             magBits = (uint_fast32_t)expA | sigA.V64 | sigA.V00;
             goto infProdArg;

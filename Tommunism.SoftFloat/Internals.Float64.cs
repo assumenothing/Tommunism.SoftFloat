@@ -341,10 +341,7 @@ partial class Internals
         if (expA == 0x7FF)
         {
             if (sigA != 0 || (expB == 0x7FF && sigB != 0))
-            {
-                uiZ = state.PropagateNaNFloat64Bits(uiA, uiB);
-                return Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiZ, uiC));
-            }
+                return Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiA, uiB, uiC));
 
             magBits = (uint_fast64_t)(long)expB | sigB;
             goto infProdArg;
@@ -353,10 +350,7 @@ partial class Internals
         if (expB == 0x7FF)
         {
             if (sigB != 0)
-            {
-                uiZ = state.PropagateNaNFloat64Bits(uiA, uiB);
-                return Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiZ, uiC));
-            }
+                return Float64.FromBitsUI64(state.PropagateNaNFloat64Bits(uiA, uiB, uiC));
 
             magBits = (uint_fast64_t)(long)expA | sigA;
             goto infProdArg;
