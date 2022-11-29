@@ -515,7 +515,7 @@ public readonly struct Float32
             {
                 state ??= SoftFloatState.Default;
                 state.Float32BitsToCommonNaN(_v, out var commonNaN);
-                return Float16.FromBitsUI16(state.CommonNaNToFloat16Bits(in commonNaN));
+                return state.CommonNaNToFloat16(in commonNaN);
             }
             else
             {
@@ -548,7 +548,7 @@ public readonly struct Float32
             {
                 state ??= SoftFloatState.Default;
                 state.Float32BitsToCommonNaN(_v, out var commonNaN);
-                return Float64.FromBitsUI64(state.CommonNaNToFloat64Bits(in commonNaN));
+                return state.CommonNaNToFloat64(in commonNaN);
             }
             else
             {
@@ -585,7 +585,7 @@ public readonly struct Float32
             {
                 state ??= SoftFloatState.Default;
                 state.Float32BitsToCommonNaN(_v, out var commonNaN);
-                return ExtFloat80.FromBitsUI128(state.CommonNaNToExtFloat80Bits(in commonNaN));
+                return state.CommonNaNToExtFloat80(in commonNaN);
             }
             else
             {
@@ -621,7 +621,7 @@ public readonly struct Float32
             {
                 state ??= SoftFloatState.Default;
                 state.Float32BitsToCommonNaN(_v, out var commonNaN);
-                return Float128.FromBitsUI128(state.CommonNaNToFloat128Bits(in commonNaN));
+                return state.CommonNaNToFloat128(in commonNaN);
             }
             else
             {
