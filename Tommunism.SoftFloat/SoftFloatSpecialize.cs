@@ -160,6 +160,14 @@ public abstract partial class SoftFloatSpecialize
     // i64_fromNaN
     public abstract long Int64FromNaN { get; }
 
+    public uint UInt32FromOverflow(bool isNegative) => isNegative ? UInt32FromNegOverflow : UInt32FromPosOverflow;
+
+    public int Int32FromOverflow(bool isNegative) => isNegative ? Int32FromNegOverflow : Int32FromPosOverflow;
+
+    public ulong UInt64FromOverflow(bool isNegative) => isNegative ? UInt64FromNegOverflow : UInt64FromPosOverflow;
+
+    public long Int64FromOverflow(bool isNegative) => isNegative ? Int64FromNegOverflow : Int64FromPosOverflow;
+
     #endregion
 
     #region Float16

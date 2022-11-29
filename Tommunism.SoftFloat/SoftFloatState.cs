@@ -46,11 +46,25 @@ namespace Tommunism.SoftFloat;
 
 // Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
 
+using int8_t = SByte;
+using int16_t = Int16;
 using int32_t = Int32;
 using int64_t = Int64;
 
+using uint8_t = Byte;
+using uint16_t = UInt16;
 using uint32_t = UInt32;
 using uint64_t = UInt64;
+
+// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
+using int_fast8_t = Int32;
+using int_fast16_t = Int32;
+using int_fast32_t = Int32;
+using int_fast64_t = Int64;
+using uint_fast8_t = UInt32;
+using uint_fast16_t = UInt32;
+using uint_fast32_t = UInt32;
+using uint_fast64_t = UInt64;
 
 public class SoftFloatState
 {
@@ -428,6 +442,97 @@ public class SoftFloatState
     public bool CompareEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareEqual(a, b, quiet, this);
     public bool CompareLessThan(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThan(a, b, quiet, this);
     public bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThanOrEqual(a, b, quiet, this);
+
+    #endregion
+
+    #endregion
+
+    #region Specialize Helpers
+
+    #region Integer Conversion Constants
+
+    public uint UInt32FromPosOverflow => Specialize.UInt32FromPosOverflow;
+    public uint UInt32FromNegOverflow => Specialize.UInt32FromNegOverflow;
+    public uint UInt32FromNaN => Specialize.UInt32FromNaN;
+
+    public int Int32FromPosOverflow => Specialize.Int32FromPosOverflow;
+    public int Int32FromNegOverflow => Specialize.Int32FromNegOverflow;
+    public int Int32FromNaN => Specialize.Int32FromNaN;
+
+    public ulong UInt64FromPosOverflow => Specialize.UInt64FromPosOverflow;
+    public ulong UInt64FromNegOverflow => Specialize.UInt64FromNegOverflow;
+    public ulong UInt64FromNaN => Specialize.UInt64FromNaN;
+
+    public long Int64FromPosOverflow => Specialize.Int64FromPosOverflow;
+    public long Int64FromNegOverflow => Specialize.Int64FromNegOverflow;
+    public long Int64FromNaN => Specialize.Int64FromNaN;
+
+    public uint UInt32FromOverflow(bool isNegative) => Specialize.UInt32FromOverflow(isNegative);
+    public int Int32FromOverflow(bool isNegative) => Specialize.Int32FromOverflow(isNegative);
+    public ulong UInt64FromOverflow(bool isNegative) => Specialize.UInt64FromOverflow(isNegative);
+    public long Int64FromOverflow(bool isNegative) => Specialize.Int64FromOverflow(isNegative);
+
+    #endregion
+
+    #region Float16
+
+    public uint16_t DefaultNaNFloat16Bits => Specialize.DefaultNaNFloat16Bits;
+    public Float16 DefaultNaNFloat16 => Specialize.DefaultNaNFloat16;
+
+    public bool IsSignalNaNFloat16Bits(uint_fast16_t bits) => Specialize.IsSignalNaNFloat16Bits(bits);
+    public void Float16BitsToCommonNaN(uint_fast16_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float16BitsToCommonNaN(this, bits, out commonNaN);
+    public uint16_t CommonNaNToFloat16Bits(in SoftFloatCommonNaN commonNaN) => Specialize.CommonNaNToFloat16Bits(commonNaN);
+    public uint16_t PropagateNaNFloat16Bits(uint_fast16_t bitsA, uint_fast16_t bitsB) => Specialize.PropagateNaNFloat16Bits(this, bitsA, bitsB);
+
+    #endregion
+
+    #region Float32
+
+    public uint32_t DefaultNaNFloat32Bits => Specialize.DefaultNaNFloat32Bits;
+    public Float32 DefaultNaNFloat32 => Specialize.DefaultNaNFloat32;
+
+    public bool IsSigNaNFloat32Bits(uint_fast32_t bits) => Specialize.IsSigNaNFloat32Bits(bits);
+    public void Float32BitsToCommonNaN(uint_fast32_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float32BitsToCommonNaN(this, bits, out commonNaN);
+    public uint32_t CommonNaNToFloat32Bits(in SoftFloatCommonNaN commonNaN) => Specialize.CommonNaNToFloat32Bits(in commonNaN);
+    public uint32_t PropagateNaNFloat32Bits(uint_fast32_t bitsA, uint_fast32_t bitsB) => Specialize.PropagateNaNFloat32Bits(this, bitsA, bitsB);
+
+    #endregion
+
+    #region Float64
+
+    public uint64_t DefaultNaNFloat64Bits => Specialize.DefaultNaNFloat64Bits;
+    public Float64 DefaultNaNFloat64 => Specialize.DefaultNaNFloat64;
+
+    public bool IsSigNaNFloat64Bits(uint_fast64_t bits) => Specialize.IsSigNaNFloat64Bits(bits);
+    public void Float64BitsToCommonNaN(uint_fast64_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float64BitsToCommonNaN(this, bits, out commonNaN);
+    public uint64_t CommonNaNToFloat64Bits(in SoftFloatCommonNaN commonNaN) => Specialize.CommonNaNToFloat64Bits(in commonNaN);
+    public uint64_t PropagateNaNFloat64Bits(uint_fast64_t bitsA, uint_fast64_t bitsB) => Specialize.PropagateNaNFloat64Bits(this, bitsA, bitsB);
+
+    #endregion
+
+    #region ExtFloat80
+
+    public uint16_t DefaultNaNExtFloat80BitsUpper => Specialize.DefaultNaNExtFloat80BitsUpper;
+    public uint64_t DefaultNaNExtFloat80BitsLower => Specialize.DefaultNaNExtFloat80BitsLower;
+    public ExtFloat80 DefaultNaNExtFloat80 => Specialize.DefaultNaNExtFloat80;
+
+    public bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) => Specialize.IsSigNaNExtFloat80Bits(bits64, bits0);
+    public void ExtFloat80BitsToCommonNaN(uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN) => Specialize.ExtFloat80BitsToCommonNaN(this, bits64, bits0, out commonNaN);
+    public UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) => Specialize.CommonNaNToExtFloat80Bits(in commonNaN);
+    public UInt128 PropagateNaNExtFloat80Bits(uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0) => Specialize.PropagateNaNExtFloat80Bits(this, bitsA64, bitsA0, bitsB64, bitsB0);
+
+    #endregion
+
+    #region Float128
+
+    public uint_fast64_t DefaultNaNFloat128BitsUpper => Specialize.DefaultNaNFloat128BitsUpper;
+    public uint_fast64_t DefaultNaNFloat128BitsLower => Specialize.DefaultNaNFloat128BitsLower;
+    public Float128 DefaultNaNFloat128 => Specialize.DefaultNaNFloat128;
+
+    public bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) => Specialize.IsSigNaNFloat128Bits(bits64, bits0);
+    public void Float128BitsToCommonNaN(uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN) => Specialize.Float128BitsToCommonNaN(this, bits64, bits0, out commonNaN);
+    public UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN) => Specialize.CommonNaNToFloat128Bits(in commonNaN);
+    public UInt128 PropagateNaNFloat128Bits(uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0) => Specialize.PropagateNaNFloat128Bits(this, bitsA64, bitsA0, bitsB64, bitsB0);
 
     #endregion
 
