@@ -45,7 +45,6 @@ using System.Runtime.CompilerServices;
 namespace Tommunism.SoftFloat;
 
 using static Primitives;
-using static Specialize;
 
 // Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
 
@@ -241,7 +240,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return ((sigA.V64 | sigA.V00 | sigB.V64 | sigB.V00) != 0)
-                    ? Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0))
+                    ? Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0))
                     : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
             }
 
@@ -260,7 +259,7 @@ partial class Internals
                 if (expB == 0x7FFF)
                 {
                     return sigB.IsZero
-                        ? Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0))
+                        ? Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0))
                         : Float128.FromBitsUI128(v64: PackToF128UI64(signZ, 0x7FFF, 0), v0: 0);
                 }
 
@@ -284,7 +283,7 @@ partial class Internals
                 if (expA == 0x7FFF)
                 {
                     return sigA.IsZero
-                        ? Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0))
+                        ? Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0))
                         : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
                 }
 
@@ -338,10 +337,10 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 if ((sigA.V64 | sigA.V00 | sigB.V64 | sigB.V00) != 0)
-                    return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0));
+                    return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0));
 
                 state.RaiseFlags(ExceptionFlags.Invalid);
-                return DefaultNaNFloat128;
+                return state.DefaultNaNFloat128;
             }
 
             expZ = expA;
@@ -373,7 +372,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return sigA.IsZero
-                    ? Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0))
+                    ? Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0))
                     : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
             }
 
@@ -399,7 +398,7 @@ partial class Internals
             if (expB == 0x7FFF)
             {
                 return sigB.IsZero
-                    ? Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0))
+                    ? Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0))
                     : Float128.FromBitsUI128(v64: PackToF128UI64(!signZ, 0x7FFF, 0), v0: 0);
             }
 
@@ -451,8 +450,8 @@ partial class Internals
         {
             if (!sigA.IsZero || (expB == 0x7FFF && !sigB.IsZero))
             {
-                uiZ = PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0);
-                return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
+                uiZ = state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
             }
 
             magBits = (uint_fast32_t)expB | sigB.V64 | sigB.V00;
@@ -463,8 +462,8 @@ partial class Internals
         {
             if (!sigB.IsZero)
             {
-                uiZ = PropagateNaNFloat128Bits(state, uiA64, uiA0, uiB64, uiB0);
-                return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
+                uiZ = state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
             }
 
             magBits = (uint_fast32_t)expA | sigA.V64 | sigA.V00;
@@ -476,7 +475,7 @@ partial class Internals
             if (!sigC.IsZero)
             {
                 uiZ = SFUInt128.Zero;
-                return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
             }
 
             return Float128.FromBitsUI128(v64: uiC64, v0: uiC0);
@@ -725,13 +724,13 @@ partial class Internals
                 return Float128.FromBitsUI128(uiZ);
 
             if (!sigC.IsZero)
-                return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, uiZ.V64, uiZ.V00, uiC64, uiC0));
+                return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0));
 
             if (signZ == signC)
                 return Float128.FromBitsUI128(uiZ);
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return Float128.FromBitsUI128(PropagateNaNFloat128Bits(state, DefaultNaNFloat128BitsUpper, DefaultNaNFloat128BitsLower, uiC64, uiC0));
+        return Float128.FromBitsUI128(state.PropagateNaNFloat128Bits(state.DefaultNaNFloat128BitsUpper, state.DefaultNaNFloat128BitsLower, uiC64, uiC0));
     }
 }

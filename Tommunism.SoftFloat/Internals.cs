@@ -39,12 +39,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Tommunism.SoftFloat;
 
 using static Primitives;
-using static Specialize;
 
 // Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
 
@@ -122,7 +120,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? UInt32FromNegOverflow : UInt32FromPosOverflow;
+        return state.UInt32FromOverflow(sign);
     }
 
     // softfloat_roundToUI64
@@ -180,7 +178,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? UInt64FromNegOverflow : UInt64FromPosOverflow;
+        return state.UInt64FromOverflow(sign);
     }
 
     // softfloat_roundToI32
@@ -224,7 +222,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? Int32FromNegOverflow : Int32FromPosOverflow;
+        return state.Int32FromOverflow(sign);
     }
 
     // softfloat_roundToI64
@@ -274,7 +272,7 @@ internal static partial class Internals
 
     invalid:
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return sign ? Int64FromNegOverflow : Int64FromPosOverflow;
+        return state.Int64FromOverflow(sign);
     }
 
     #endregion
