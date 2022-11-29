@@ -107,7 +107,7 @@ public readonly struct ExtFloat80
 
 #if NET7_0_OR_GREATER
     // TODO: Check value range?
-    public static ExtFloat80 FromUIntBits(UInt128 value) => new((ushort)(value >> 64), (ulong)value);
+    public static ExtFloat80 FromUIntBits(UInt128 value) => new((ushort)value.GetUpperUI64(), value.GetLowerUI64());
 
     public UInt128 ToUInt128Bits() => new(_signExp, _signif);
 #endif

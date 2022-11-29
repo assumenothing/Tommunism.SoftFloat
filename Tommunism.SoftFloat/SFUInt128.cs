@@ -102,7 +102,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #if NET7_0_OR_GREATER
     public static implicit operator UInt128(SFUInt128 value) => new(upper: value.V64, lower: value.V00);
 
-    public static implicit operator SFUInt128(UInt128 value) => new(v64: (ulong)(value >> 64), v0: (ulong)value);
+    public static implicit operator SFUInt128(UInt128 value) => new(v64: value.GetUpperUI64(), v0: value.GetLowerUI64());
 #endif
 
     public static bool operator ==(SFUInt128 left, SFUInt128 right) => EQ128(left.V64, left.V00, right.V64, right.V00);

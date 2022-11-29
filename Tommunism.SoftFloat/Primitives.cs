@@ -99,6 +99,14 @@ internal static class Primitives
 
     #endregion
 
+#if NET7_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ulong GetUpperUI64(this UInt128 value) => (ulong)(value >> 64);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ulong GetLowerUI64(this UInt128 value) => (ulong)value;
+#endif
+
     // softfloat_shortShiftRightJam64
     /// <summary>
     /// Shifts <paramref name="a"/> right by the number of bits given in <paramref name="dist"/>, which must be in the range 1 to 63. If

@@ -103,7 +103,7 @@ public readonly struct Float128
     public (ulong hi, ulong lo) ToUInt64x2Bits() => (_v64, _v0);
 
 #if NET7_0_OR_GREATER
-    public static Float128 FromUIntBits(UInt128 value) => new(v64: (ulong)(value >> 64), v0: (ulong)value);
+    public static Float128 FromUIntBits(UInt128 value) => new(v64: value.GetUpperUI64(), v0: value.GetLowerUI64());
 
     public UInt128 ToUInt128Bits() => new(_v64, _v0);
 #endif
