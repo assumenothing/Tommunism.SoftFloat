@@ -205,18 +205,19 @@ public readonly struct Float128
 
         if (exp == 0x7FFF && sig64 != 0)
         {
-            if (state.UInt32FromNaN == state.UInt32FromPosOverflow)
+            switch (state.Specialize.UInt32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.UInt32FromNaN == state.UInt32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.UInt32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.UInt32FromNaN;
             }
         }
 
@@ -286,18 +287,19 @@ public readonly struct Float128
 
         if (exp == 0x7FFF && (sig64 | sig0) != 0)
         {
-            if (state.Int32FromNaN == state.Int32FromPosOverflow)
+            switch (state.Specialize.Int32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.Int32FromNaN == state.Int32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.Int32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.Int32FromNaN;
             }
         }
 
@@ -855,37 +857,23 @@ public readonly struct Float128
     // f128_add
     public static Float128 Add(Float128 a, Float128 b, SoftFloatState state)
     {
-        uint_fast64_t uiA64, uiA0, uiB64, uiB0;
-        bool signA, signB;
-
-        uiA64 = a._v64;
-        uiA0 = a._v0;
-        signA = SignF128UI64(uiA64);
-        uiB64 = b._v64;
-        uiB0 = b._v0;
-        signB = SignF128UI64(uiB64);
+        var signA = SignF128UI64(a._v64);
+        var signB = SignF128UI64(b._v64);
 
         return (signA == signB)
-            ? AddMagsF128(state, uiA64, uiA0, uiB64, uiB0, signA)
-            : SubMagsF128(state, uiA64, uiA0, uiB64, uiB0, signA);
+            ? AddMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA)
+            : SubMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA);
     }
 
     // f128_sub
     public static Float128 Subtract(Float128 a, Float128 b, SoftFloatState state)
     {
-        uint_fast64_t uiA64, uiA0, uiB64, uiB0;
-        bool signA, signB;
-
-        uiA64 = a._v64;
-        uiA0 = a._v0;
-        signA = SignF128UI64(uiA64);
-        uiB64 = b._v64;
-        uiB0 = b._v0;
-        signB = SignF128UI64(uiB64);
+        var signA = SignF128UI64(a._v64);
+        var signB = SignF128UI64(b._v64);
 
         return (signA == signB)
-            ? SubMagsF128(state, uiA64, uiA0, uiB64, uiB0, signA)
-            : AddMagsF128(state, uiA64, uiA0, uiB64, uiB0, signA);
+            ? SubMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA)
+            : AddMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA);
     }
 
     // f128_mul
@@ -975,21 +963,8 @@ public readonly struct Float128
     }
 
     // f128_mulAdd
-    public static Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c, SoftFloatState state)
-    {
-        uint_fast64_t uiA64, uiA0, uiB64, uiB0, uiC64, uiC0;
-
-        uiA64 = a._v64;
-        uiA0 = a._v0;
-
-        uiB64 = b._v64;
-        uiB0 = b._v0;
-
-        uiC64 = c._v64;
-        uiC0 = c._v0;
-
-        return MulAddF128(state, uiA64, uiA0, uiB64, uiB0, uiC64, uiC0, MulAdd.None);
-    }
+    public static Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c, SoftFloatState state) =>
+        MulAddF128(state, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAdd.None);
 
     // f128_div
     public static Float128 Divide(Float128 a, Float128 b, SoftFloatState state)

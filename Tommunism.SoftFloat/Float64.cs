@@ -179,18 +179,19 @@ public readonly struct Float64
 
         if (exp == 0x7FF && sig != 0)
         {
-            if (state.UInt32FromNaN == state.UInt32FromPosOverflow)
+            switch (state.Specialize.UInt32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.UInt32FromNaN == state.UInt32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.UInt32FromNaN != state.UInt32FromPosOverflow || state.UInt32FromNaN != state.UInt32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.UInt32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.UInt32FromNaN;
             }
         }
 
@@ -254,18 +255,19 @@ public readonly struct Float64
 
         if (exp == 0x7FF && sig != 0)
         {
-            if (state.Int32FromNaN == state.Int32FromPosOverflow)
+            switch (state.Specialize.Int32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.Int32FromNaN == state.Int32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.UInt32FromNaN != state.UInt32FromPosOverflow || state.UInt32FromNaN != state.UInt32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.Int32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.Int32FromNaN;
             }
         }
 
@@ -733,33 +735,23 @@ public readonly struct Float64
     // f64_add
     public static Float64 Add(Float64 a, Float64 b, SoftFloatState state)
     {
-        uint_fast64_t uiA, uiB;
-        bool signA, signB;
-
-        uiA = a._v;
-        signA = SignF64UI(uiA);
-        uiB = b._v;
-        signB = SignF64UI(uiB);
+        var signA = SignF64UI(a._v);
+        var signB = SignF64UI(b._v);
 
         return (signA == signB)
-            ? AddMagsF64(state, uiA, uiB, signA)
-            : SubMagsF64(state, uiA, uiB, signA);
+            ? AddMagsF64(state, a._v, b._v, signA)
+            : SubMagsF64(state, a._v, b._v, signA);
     }
 
     // f64_sub
     public static Float64 Subtract(Float64 a, Float64 b, SoftFloatState state)
     {
-        uint_fast64_t uiA, uiB;
-        bool signA, signB;
-
-        uiA = a._v;
-        signA = SignF64UI(uiA);
-        uiB = b._v;
-        signB = SignF64UI(uiB);
+        var signA = SignF64UI(a._v);
+        var signB = SignF64UI(b._v);
 
         return (signA == signB)
-            ? SubMagsF64(state, uiA, uiB, signA)
-            : AddMagsF64(state, uiA, uiB, signA);
+            ? SubMagsF64(state, a._v, b._v, signA)
+            : AddMagsF64(state, a._v, b._v, signA);
     }
 
     // f64_mul

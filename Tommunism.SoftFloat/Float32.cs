@@ -186,18 +186,19 @@ public readonly struct Float32
 
         if (exp == 0xFF && sig != 0)
         {
-            if (state.UInt32FromNaN == state.UInt32FromPosOverflow)
+            switch (state.Specialize.UInt32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.UInt32FromNaN == state.UInt32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.UInt32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.UInt32FromNaN;
             }
         }
 
@@ -258,18 +259,19 @@ public readonly struct Float32
 
         if (exp == 0xFF && sig != 0)
         {
-            if (state.Int32FromNaN == state.Int32FromPosOverflow)
+            switch (state.Specialize.Int32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.Int32FromNaN == state.Int32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.Int32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.Int32FromNaN;
             }
         }
 

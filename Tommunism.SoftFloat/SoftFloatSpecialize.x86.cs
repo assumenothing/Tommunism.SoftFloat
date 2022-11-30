@@ -71,6 +71,10 @@ partial class SoftFloatSpecialize
 
         public override long Int64FromNaN => -0x7FFFFFFFFFFFFFFF - 1;
 
+        internal override SpecializeNaNIntegerKind UInt32NaNKind => SpecializeNaNIntegerKind.NaNIsPosAndNegOverflow;
+
+        internal override SpecializeNaNIntegerKind Int32NaNKind => SpecializeNaNIntegerKind.NaNIsPosAndNegOverflow;
+
         #endregion
 
         #region Float16

@@ -168,6 +168,34 @@ public abstract partial class SoftFloatSpecialize
 
     public long Int64FromOverflow(bool isNegative) => isNegative ? Int64FromNegOverflow : Int64FromPosOverflow;
 
+    // NOTE: These are virtual in the off-chance that better performance can be achieved by overridding them and avoiding comparisons with other virtual members.
+    // (These should only be overridden and returning a fixed value if the derived class or all of its [U]Int*From* properties are sealed.)
+    // Only implementing the ones which are commonly compared.
+
+    internal virtual SpecializeNaNIntegerKind UInt32NaNKind
+    {
+        get
+        {
+            SpecializeNaNIntegerKind result = 0;
+            var valueNaN = UInt32FromNaN;
+            if (valueNaN == UInt32FromPosOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
+            if (valueNaN == UInt32FromNegOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
+            return result;
+        }
+    }
+
+    internal virtual SpecializeNaNIntegerKind Int32NaNKind
+    {
+        get
+        {
+            SpecializeNaNIntegerKind result = 0;
+            var valueNaN = Int32FromNaN;
+            if (valueNaN == Int32FromPosOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
+            if (valueNaN == Int32FromNegOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
+            return result;
+        }
+    }
+
     #endregion
 
     #region Float16
@@ -427,4 +455,13 @@ public abstract partial class SoftFloatSpecialize
     public abstract UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0);
 
     #endregion
+}
+
+[Flags]
+internal enum SpecializeNaNIntegerKind : uint
+{
+    NaNIsUnique = 0,
+    NaNIsPosOverflow = 1 << 0,
+    NaNIsNegOverflow = 1 << 1,
+    NaNIsPosAndNegOverflow = NaNIsPosOverflow | NaNIsNegOverflow
 }

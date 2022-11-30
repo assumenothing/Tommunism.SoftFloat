@@ -222,18 +222,19 @@ public readonly struct ExtFloat80
 
         if (exp == 0x7FFF && (sig & 0x7FFFFFFFFFFFFFFF) != 0)
         {
-            if (state.UInt32FromNaN == state.UInt32FromPosOverflow)
+            switch (state.Specialize.UInt32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.UInt32FromNaN == state.UInt32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.UInt32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.UInt32FromNaN;
             }
         }
 
@@ -289,18 +290,19 @@ public readonly struct ExtFloat80
 
         if (exp == 0x7FFF && (sig & 0x7FFFFFFFFFFFFFFF) != 0)
         {
-            if (state.Int32FromNaN == state.Int32FromPosOverflow)
+            switch (state.Specialize.Int32NaNKind)
             {
-                sign = false;
-            }
-            else if (state.Int32FromNaN == state.Int32FromNegOverflow)
-            {
-                sign = true;
-            }
-            else if (state.Int32FromNaN != state.Int32FromPosOverflow || state.Int32FromNaN != state.Int32FromNegOverflow)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.Int32FromNaN;
+                case SpecializeNaNIntegerKind.NaNIsPosOverflow:
+                    sign = false;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsNegOverflow:
+                    sign = true;
+                    break;
+
+                case SpecializeNaNIntegerKind.NaNIsUnique:
+                    state.RaiseFlags(ExceptionFlags.Invalid);
+                    return state.Int32FromNaN;
             }
         }
 
@@ -1170,7 +1172,7 @@ public readonly struct ExtFloat80
             rem = -rem;
         }
 
-        return NormRoundPackToExtF80(state, signRem, (rem.V64 | rem.V00) != 0 ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
+        return NormRoundPackToExtF80(state, signRem, rem.IsZero ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
     }
 
     // extF80_sqrt
