@@ -1176,7 +1176,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || state.IsSigNaNFloat64Bits(uiA) || state.IsSigNaNFloat64Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat64Bits(uiA) || state.IsSignalingNaNFloat64Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1196,7 +1196,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || state.IsSigNaNFloat64Bits(uiA) || state.IsSigNaNFloat64Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat64Bits(uiA) || state.IsSignalingNaNFloat64Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1221,7 +1221,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || state.IsSigNaNFloat64Bits(uiA) || state.IsSigNaNFloat64Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat64Bits(uiA) || state.IsSignalingNaNFloat64Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;

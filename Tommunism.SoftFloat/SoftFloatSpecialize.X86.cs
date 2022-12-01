@@ -47,27 +47,27 @@ partial class SoftFloatSpecialize
 
         #region Integer Conversion Constants
 
-        public override uint UInt32FromPosOverflow => 0xFFFFFFFF;
+        public override uint UInt32FromPositiveOverflow => 0xFFFFFFFF;
 
-        public override uint UInt32FromNegOverflow => 0xFFFFFFFF;
+        public override uint UInt32FromNegativeOverflow => 0xFFFFFFFF;
 
         public override uint UInt32FromNaN => 0xFFFFFFFF;
 
-        public override int Int32FromPosOverflow => -0x7FFFFFFF - 1;
+        public override int Int32FromPositiveOverflow => -0x7FFFFFFF - 1;
 
-        public override int Int32FromNegOverflow => -0x7FFFFFFF - 1;
+        public override int Int32FromNegativeOverflow => -0x7FFFFFFF - 1;
 
         public override int Int32FromNaN => -0x7FFFFFFF - 1;
 
-        public override ulong UInt64FromPosOverflow => 0xFFFFFFFFFFFFFFFF;
+        public override ulong UInt64FromPositiveOverflow => 0xFFFFFFFFFFFFFFFF;
 
-        public override ulong UInt64FromNegOverflow => 0xFFFFFFFFFFFFFFFF;
+        public override ulong UInt64FromNegativeOverflow => 0xFFFFFFFFFFFFFFFF;
 
         public override ulong UInt64FromNaN => 0xFFFFFFFFFFFFFFFF;
 
-        public override long Int64FromPosOverflow => -0x7FFFFFFFFFFFFFFF - 1;
+        public override long Int64FromPositiveOverflow => -0x7FFFFFFFFFFFFFFF - 1;
 
-        public override long Int64FromNegOverflow => -0x7FFFFFFFFFFFFFFF - 1;
+        public override long Int64FromNegativeOverflow => -0x7FFFFFFFFFFFFFFF - 1;
 
         public override long Int64FromNaN => -0x7FFFFFFFFFFFFFFF - 1;
 
@@ -83,8 +83,8 @@ partial class SoftFloatSpecialize
 
         public override uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
         {
-            var isSigNaNA = IsSignalNaNFloat16Bits(bitsA);
-            var isSigNaNB = IsSignalNaNFloat16Bits(bitsB);
+            var isSigNaNA = IsSignalingNaNFloat16Bits(bitsA);
+            var isSigNaNB = IsSignalingNaNFloat16Bits(bitsB);
 
             // Make NaNs non-signaling.
             var uiNonsigA = bitsA | 0x0200;
@@ -119,8 +119,8 @@ partial class SoftFloatSpecialize
 
         public override uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
         {
-            var isSigNaNA = IsSigNaNFloat32Bits(bitsA);
-            var isSigNaNB = IsSigNaNFloat32Bits(bitsB);
+            var isSigNaNA = IsSignalingNaNFloat32Bits(bitsA);
+            var isSigNaNB = IsSignalingNaNFloat32Bits(bitsB);
 
             // Make NaNs non-signaling.
             var uiNonsigA = bitsA | 0x00400000;
@@ -155,8 +155,8 @@ partial class SoftFloatSpecialize
 
         public override uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
         {
-            var isSigNaNA = IsSigNaNFloat64Bits(bitsA);
-            var isSigNaNB = IsSigNaNFloat64Bits(bitsB);
+            var isSigNaNA = IsSignalingNaNFloat64Bits(bitsA);
+            var isSigNaNB = IsSignalingNaNFloat64Bits(bitsB);
 
             // Make NaNs non-signaling.
             var uiNonsigA = bitsA | 0x0008000000000000;
@@ -197,8 +197,8 @@ partial class SoftFloatSpecialize
 
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
-            var isSigNaNA = IsSigNaNFloat128Bits(bitsA64, bitsA0);
-            var isSigNaNB = IsSigNaNFloat128Bits(bitsB64, bitsB0);
+            var isSigNaNA = IsSignalingNaNFloat128Bits(bitsA64, bitsA0);
+            var isSigNaNB = IsSignalingNaNFloat128Bits(bitsB64, bitsB0);
 
             // Make NaNs non-signaling.
             var uiNonsigA64 = bitsA64 | 0x0000800000000000;

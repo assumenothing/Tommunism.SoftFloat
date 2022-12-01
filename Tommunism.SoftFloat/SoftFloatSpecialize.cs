@@ -128,48 +128,48 @@ public abstract partial class SoftFloatSpecialize
     #region Integer Conversion Constants
 
     // ui32_fromPosOverflow
-    public abstract uint UInt32FromPosOverflow { get; }
+    public abstract uint UInt32FromPositiveOverflow { get; }
 
     // ui32_fromNegOverflow
-    public abstract uint UInt32FromNegOverflow { get; }
+    public abstract uint UInt32FromNegativeOverflow { get; }
 
     // ui32_fromNaN
     public abstract uint UInt32FromNaN { get; }
 
     // i32_fromPosOverflow
-    public abstract int Int32FromPosOverflow { get; }
+    public abstract int Int32FromPositiveOverflow { get; }
 
     // i32_fromNegOverflow
-    public abstract int Int32FromNegOverflow { get; }
+    public abstract int Int32FromNegativeOverflow { get; }
 
     // i32_fromNaN
     public abstract int Int32FromNaN { get; }
 
     // ui64_fromPosOverflow
-    public abstract ulong UInt64FromPosOverflow { get; }
+    public abstract ulong UInt64FromPositiveOverflow { get; }
 
     // ui64_fromNegOverflow
-    public abstract ulong UInt64FromNegOverflow { get; }
+    public abstract ulong UInt64FromNegativeOverflow { get; }
 
     // ui64_fromNaN
     public abstract ulong UInt64FromNaN { get; }
 
     // i64_fromPosOverflow
-    public abstract long Int64FromPosOverflow { get; }
+    public abstract long Int64FromPositiveOverflow { get; }
 
     // i64_fromNegOverflow
-    public abstract long Int64FromNegOverflow { get; }
+    public abstract long Int64FromNegativeOverflow { get; }
 
     // i64_fromNaN
     public abstract long Int64FromNaN { get; }
 
-    public uint UInt32FromOverflow(bool isNegative) => isNegative ? UInt32FromNegOverflow : UInt32FromPosOverflow;
+    public uint UInt32FromOverflow(bool isNegative) => isNegative ? UInt32FromNegativeOverflow : UInt32FromPositiveOverflow;
 
-    public int Int32FromOverflow(bool isNegative) => isNegative ? Int32FromNegOverflow : Int32FromPosOverflow;
+    public int Int32FromOverflow(bool isNegative) => isNegative ? Int32FromNegativeOverflow : Int32FromPositiveOverflow;
 
-    public ulong UInt64FromOverflow(bool isNegative) => isNegative ? UInt64FromNegOverflow : UInt64FromPosOverflow;
+    public ulong UInt64FromOverflow(bool isNegative) => isNegative ? UInt64FromNegativeOverflow : UInt64FromPositiveOverflow;
 
-    public long Int64FromOverflow(bool isNegative) => isNegative ? Int64FromNegOverflow : Int64FromPosOverflow;
+    public long Int64FromOverflow(bool isNegative) => isNegative ? Int64FromNegativeOverflow : Int64FromPositiveOverflow;
 
     // NOTE: These are virtual in the off-chance that better performance can be achieved by overridding them and avoiding comparisons with other virtual members.
     // (These should only be overridden and returning a fixed value if the derived class or all of its [U]Int*From* properties are sealed.)
@@ -181,8 +181,8 @@ public abstract partial class SoftFloatSpecialize
         {
             SpecializeNaNIntegerKind result = 0;
             var valueNaN = UInt32FromNaN;
-            if (valueNaN == UInt32FromPosOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
-            if (valueNaN == UInt32FromNegOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
+            if (valueNaN == UInt32FromPositiveOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
+            if (valueNaN == UInt32FromNegativeOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
             return result;
         }
     }
@@ -193,8 +193,8 @@ public abstract partial class SoftFloatSpecialize
         {
             SpecializeNaNIntegerKind result = 0;
             var valueNaN = Int32FromNaN;
-            if (valueNaN == Int32FromPosOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
-            if (valueNaN == Int32FromNegOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
+            if (valueNaN == Int32FromPositiveOverflow) result |= SpecializeNaNIntegerKind.NaNIsPosOverflow;
+            if (valueNaN == Int32FromNegativeOverflow) result |= SpecializeNaNIntegerKind.NaNIsNegOverflow;
             return result;
         }
     }
@@ -222,7 +222,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 16-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 16-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalNaNFloat16Bits(uint_fast16_t bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
+    public virtual bool IsSignalingNaNFloat16Bits(uint_fast16_t bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
 
     // softfloat_f16UIToCommonNaN
     /// <summary>
@@ -232,7 +232,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual void Float16BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSignalNaNFloat16Bits(bits))
+        if (IsSignalingNaNFloat16Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
@@ -281,7 +281,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 32-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 32-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSigNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7F800000 && (bits & 0x003FFFFF) != 0;
+    public virtual bool IsSignalingNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7F800000 && (bits & 0x003FFFFF) != 0;
 
     // softfloat_f32UIToCommonNaN
     /// <summary>
@@ -291,7 +291,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual void Float32BitsToCommonNaN(SoftFloatState state, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNFloat32Bits(bits))
+        if (IsSignalingNaNFloat32Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
@@ -340,7 +340,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 64-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 64-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSigNaNFloat64Bits(uint_fast64_t bits) =>
+    public virtual bool IsSignalingNaNFloat64Bits(uint_fast64_t bits) =>
         (bits & 0x7FF8000000000000) == 0x7FF0000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
 
     // softfloat_f64UIToCommonNaN
@@ -351,7 +351,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual void Float64BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNFloat64Bits(bits))
+        if (IsSignalingNaNFloat64Bits(bits))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
@@ -404,7 +404,7 @@ public abstract partial class SoftFloatSpecialize
     /// Returns true when the 80-bit unsigned integer formed from concatenating 16-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of an 80-bit extended floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
+    public virtual bool IsSignalingNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
         (bits64 & 0x7FFF) == 0x7FFF && (bits0 & 0x4000000000000000) == 0 && (bits0 & 0x3FFFFFFFFFFFFFFF) != 0;
 
     // softfloat_extF80UIToCommonNaN
@@ -415,7 +415,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual void ExtFloat80BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNExtFloat80Bits(bits64, bits0))
+        if (IsSignalingNaNExtFloat80Bits(bits64, bits0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
@@ -445,8 +445,8 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
     {
-        var isSigNaNA = IsSigNaNExtFloat80Bits(bitsA64, bitsA0);
-        var isSigNaNB = IsSigNaNExtFloat80Bits(bitsB64, bitsB0);
+        var isSigNaNA = IsSignalingNaNExtFloat80Bits(bitsA64, bitsA0);
+        var isSigNaNB = IsSignalingNaNExtFloat80Bits(bitsB64, bitsB0);
 
         // Make NaNs non-signaling.
         var uiNonsigA0 = bitsA0 | 0xC000000000000000;
@@ -507,7 +507,7 @@ public abstract partial class SoftFloatSpecialize
     /// Returns true when the 128-bit unsigned integer formed from concatenating 64-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of a 128-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
+    public virtual bool IsSignalingNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
         (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
 
     // softfloat_f128UIToCommonNaN
@@ -518,7 +518,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
-        if (IsSigNaNFloat128Bits(bits64, bits0))
+        if (IsSignalingNaNFloat128Bits(bits64, bits0))
             state.RaiseFlags(ExceptionFlags.Invalid);
 
         var NaNSig = ShortShiftLeft128(bits64, bits0, 16);

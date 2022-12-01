@@ -47,27 +47,27 @@ partial class SoftFloatSpecialize
 
         #region Integer Conversion Constants
 
-        public override uint UInt32FromPosOverflow => 0xFFFFFFFF;
+        public override uint UInt32FromPositiveOverflow => 0xFFFFFFFF;
 
-        public override uint UInt32FromNegOverflow => 0;
+        public override uint UInt32FromNegativeOverflow => 0;
 
         public override uint UInt32FromNaN => 0;
 
-        public override int Int32FromPosOverflow => 0x7FFFFFFF;
+        public override int Int32FromPositiveOverflow => 0x7FFFFFFF;
 
-        public override int Int32FromNegOverflow => -0x7FFFFFFF - 1;
+        public override int Int32FromNegativeOverflow => -0x7FFFFFFF - 1;
 
         public override int Int32FromNaN => 0;
 
-        public override ulong UInt64FromPosOverflow => 0xFFFFFFFFFFFFFFFF;
+        public override ulong UInt64FromPositiveOverflow => 0xFFFFFFFFFFFFFFFF;
 
-        public override ulong UInt64FromNegOverflow => 0;
+        public override ulong UInt64FromNegativeOverflow => 0;
 
         public override ulong UInt64FromNaN => 0;
 
-        public override long Int64FromPosOverflow => 0x7FFFFFFFFFFFFFFF;
+        public override long Int64FromPositiveOverflow => 0x7FFFFFFFFFFFFFFF;
 
-        public override long Int64FromNegOverflow => -0x7FFFFFFFFFFFFFFF - 1;
+        public override long Int64FromNegativeOverflow => -0x7FFFFFFFFFFFFFFF - 1;
 
         public override long Int64FromNaN => 0;
 
@@ -92,7 +92,7 @@ partial class SoftFloatSpecialize
 
         public override uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
         {
-            if (IsSignalNaNFloat16Bits(bitsA) || IsSignalNaNFloat16Bits(bitsB))
+            if (IsSignalingNaNFloat16Bits(bitsA) || IsSignalingNaNFloat16Bits(bitsB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return DefaultNaNFloat16Bits;
@@ -115,7 +115,7 @@ partial class SoftFloatSpecialize
 
         public override uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
         {
-            if (IsSigNaNFloat32Bits(bitsA) || IsSigNaNFloat32Bits(bitsB))
+            if (IsSignalingNaNFloat32Bits(bitsA) || IsSignalingNaNFloat32Bits(bitsB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return DefaultNaNFloat32Bits;
@@ -138,7 +138,7 @@ partial class SoftFloatSpecialize
 
         public override uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
         {
-            if (IsSigNaNFloat64Bits(bitsA) || IsSigNaNFloat64Bits(bitsB))
+            if (IsSignalingNaNFloat64Bits(bitsA) || IsSignalingNaNFloat64Bits(bitsB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return DefaultNaNFloat64Bits;
@@ -161,7 +161,7 @@ partial class SoftFloatSpecialize
 
         public override UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0)
         {
-            if (IsSigNaNExtFloat80Bits(bitsA64, bitsA0) || IsSigNaNExtFloat80Bits(bitsB64, bitsB0))
+            if (IsSignalingNaNExtFloat80Bits(bitsA64, bitsA0) || IsSignalingNaNExtFloat80Bits(bitsB64, bitsB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return DefaultNaNExtFloat80Bits;
@@ -184,7 +184,7 @@ partial class SoftFloatSpecialize
 
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
-            if (IsSigNaNFloat128Bits(bitsA64, bitsA0) || IsSigNaNFloat128Bits(bitsB64, bitsB0))
+            if (IsSignalingNaNFloat128Bits(bitsA64, bitsA0) || IsSignalingNaNFloat128Bits(bitsB64, bitsB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return DefaultNaNFloat128Bits;

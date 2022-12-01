@@ -1142,7 +1142,7 @@ public readonly struct Float16
 
         if (IsNaNF16UI(uiA) || IsNaNF16UI(uiB))
         {
-            if (!quiet || state.IsSignalNaNFloat16Bits(uiA) || state.IsSignalNaNFloat16Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat16Bits(uiA) || state.IsSignalingNaNFloat16Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1162,7 +1162,7 @@ public readonly struct Float16
 
         if (IsNaNF16UI(uiA) || IsNaNF16UI(uiB))
         {
-            if (!quiet || state.IsSignalNaNFloat16Bits(uiA) || state.IsSignalNaNFloat16Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat16Bits(uiA) || state.IsSignalingNaNFloat16Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1187,7 +1187,7 @@ public readonly struct Float16
 
         if (IsNaNF16UI(uiA) || IsNaNF16UI(uiB))
         {
-            if (!quiet || state.IsSignalNaNFloat16Bits(uiA) || state.IsSignalNaNFloat16Bits(uiB))
+            if (!quiet || state.IsSignalingNaNFloat16Bits(uiA) || state.IsSignalingNaNFloat16Bits(uiB))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;

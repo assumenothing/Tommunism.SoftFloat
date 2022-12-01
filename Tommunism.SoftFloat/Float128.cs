@@ -1393,7 +1393,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSigNaNFloat128Bits(uiA64, uiA0) || state.IsSigNaNFloat128Bits(uiB64, uiB0))
+            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1415,7 +1415,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSigNaNFloat128Bits(uiA64, uiA0) || state.IsSigNaNFloat128Bits(uiB64, uiB0))
+            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1442,7 +1442,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSigNaNFloat128Bits(uiA64, uiA0) || state.IsSigNaNFloat128Bits(uiB64, uiB0))
+            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
