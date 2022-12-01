@@ -81,23 +81,6 @@ partial class SoftFloatSpecialize
 
         public override uint16_t DefaultNaNFloat16Bits => 0xFE00;
 
-        public override bool IsSignalNaNFloat16Bits(uint_fast16_t bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
-
-        public override void Float16BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSignalNaNFloat16Bits(bits))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits >> 15) != 0,
-                Value = new UInt128(upper: (ulong)bits << 54, lower: 0)
-            };
-        }
-
-        public override uint16_t CommonNaNToFloat16Bits(in SoftFloatCommonNaN commonNaN) =>
-            (uint16_t)((commonNaN.Sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(commonNaN.Value >> 118));
-
         public override uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
         {
             var isSigNaNA = IsSignalNaNFloat16Bits(bitsA);
@@ -121,7 +104,6 @@ partial class SoftFloatSpecialize
                 }
             }
 
-        returnLargerMag:
             var uiMagA = bitsA & 0x7FFF;
             var uiMagB = bitsB & 0x7FFF;
             if (uiMagA < uiMagB) return (uint16_t)uiNonsigB;
@@ -134,23 +116,6 @@ partial class SoftFloatSpecialize
         #region Float32
 
         public override uint32_t DefaultNaNFloat32Bits => 0xFFC00000;
-
-        public override bool IsSigNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7FC00000 && (bits & 0x003FFFFF) != 0;
-
-        public override void Float32BitsToCommonNaN(SoftFloatState state, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSigNaNFloat32Bits(bits))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits >> 31) != 0,
-                Value = new UInt128(upper: (ulong)bits << 41, lower: 0)
-            };
-        }
-
-        public override uint32_t CommonNaNToFloat32Bits(in SoftFloatCommonNaN commonNaN) =>
-            (commonNaN.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(commonNaN.Value >> 105);
 
         public override uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
         {
@@ -175,7 +140,6 @@ partial class SoftFloatSpecialize
                 }
             }
 
-        returnLargerMag:
             var uiMagA = bitsA & 0x7FFFFFFF;
             var uiMagB = bitsB & 0x7FFFFFFF;
             if (uiMagA < uiMagB) return uiNonsigB;
@@ -188,24 +152,6 @@ partial class SoftFloatSpecialize
         #region Float64
 
         public override uint64_t DefaultNaNFloat64Bits => 0xFFF8000000000000;
-
-        public override bool IsSigNaNFloat64Bits(uint_fast64_t bits) =>
-            (bits & 0x7FF8000000000000) == 0x7FF8000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
-
-        public override void Float64BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSigNaNFloat64Bits(bits))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits >> 63) != 0,
-                Value = new UInt128(upper: bits << 12, lower: 0)
-            };
-        }
-
-        public override uint64_t CommonNaNToFloat64Bits(in SoftFloatCommonNaN commonNaN) =>
-            (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (uint_fast64_t)(commonNaN.Value >> 76);
 
         public override uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
         {
@@ -245,66 +191,6 @@ partial class SoftFloatSpecialize
 
         public override uint64_t DefaultNaNExtFloat80BitsLower => 0xC000000000000000;
 
-        public override bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
-            (bits64 & 0x7FFF) == 0x7FFF && (bits0 & 0x4000000000000000) == 0 && (bits0 & 0x3FFFFFFFFFFFFFFF) != 0;
-
-        public override void ExtFloat80BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSigNaNExtFloat80Bits(bits64, bits0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits64 >> 15) != 0,
-                Value = new UInt128(upper: bits0 << 1, lower: 0)
-            };
-        }
-
-        public override UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) => new(
-            upper: (commonNaN.Sign ? (1UL << 15) : 0) | 0x7FFF,
-            lower: 0xC000000000000000 | (uint64_t)(commonNaN.Value >> 65)
-        );
-
-        public override UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
-        {
-            var isSigNaNA = IsSigNaNExtFloat80Bits(bitsA64, bitsA0);
-            var isSigNaNB = IsSigNaNExtFloat80Bits(bitsB64, bitsB0);
-
-            // Make NaNs non-signaling.
-            var uiNonsigA0 = bitsA0 | 0xC000000000000000;
-            var uiNonsigB0 = bitsB0 | 0xC000000000000000;
-
-            if (isSigNaNA | isSigNaNB)
-            {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                if (isSigNaNA)
-                {
-                    if (!isSigNaNB)
-                    {
-                        return IsNaNExtF80UI((int_fast16_t)bitsB64, bitsB0)
-                            ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
-                            : new UInt128(upper: bitsA64, lower: uiNonsigA0);
-                    }
-                }
-                else
-                {
-                    return IsNaNExtF80UI((int_fast16_t)bitsA64, bitsA0)
-                        ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
-                        : new UInt128(upper: bitsB64, lower: uiNonsigB0);
-                }
-            }
-
-            var uiMagA64 = bitsA64 & 0x7FFF;
-            var uiMagB64 = bitsB64 & 0x7FFF;
-
-            int cmp = uiMagA64.CompareTo(uiMagB64);
-            if (cmp == 0) cmp = bitsA0.CompareTo(bitsB0);
-            if (cmp == 0) cmp = bitsB64.CompareTo(bitsA64);
-            return cmp <= 0
-                ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
-                : new UInt128(upper: bitsA64, lower: uiNonsigA0);
-        }
-
         #endregion
 
         #region Float128
@@ -312,29 +198,6 @@ partial class SoftFloatSpecialize
         public override uint_fast64_t DefaultNaNFloat128BitsUpper => 0xFFFF800000000000;
 
         public override uint_fast64_t DefaultNaNFloat128BitsLower => 0x0000000000000000;
-
-        public override bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
-            (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
-
-        public override void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSigNaNFloat128Bits(bits64, bits0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            var NaNSig = ShortShiftLeft128(bits64, bits0, 16);
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits64 >> 63) != 0,
-                Value = new UInt128(upper: NaNSig.V64, lower: NaNSig.V00)
-            };
-        }
-
-        public override UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN)
-        {
-            var uiZ = commonNaN.Value >> 16;
-            uiZ |= new UInt128(upper: (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FFF800000000000, lower: 0);
-            return uiZ;
-        }
 
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
