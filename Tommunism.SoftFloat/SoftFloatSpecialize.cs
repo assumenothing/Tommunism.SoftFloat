@@ -385,13 +385,13 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// The bit pattern for the upper 16 bits of a default generated 80-bit extended floating-point NaN.
     /// </summary>
-    public abstract uint16_t DefaultNaNExtFloat80BitsUpper { get; }
+    public virtual uint16_t DefaultNaNExtFloat80BitsUpper => 0xFFFF;
 
     // defaultNaNExtF80UI0
     /// <summary>
     /// The bit pattern for the lower 64 bits of a default generated 80-bit extended floating-point NaN.
     /// </summary>
-    public abstract uint64_t DefaultNaNExtFloat80BitsLower { get; }
+    public virtual uint64_t DefaultNaNExtFloat80BitsLower => 0xC000000000000000;
 
     public ExtFloat80 DefaultNaNExtFloat80
     {

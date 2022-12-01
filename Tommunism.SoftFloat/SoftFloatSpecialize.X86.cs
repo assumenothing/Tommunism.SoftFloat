@@ -185,14 +185,6 @@ partial class SoftFloatSpecialize
 
         #endregion
 
-        #region ExtFloat80
-
-        public override uint16_t DefaultNaNExtFloat80BitsUpper => 0xFFFF;
-
-        public override uint64_t DefaultNaNExtFloat80BitsLower => 0xC000000000000000;
-
-        #endregion
-
         #region Float128
 
         public override uint_fast64_t DefaultNaNFloat128BitsUpper => 0xFFFF800000000000;
