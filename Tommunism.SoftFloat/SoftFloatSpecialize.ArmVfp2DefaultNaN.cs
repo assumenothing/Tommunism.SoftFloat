@@ -148,9 +148,7 @@ partial class SoftFloatSpecialize
 
         #region ExtFloat80
 
-        public override ushort DefaultNaNExtFloat80BitsUpper => 0x7FFF;
-
-        public override uint64_t DefaultNaNExtFloat80BitsLower => 0xC000000000000000;
+        public override UInt128 DefaultNaNExtFloat80Bits => new(upper: 0x7FFF, lower: 0xC000000000000000);
 
         public override void ExtFloat80BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
         {
@@ -159,24 +157,21 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
         }
 
-        public override UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) =>
-            new(upper: DefaultNaNExtFloat80BitsUpper, lower: DefaultNaNExtFloat80BitsLower);
+        public override UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) => DefaultNaNExtFloat80Bits;
 
         public override UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0)
         {
             if (IsSigNaNExtFloat80Bits(bitsA64, bitsA0) || IsSigNaNExtFloat80Bits(bitsB64, bitsB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
-            return new(upper: DefaultNaNExtFloat80BitsUpper, lower: DefaultNaNExtFloat80BitsLower);
+            return DefaultNaNExtFloat80Bits;
         }
 
         #endregion
 
         #region Float128
 
-        public override uint_fast64_t DefaultNaNFloat128BitsUpper => 0x7FFF800000000000;
-
-        public override uint_fast64_t DefaultNaNFloat128BitsLower => 0x0000000000000000;
+        public override UInt128 DefaultNaNFloat128Bits => new(upper: 0x7FFF800000000000, lower: 0x0000000000000000);
 
         public override void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
         {
@@ -185,15 +180,14 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
         }
 
-        public override UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN) =>
-            new(upper: DefaultNaNFloat128BitsUpper, lower: DefaultNaNFloat128BitsLower);
+        public override UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN) => DefaultNaNFloat128Bits;
 
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
             if (IsSigNaNFloat128Bits(bitsA64, bitsA0) || IsSigNaNFloat128Bits(bitsB64, bitsB0))
                 state.RaiseFlags(ExceptionFlags.Invalid);
 
-            return new(upper: DefaultNaNFloat128BitsUpper, lower: DefaultNaNFloat128BitsLower);
+            return DefaultNaNFloat128Bits;
         }
 
         #endregion

@@ -134,11 +134,15 @@ partial class SoftFloatSpecialize
 
         #endregion
 
+        #region ExtFloat80
+
+        public override UInt128 DefaultNaNExtFloat80Bits => new(upper: 0xFFFF, lower: 0xC000000000000000);
+
+        #endregion
+
         #region Float128
 
-        public override uint_fast64_t DefaultNaNFloat128BitsUpper => 0xFFFF800000000000;
-
-        public override uint_fast64_t DefaultNaNFloat128BitsLower => 0x0000000000000000;
+        public override UInt128 DefaultNaNFloat128Bits => new(upper: 0xFFFF800000000000, lower: 0x0000000000000000);
 
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {

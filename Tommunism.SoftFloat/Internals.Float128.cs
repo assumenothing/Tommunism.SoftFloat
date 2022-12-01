@@ -731,6 +731,8 @@ partial class Internals
         }
 
         state.RaiseFlags(ExceptionFlags.Invalid);
-        return state.PropagateNaNFloat128Bits(state.DefaultNaNFloat128BitsUpper, state.DefaultNaNFloat128BitsLower, uiC64, uiC0);
+
+        var defaultNaNBits = state.DefaultNaNFloat128Bits;
+        return state.PropagateNaNFloat128Bits(defaultNaNBits.GetUpperUI64(), defaultNaNBits.GetLowerUI64(), uiC64, uiC0);
     }
 }

@@ -111,8 +111,8 @@ public abstract partial class SoftFloatSpecialize
             _defaultNaNFloat16 = Float16.FromBitsUI16(DefaultNaNFloat16Bits);
             _defaultNaNFloat32 = Float32.FromBitsUI32(DefaultNaNFloat32Bits);
             _defaultNaNFloat64 = Float64.FromBitsUI64(DefaultNaNFloat64Bits);
-            _defaultNaNExtFloat80 = ExtFloat80.FromBitsUI80(DefaultNaNExtFloat80BitsUpper, DefaultNaNExtFloat80BitsLower);
-            _defaultNaNFloat128 = Float128.FromBitsUI128(v64: DefaultNaNFloat128BitsUpper, v0: DefaultNaNFloat128BitsLower);
+            _defaultNaNExtFloat80 = ExtFloat80.FromBitsUI128(DefaultNaNExtFloat80Bits);
+            _defaultNaNFloat128 = Float128.FromBitsUI128(DefaultNaNFloat128Bits);
             _defaultNaNsInitialized = true;
         }
     }
@@ -383,15 +383,12 @@ public abstract partial class SoftFloatSpecialize
 
     // defaultNaNExtF80UI64
     /// <summary>
-    /// The bit pattern for the upper 16 bits of a default generated 80-bit extended floating-point NaN.
+    /// The bit pattern for the 80 bits of a default generated 80-bit extended floating-point NaN.
     /// </summary>
-    public virtual uint16_t DefaultNaNExtFloat80BitsUpper => 0xFFFF;
-
-    // defaultNaNExtF80UI0
-    /// <summary>
-    /// The bit pattern for the lower 64 bits of a default generated 80-bit extended floating-point NaN.
-    /// </summary>
-    public virtual uint64_t DefaultNaNExtFloat80BitsLower => 0xC000000000000000;
+    /// <remarks>
+    /// The upper 48 bits should always be zero (as those bits are out of range).
+    /// </remarks>
+    public abstract UInt128 DefaultNaNExtFloat80Bits { get; }
 
     public ExtFloat80 DefaultNaNExtFloat80
     {
@@ -490,17 +487,11 @@ public abstract partial class SoftFloatSpecialize
 
     #region Float128
 
-    // defaultNaNF128UI64
+    // defaultNaNF128UI64 & defaultNaNF128UI0
     /// <summary>
-    /// The bit pattern for the upper 64 bits of a default generated 128-bit floating-point NaN.
+    /// The bit pattern for the 128 bits of a default generated 128-bit floating-point NaN.
     /// </summary>
-    public abstract uint_fast64_t DefaultNaNFloat128BitsUpper { get; }
-
-    // defaultNaNF128UI0
-    /// <summary>
-    /// The bit pattern for the lowper 64 bits of a default generated 128-bit floating-point NaN.
-    /// </summary>
-    public abstract uint_fast64_t DefaultNaNFloat128BitsLower { get; }
+    public abstract UInt128 DefaultNaNFloat128Bits { get; }
 
     public Float128 DefaultNaNFloat128
     {

@@ -536,8 +536,7 @@ public class SoftFloatState
 
     #region ExtFloat80
 
-    public uint16_t DefaultNaNExtFloat80BitsUpper => Specialize.DefaultNaNExtFloat80BitsUpper;
-    public uint64_t DefaultNaNExtFloat80BitsLower => Specialize.DefaultNaNExtFloat80BitsLower;
+    public UInt128 DefaultNaNExtFloat80Bits => Specialize.DefaultNaNExtFloat80Bits;
     public ExtFloat80 DefaultNaNExtFloat80 => Specialize.DefaultNaNExtFloat80;
 
     public bool IsSigNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) => Specialize.IsSigNaNExtFloat80Bits(bits64, bits0);
@@ -557,8 +556,7 @@ public class SoftFloatState
 
     #region Float128
 
-    public uint_fast64_t DefaultNaNFloat128BitsUpper => Specialize.DefaultNaNFloat128BitsUpper;
-    public uint_fast64_t DefaultNaNFloat128BitsLower => Specialize.DefaultNaNFloat128BitsLower;
+    public UInt128 DefaultNaNFloat128Bits => Specialize.DefaultNaNFloat128Bits;
     public Float128 DefaultNaNFloat128 => Specialize.DefaultNaNFloat128;
 
     public bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) => Specialize.IsSigNaNFloat128Bits(bits64, bits0);
