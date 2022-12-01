@@ -281,7 +281,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 32-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 32-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSigNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7FC00000 && (bits & 0x003FFFFF) != 0;
+    public virtual bool IsSigNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7F800000 && (bits & 0x003FFFFF) != 0;
 
     // softfloat_f32UIToCommonNaN
     /// <summary>
@@ -341,7 +341,7 @@ public abstract partial class SoftFloatSpecialize
     /// Returns true when 64-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 64-bit floating-point signaling NaN.
     /// </summary>
     public virtual bool IsSigNaNFloat64Bits(uint_fast64_t bits) =>
-        (bits & 0x7FF8000000000000) == 0x7FF8000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
+        (bits & 0x7FF8000000000000) == 0x7FF0000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
 
     // softfloat_f64UIToCommonNaN
     /// <summary>
