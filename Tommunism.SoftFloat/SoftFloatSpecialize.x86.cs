@@ -112,10 +112,8 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
                 {
-                    if (isSigNaNB)
-                        goto returnLargerMag;
-
-                    return (uint16_t)(IsNaNF16UI(bitsB) ? uiNonsigB : uiNonsigA);
+                    if (!isSigNaNB)
+                        return (uint16_t)(IsNaNF16UI(bitsB) ? uiNonsigB : uiNonsigA);
                 }
                 else
                 {
@@ -168,10 +166,8 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
                 {
-                    if (isSigNaNB)
-                        goto returnLargerMag;
-
-                    return IsNaNF32UI(bitsB) ? uiNonsigB : uiNonsigA;
+                    if (!isSigNaNB)
+                        return IsNaNF32UI(bitsB) ? uiNonsigB : uiNonsigA;
                 }
                 else
                 {
@@ -225,10 +221,8 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
                 {
-                    if (isSigNaNB)
-                        goto returnLargerMag;
-
-                    return IsNaNF64UI(bitsB) ? uiNonsigB : uiNonsigA;
+                    if (!isSigNaNB)
+                        return IsNaNF64UI(bitsB) ? uiNonsigB : uiNonsigA;
                 }
                 else
                 {
@@ -236,7 +230,6 @@ partial class SoftFloatSpecialize
                 }
             }
 
-        returnLargerMag:
             var uiMagA = bitsA & 0x7FFFFFFFFFFFFFFF;
             var uiMagB = bitsB & 0x7FFFFFFFFFFFFFFF;
             if (uiMagA < uiMagB) return uiNonsigB;
@@ -286,12 +279,12 @@ partial class SoftFloatSpecialize
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
                 {
-                    if (isSigNaNB)
-                        goto returnLargerMag;
-
-                    return IsNaNExtF80UI((int_fast16_t)bitsB64, bitsB0)
-                        ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
-                        : new UInt128(upper: bitsA64, lower: uiNonsigA0);
+                    if (!isSigNaNB)
+                    {
+                        return IsNaNExtF80UI((int_fast16_t)bitsB64, bitsB0)
+                            ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
+                            : new UInt128(upper: bitsA64, lower: uiNonsigA0);
+                    }
                 }
                 else
                 {
@@ -301,7 +294,6 @@ partial class SoftFloatSpecialize
                 }
             }
 
-        returnLargerMag:
             var uiMagA64 = bitsA64 & 0x7FFF;
             var uiMagB64 = bitsB64 & 0x7FFF;
 
@@ -350,39 +342,43 @@ partial class SoftFloatSpecialize
             var isSigNaNB = IsSigNaNFloat128Bits(bitsB64, bitsB0);
 
             // Make NaNs non-signaling.
-            var uiNonsigA0 = bitsA0 | 0x0000800000000000;
-            var uiNonsigB0 = bitsB0 | 0x0000800000000000;
+            var uiNonsigA64 = bitsA64 | 0x0000800000000000;
+            var uiNonsigB64 = bitsB64 | 0x0000800000000000;
 
             if (isSigNaNA | isSigNaNB)
             {
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
                 {
-                    if (isSigNaNB)
-                        goto returnLargerMag;
-
-                    return IsNaNF128UI(bitsB64, bitsB0)
-                        ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
-                        : new UInt128(upper: bitsA64, lower: uiNonsigA0);
+                    if (!isSigNaNB)
+                    {
+                        return IsNaNF128UI(bitsB64, bitsB0)
+                            ? new UInt128(upper: uiNonsigB64, lower: bitsB0)
+                            : new UInt128(upper: uiNonsigA64, lower: bitsA0);
+                    }
                 }
                 else
                 {
                     return IsNaNF128UI(bitsA64, bitsA0)
-                        ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
-                        : new UInt128(upper: bitsB64, lower: uiNonsigB0);
+                        ? new UInt128(upper: bitsA64, lower: bitsB0)
+                        : new UInt128(upper: uiNonsigA64, lower: bitsA0);
                 }
             }
 
-        returnLargerMag:
             var uiMagA64 = bitsA64 & 0x7FFFFFFFFFFFFFFF;
             var uiMagB64 = bitsB64 & 0x7FFFFFFFFFFFFFFF;
 
             int cmp = uiMagA64.CompareTo(uiMagB64);
-            if (cmp == 0) cmp = bitsA0.CompareTo(bitsB0);
-            if (cmp == 0) cmp = bitsB64.CompareTo(bitsA64);
+            if (cmp == 0)
+            {
+                cmp = bitsA0.CompareTo(bitsB0);
+                if (cmp == 0)
+                    cmp = uiNonsigB64.CompareTo(uiNonsigA64);
+            }
+
             return cmp <= 0
-                ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
-                : new UInt128(upper: bitsA64, lower: uiNonsigA0);
+                ? new UInt128(upper: uiNonsigB64, lower: bitsB0)
+                : new UInt128(upper: uiNonsigA64, lower: bitsA0);
         }
 
         #endregion
