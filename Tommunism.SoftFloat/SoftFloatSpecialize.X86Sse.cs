@@ -84,9 +84,7 @@ partial class SoftFloatSpecialize
         public override uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
         {
             var isSigNaNA = IsSignalNaNFloat16Bits(bitsA);
-            var isSigNaNB = IsSignalNaNFloat16Bits(bitsB);
-
-            if (isSigNaNA | isSigNaNB)
+            if (isSigNaNA || IsSignalNaNFloat16Bits(bitsB))
             {
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
@@ -105,9 +103,7 @@ partial class SoftFloatSpecialize
         public override uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
         {
             var isSigNaNA = IsSigNaNFloat32Bits(bitsA);
-            var isSigNaNB = IsSigNaNFloat32Bits(bitsB);
-
-            if (isSigNaNA | isSigNaNB)
+            if (isSigNaNA || IsSigNaNFloat32Bits(bitsB))
             {
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
@@ -126,9 +122,7 @@ partial class SoftFloatSpecialize
         public override uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
         {
             var isSigNaNA = IsSigNaNFloat64Bits(bitsA);
-            var isSigNaNB = IsSigNaNFloat64Bits(bitsB);
-
-            if (isSigNaNA | isSigNaNB)
+            if (isSigNaNA || IsSigNaNFloat64Bits(bitsB))
             {
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
@@ -146,35 +140,10 @@ partial class SoftFloatSpecialize
 
         public override uint_fast64_t DefaultNaNFloat128BitsLower => 0x0000000000000000;
 
-        public override bool IsSigNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
-            (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
-
-        public override void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
-        {
-            if (IsSigNaNFloat128Bits(bits64, bits0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
-
-            var NaNSig = ShortShiftLeft128(bits64, bits0, 16);
-            commonNaN = new SoftFloatCommonNaN()
-            {
-                Sign = (bits64 >> 63) != 0,
-                Value = new UInt128(upper: NaNSig.V64, lower: NaNSig.V00)
-            };
-        }
-
-        public override UInt128 CommonNaNToFloat128Bits(in SoftFloatCommonNaN commonNaN)
-        {
-            var uiZ = commonNaN.Value >> 16;
-            uiZ |= new UInt128(upper: (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FFF800000000000, lower: 0);
-            return uiZ;
-        }
-
         public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
             var isSigNaNA = IsSigNaNFloat128Bits(bitsA64, bitsA0);
-            var isSigNaNB = IsSigNaNFloat128Bits(bitsB64, bitsB0);
-
-            if (isSigNaNA | isSigNaNB)
+            if (isSigNaNA || IsSigNaNFloat128Bits(bitsB64, bitsB0))
             {
                 state.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
