@@ -99,6 +99,14 @@ public readonly struct ExtFloat80
 
     #endregion
 
+    #region Properties
+
+    internal uint64_t Significand => _signif;
+
+    internal uint16_t SignAndExponent => _signExp;
+
+    #endregion
+
     #region Methods
 
     public static ExtFloat80 FromUIntBits(ushort signExp, ulong significand) => new(signExp, significand);
