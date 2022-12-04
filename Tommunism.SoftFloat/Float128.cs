@@ -1380,8 +1380,8 @@ public readonly struct Float128
 
     #region Comparison Operations
 
-    // f128_eq (quiet=true) & f128_eq_signaling (quiet=false)
-    public static bool CompareEqual(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
+    // f128_eq (signaling=false) & f128_eq_signaling (signaling=true)
+    public static bool CompareEqual(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
 
@@ -1392,7 +1392,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1401,8 +1401,8 @@ public readonly struct Float128
         return uiA0 == uiB0 && (uiA64 == uiB64 || (uiA0 == 0 && ((uiA64 | uiB64) & 0x7FFFFFFFFFFFFFFF) == 0));
     }
 
-    // f128_le (quiet=false) & f128_le_quiet (quiet=true)
-    public static bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
+    // f128_le (signaling=true) & f128_le_quiet (signaling=false)
+    public static bool CompareLessThanOrEqual(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;
@@ -1414,7 +1414,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1428,8 +1428,8 @@ public readonly struct Float128
             : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ LT128(uiA64, uiA0, uiB64, uiB0));
     }
 
-    // f128_lt (quiet=false) & f128_lt_quiet (quiet=true)
-    public static bool CompareLessThan(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
+    // f128_lt (signaling=true) & f128_lt_quiet (signaling=false)
+    public static bool CompareLessThan(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;
@@ -1441,7 +1441,7 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;

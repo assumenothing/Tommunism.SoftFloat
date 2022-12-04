@@ -1166,8 +1166,8 @@ public readonly struct Float64
 
     #region Comparison Operations
 
-    // f64_eq (quiet=true) & f64_eq_signaling (quiet=false)
-    public static bool CompareEqual(Float64 a, Float64 b, bool quiet, SoftFloatContext context)
+    // f64_eq (signaling=false) & f64_eq_signaling (signaling=true)
+    public static bool CompareEqual(Float64 a, Float64 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA, uiB;
 
@@ -1176,7 +1176,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1185,8 +1185,8 @@ public readonly struct Float64
         return uiA == uiB || ((uiA | uiB) & 0x7FFFFFFFFFFFFFFF) == 0;
     }
 
-    // f64_le (quiet=false) & f64_le_quiet (quiet=true)
-    public static bool CompareLessThanOrEqual(Float64 a, Float64 b, bool quiet, SoftFloatContext context)
+    // f64_le (signaling=true) & f64_le_quiet (signaling=false)
+    public static bool CompareLessThanOrEqual(Float64 a, Float64 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA, uiB;
         bool signA, signB;
@@ -1196,7 +1196,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1210,8 +1210,8 @@ public readonly struct Float64
             : (uiA == uiB || (signA ^ (uiA < uiB)));
     }
 
-    // f64_lt (quiet=false) & f64_lt_quiet (quiet=true)
-    public static bool CompareLessThan(Float64 a, Float64 b, bool quiet, SoftFloatContext context)
+    // f64_lt (signaling=true) & f64_lt_quiet (signaling=false)
+    public static bool CompareLessThan(Float64 a, Float64 b, bool signaling, SoftFloatContext context)
     {
         uint_fast64_t uiA, uiB;
         bool signA, signB;
@@ -1221,7 +1221,7 @@ public readonly struct Float64
 
         if (IsNaNF64UI(uiA) || IsNaNF64UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat64Bits(uiA) || context.IsSignalingNaNFloat64Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;

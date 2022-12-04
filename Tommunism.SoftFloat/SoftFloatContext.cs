@@ -260,9 +260,9 @@ public class SoftFloatContext
     public Float16 Modulus(Float16 a, Float16 b) => Float16.Modulus(a, b, this);
     public Float16 SquareRoot(Float16 value) => value.SquareRoot(this);
 
-    public bool CompareEqual(Float16 a, Float16 b, bool quiet) => Float16.CompareEqual(a, b, quiet, this);
-    public bool CompareLessThan(Float16 a, Float16 b, bool quiet) => Float16.CompareLessThan(a, b, quiet, this);
-    public bool CompareLessThanOrEqual(Float16 a, Float16 b, bool quiet) => Float16.CompareLessThanOrEqual(a, b, quiet, this);
+    public bool CompareEqual(Float16 a, Float16 b, bool signaling) => Float16.CompareEqual(a, b, signaling, this);
+    public bool CompareLessThan(Float16 a, Float16 b, bool signaling) => Float16.CompareLessThan(a, b, signaling, this);
+    public bool CompareLessThanOrEqual(Float16 a, Float16 b, bool signaling) => Float16.CompareLessThanOrEqual(a, b, signaling, this);
 
     #endregion
 
@@ -305,9 +305,9 @@ public class SoftFloatContext
     public Float32 Modulus(Float32 a, Float32 b) => Float32.Modulus(a, b, this);
     public Float32 SquareRoot(Float32 value) => value.SquareRoot(this);
 
-    public bool CompareEqual(Float32 a, Float32 b, bool quiet) => Float32.CompareEqual(a, b, quiet, this);
-    public bool CompareLessThan(Float32 a, Float32 b, bool quiet) => Float32.CompareLessThan(a, b, quiet, this);
-    public bool CompareLessThanOrEqual(Float32 a, Float32 b, bool quiet) => Float32.CompareLessThanOrEqual(a, b, quiet, this);
+    public bool CompareEqual(Float32 a, Float32 b, bool signaling) => Float32.CompareEqual(a, b, signaling, this);
+    public bool CompareLessThan(Float32 a, Float32 b, bool signaling) => Float32.CompareLessThan(a, b, signaling, this);
+    public bool CompareLessThanOrEqual(Float32 a, Float32 b, bool signaling) => Float32.CompareLessThanOrEqual(a, b, signaling, this);
 
     #endregion
 
@@ -350,9 +350,9 @@ public class SoftFloatContext
     public Float64 Modulus(Float64 a, Float64 b) => Float64.Modulus(a, b, this);
     public Float64 SquareRoot(Float64 value) => value.SquareRoot(this);
 
-    public bool CompareEqual(Float64 a, Float64 b, bool quiet) => Float64.CompareEqual(a, b, quiet, this);
-    public bool CompareLessThan(Float64 a, Float64 b, bool quiet) => Float64.CompareLessThan(a, b, quiet, this);
-    public bool CompareLessThanOrEqual(Float64 a, Float64 b, bool quiet) => Float64.CompareLessThanOrEqual(a, b, quiet, this);
+    public bool CompareEqual(Float64 a, Float64 b, bool signaling) => Float64.CompareEqual(a, b, signaling, this);
+    public bool CompareLessThan(Float64 a, Float64 b, bool signaling) => Float64.CompareLessThan(a, b, signaling, this);
+    public bool CompareLessThanOrEqual(Float64 a, Float64 b, bool signaling) => Float64.CompareLessThanOrEqual(a, b, signaling, this);
 
     #endregion
 
@@ -394,9 +394,9 @@ public class SoftFloatContext
     public ExtFloat80 Modulus(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Modulus(a, b, this);
     public ExtFloat80 SquareRoot(ExtFloat80 value) => value.SquareRoot(this);
 
-    public bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareEqual(a, b, quiet, this);
-    public bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareLessThan(a, b, quiet, this);
-    public bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool quiet) => ExtFloat80.CompareLessThanOrEqual(a, b, quiet, this);
+    public bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool signaling) => ExtFloat80.CompareEqual(a, b, signaling, this);
+    public bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool signaling) => ExtFloat80.CompareLessThan(a, b, signaling, this);
+    public bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool signaling) => ExtFloat80.CompareLessThanOrEqual(a, b, signaling, this);
 
     #endregion
 
@@ -439,9 +439,9 @@ public class SoftFloatContext
     public Float128 Modulus(Float128 a, Float128 b) => Float128.Modulus(a, b, this);
     public Float128 SquareRoot(Float128 value) => value.SquareRoot(this);
 
-    public bool CompareEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareEqual(a, b, quiet, this);
-    public bool CompareLessThan(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThan(a, b, quiet, this);
-    public bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet) => Float128.CompareLessThanOrEqual(a, b, quiet, this);
+    public bool CompareEqual(Float128 a, Float128 b, bool signaling) => Float128.CompareEqual(a, b, signaling, this);
+    public bool CompareLessThan(Float128 a, Float128 b, bool signaling) => Float128.CompareLessThan(a, b, signaling, this);
+    public bool CompareLessThanOrEqual(Float128 a, Float128 b, bool signaling) => Float128.CompareLessThanOrEqual(a, b, signaling, this);
 
     #endregion
 

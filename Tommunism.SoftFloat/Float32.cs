@@ -1107,8 +1107,8 @@ public readonly struct Float32
 
     #region Comparison Operations
 
-    // f32_eq (quiet=true) & f32_eq_signaling (quiet=false)
-    public static bool CompareEqual(Float32 a, Float32 b, bool quiet, SoftFloatContext context)
+    // f32_eq (signaling=false) & f32_eq_signaling (signaling=true)
+    public static bool CompareEqual(Float32 a, Float32 b, bool signaling, SoftFloatContext context)
     {
         uint_fast32_t uiA, uiB;
 
@@ -1117,7 +1117,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1126,8 +1126,8 @@ public readonly struct Float32
         return (uiA == uiB) || (uint32_t)((uiA | uiB) << 1) == 0;
     }
 
-    // f32_le (quiet=false) & f32_le_quiet (quiet=true)
-    public static bool CompareLessThanOrEqual(Float32 a, Float32 b, bool quiet, SoftFloatContext context)
+    // f32_le (signaling=true) & f32_le_quiet (signaling=false)
+    public static bool CompareLessThanOrEqual(Float32 a, Float32 b, bool signaling, SoftFloatContext context)
     {
         uint_fast32_t uiA, uiB;
         bool signA, signB;
@@ -1137,7 +1137,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1151,8 +1151,8 @@ public readonly struct Float32
             : (uiA == uiB || (signA ^ (uiA < uiB)));
     }
 
-    // f32_lt (quiet=false) & f32_lt_quiet (quiet=true)
-    public static bool CompareLessThan(Float32 a, Float32 b, bool quiet, SoftFloatContext context)
+    // f32_lt (signaling=true) & f32_lt_quiet (signaling=false)
+    public static bool CompareLessThan(Float32 a, Float32 b, bool signaling, SoftFloatContext context)
     {
         uint_fast32_t uiA, uiB;
         bool signA, signB;
@@ -1162,7 +1162,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (!quiet || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
+            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;

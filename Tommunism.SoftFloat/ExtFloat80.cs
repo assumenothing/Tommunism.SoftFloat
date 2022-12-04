@@ -1307,8 +1307,8 @@ public readonly struct ExtFloat80
 
     #region Comparison Operations
 
-    // extF80_eq (quiet=true) & extF80_eq_signaling (quiet=false)
-    public static bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool quiet, SoftFloatContext context)
+    // extF80_eq (signaling=false) & extF80_eq_signaling (signaling=true)
+    public static bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
@@ -1320,7 +1320,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1329,8 +1329,8 @@ public readonly struct ExtFloat80
         return uiA0 == uiB0 && (uiA64 == uiB64 || (uiA0 == 0 && ((uiA64 | uiB64) & 0x7FFF) == 0));
     }
 
-    // extF80_le (quiet=false) & extF80_le_quiet (quiet=true)
-    public static bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool quiet, SoftFloatContext context)
+    // extF80_le (signaling=true) & extF80_le_quiet (signaling=false)
+    public static bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
@@ -1343,7 +1343,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1357,8 +1357,8 @@ public readonly struct ExtFloat80
             : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ LT128(uiA64, uiA0, uiB64, uiB0));
     }
 
-    // extF80_lt (quiet=false) & extF80_lt_quiet (quiet=true)
-    public static bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool quiet, SoftFloatContext context)
+    // extF80_lt (signaling=true) & extF80_lt_quiet (signaling=false)
+    public static bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
@@ -1371,7 +1371,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (!quiet || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
+            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
