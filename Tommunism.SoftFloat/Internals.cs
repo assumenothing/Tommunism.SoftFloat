@@ -71,7 +71,7 @@ internal static partial class Internals
     #region Rounding
 
     // softfloat_roundToUI32
-    public static uint_fast32_t RoundToUI32(SoftFloatState state, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
+    public static uint_fast32_t RoundToUI32(SoftFloatContext context, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t roundIncrement, roundBits;
         uint_fast32_t z;
@@ -113,18 +113,18 @@ internal static partial class Internals
                 z |= 1U;
 
             if (exact)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return z;
 
     invalid:
-        state.RaiseFlags(ExceptionFlags.Invalid);
-        return state.UInt32FromOverflow(sign);
+        context.RaiseFlags(ExceptionFlags.Invalid);
+        return context.UInt32FromOverflow(sign);
     }
 
     // softfloat_roundToUI64
-    public static ulong RoundToUI64(SoftFloatState state, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
+    public static ulong RoundToUI64(SoftFloatContext context, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
     {
         if (roundingMode is RoundingMode.NearMaxMag or RoundingMode.NearEven)
         {
@@ -171,18 +171,18 @@ internal static partial class Internals
                 sig |= 1;
 
             if (exact)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return sig;
 
     invalid:
-        state.RaiseFlags(ExceptionFlags.Invalid);
-        return state.UInt64FromOverflow(sign);
+        context.RaiseFlags(ExceptionFlags.Invalid);
+        return context.UInt64FromOverflow(sign);
     }
 
     // softfloat_roundToI32
-    public static int_fast32_t RoundToI32(SoftFloatState state, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
+    public static int_fast32_t RoundToI32(SoftFloatContext context, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t roundIncrement, roundBits;
         uint_fast32_t sig32;
@@ -215,18 +215,18 @@ internal static partial class Internals
                 z |= 1;
 
             if (exact)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return z;
 
     invalid:
-        state.RaiseFlags(ExceptionFlags.Invalid);
-        return state.Int32FromOverflow(sign);
+        context.RaiseFlags(ExceptionFlags.Invalid);
+        return context.Int32FromOverflow(sign);
     }
 
     // softfloat_roundToI64
-    public static int_fast64_t RoundToI64(SoftFloatState state, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
+    public static int_fast64_t RoundToI64(SoftFloatContext context, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
     {
         int_fast64_t z;
 
@@ -265,14 +265,14 @@ internal static partial class Internals
                 z |= 1L;
 
             if (exact)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return z;
 
     invalid:
-        state.RaiseFlags(ExceptionFlags.Invalid);
-        return state.Int64FromOverflow(sign);
+        context.RaiseFlags(ExceptionFlags.Invalid);
+        return context.Int64FromOverflow(sign);
     }
 
     #endregion

@@ -106,23 +106,23 @@ partial class Internals
 
     // softfloat_roundPackToExtF80
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ExtFloat80 RoundPackToExtF80(SoftFloatState state, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    public static ExtFloat80 RoundPackToExtF80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
     {
         Debug.Assert(roundingPrecision is ExtFloat80RoundingPrecision._32 or ExtFloat80RoundingPrecision._64 or ExtFloat80RoundingPrecision._80, "Unexpected rounding precision.");
         return roundingPrecision switch
         {
-            ExtFloat80RoundingPrecision._32 => RoundPackToExtF80Impl32Or64(state, sign, exp, sig, sigExtra, 0x0000008000000000, 0x000000FFFFFFFFFF),
-            ExtFloat80RoundingPrecision._64 => RoundPackToExtF80Impl32Or64(state, sign, exp, sig, sigExtra, 0x0000000000000400, 0x00000000000007FF),
-            _ => RoundPackToExtF80Impl80(state, sign, exp, sig, sigExtra),
+            ExtFloat80RoundingPrecision._32 => RoundPackToExtF80Impl32Or64(context, sign, exp, sig, sigExtra, 0x0000008000000000, 0x000000FFFFFFFFFF),
+            ExtFloat80RoundingPrecision._64 => RoundPackToExtF80Impl32Or64(context, sign, exp, sig, sigExtra, 0x0000000000000400, 0x00000000000007FF),
+            _ => RoundPackToExtF80Impl80(context, sign, exp, sig, sigExtra),
         };
     }
 
     // Called when rounding precision is 32 or 64.
-    private static ExtFloat80 RoundPackToExtF80Impl32Or64(SoftFloatState state, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, uint_fast64_t roundIncrement, uint_fast64_t roundMask)
+    private static ExtFloat80 RoundPackToExtF80Impl32Or64(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, uint_fast64_t roundIncrement, uint_fast64_t roundMask)
     {
         uint_fast64_t roundBits;
 
-        var roundingMode = state.RoundingMode;
+        var roundingMode = context.RoundingMode;
         var roundNearEven = (roundingMode == RoundingMode.NearEven);
 
         sig |= sigExtra != 0 ? 1UL : 0;
@@ -134,15 +134,15 @@ partial class Internals
         {
             if (exp <= 0)
             {
-                var isTiny = state.DetectTininess == Tininess.BeforeRounding || exp < 0 || sig <= sig + roundIncrement;
+                var isTiny = context.DetectTininess == Tininess.BeforeRounding || exp < 0 || sig <= sig + roundIncrement;
                 sig = ShiftRightJam64(sig, 1 - exp);
                 roundBits = sig & roundMask;
                 if (roundBits != 0)
                 {
                     if (isTiny)
-                        state.RaiseFlags(ExceptionFlags.Underflow);
+                        context.RaiseFlags(ExceptionFlags.Underflow);
 
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
                     if (roundingMode == RoundingMode.Odd)
                         sig |= roundMask + 1;
                 }
@@ -159,7 +159,7 @@ partial class Internals
 
             if (0x7FFE < exp || (exp == 0x7FFE && sig + roundIncrement < sig))
             {
-                state.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
+                context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
                 if (roundNearEven || roundingMode == RoundingMode.NearMaxMag ||
                     roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max))
                 {
@@ -178,7 +178,7 @@ partial class Internals
 
         if (roundBits != 0)
         {
-            state.ExceptionFlags |= ExceptionFlags.Inexact;
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
             if (roundingMode == RoundingMode.Odd)
             {
                 sig = (sig & ~roundMask) | (roundMask + 1);
@@ -202,9 +202,9 @@ partial class Internals
     }
 
     // Called when rounding precision is 80 (or anything except 32 or 64).
-    private static ExtFloat80 RoundPackToExtF80Impl80(SoftFloatState state, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra)
+    private static ExtFloat80 RoundPackToExtF80Impl80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra)
     {
-        var roundingMode = state.RoundingMode;
+        var roundingMode = context.RoundingMode;
         var roundNearEven = (roundingMode == RoundingMode.NearEven);
         var roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
             ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
@@ -214,15 +214,15 @@ partial class Internals
         {
             if (exp <= 0)
             {
-                var isTiny = state.DetectTininess == Tininess.BeforeRounding || exp < 0 || !roundIncrement || sig < 0xFFFFFFFFFFFFFFFF;
+                var isTiny = context.DetectTininess == Tininess.BeforeRounding || exp < 0 || !roundIncrement || sig < 0xFFFFFFFFFFFFFFFF;
                 sig = ShiftRightJam64Extra(sig, sigExtra, 1 - exp).V;
                 exp = 0;
                 if (sigExtra != 0)
                 {
                     if (isTiny)
-                        state.RaiseFlags(ExceptionFlags.Underflow);
+                        context.RaiseFlags(ExceptionFlags.Underflow);
 
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
                     if (roundingMode == RoundingMode.Odd)
                     {
                         sig |= 1;
@@ -245,7 +245,7 @@ partial class Internals
 
             if (0x7FFE < exp || (exp == 0x7FFE && sig == 0xFFFFFFFFFFFFFFFF && roundIncrement))
             {
-                state.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
+                context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
                 if (roundNearEven || roundingMode == RoundingMode.NearMaxMag ||
                     roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max))
                 {
@@ -264,7 +264,7 @@ partial class Internals
 
         if (sigExtra != 0)
         {
-            state.ExceptionFlags |= ExceptionFlags.Inexact;
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
             if (roundingMode == RoundingMode.Odd)
                 return PackToExtF80(sign, exp, sig | 1);
         }
@@ -287,7 +287,7 @@ partial class Internals
     }
 
     // softfloat_normRoundPackToExtF80
-    public static ExtFloat80 NormRoundPackToExtF80(SoftFloatState state, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    public static ExtFloat80 NormRoundPackToExtF80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
     {
         if (sig == 0)
         {
@@ -301,11 +301,11 @@ partial class Internals
         if (shiftDist != 0)
             (sig, sigExtra) = ShortShiftLeft128(sig, sigExtra, shiftDist);
 
-        return RoundPackToExtF80(state, sign, exp, sig, sigExtra, roundingPrecision);
+        return RoundPackToExtF80(context, sign, exp, sig, sigExtra, roundingPrecision);
     }
 
     // softfloat_addMagsExtF80
-    public static ExtFloat80 AddMagsExtF80(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static ExtFloat80 AddMagsExtF80(SoftFloatContext context, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
     {
         int_fast32_t expA, expB, expDiff, expZ;
         uint_fast64_t sigA, sigB, sigZ, sigZExtra;
@@ -321,7 +321,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
@@ -331,7 +331,7 @@ partial class Internals
             {
                 (expZ, sigZ) = NormSubnormalExtF80Sig(sigZ);
                 expZ++;
-                return RoundPackToExtF80(state, signZ, expZ, sigZ, sigZExtra, state.ExtFloat80RoundingPrecision);
+                return RoundPackToExtF80(context, signZ, expZ, sigZ, sigZExtra, context.ExtFloat80RoundingPrecision);
             }
 
             expZ = expA;
@@ -343,7 +343,7 @@ partial class Internals
                 if (expB == 0x7FFF)
                 {
                     return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                        ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                         : PackToExtF80(signZ, 0x7FFF, uiB0);
                 }
 
@@ -363,7 +363,7 @@ partial class Internals
                 if (expA == 0x7FFF)
                 {
                     return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                        ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                        ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                         : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
                 }
 
@@ -382,17 +382,17 @@ partial class Internals
         newlyAligned:
             sigZ = sigA + sigB;
             if ((sigZ & 0x8000000000000000) != 0)
-                return RoundPackToExtF80(state, signZ, expZ, sigZ, sigZExtra, state.ExtFloat80RoundingPrecision);
+                return RoundPackToExtF80(context, signZ, expZ, sigZ, sigZExtra, context.ExtFloat80RoundingPrecision);
         }
 
         (sigZExtra, sigZ) = ShortShiftRightJam64Extra(sigZ, sigZExtra, 1);
         sigZ |= 0x8000000000000000;
         ++expZ;
-        return RoundPackToExtF80(state, signZ, expZ, sigZ, sigZExtra, state.ExtFloat80RoundingPrecision);
+        return RoundPackToExtF80(context, signZ, expZ, sigZ, sigZExtra, context.ExtFloat80RoundingPrecision);
     }
 
     // softfloat_subMagsExtF80
-    public static ExtFloat80 SubMagsExtF80(SoftFloatState state, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static ExtFloat80 SubMagsExtF80(SoftFloatContext context, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
     {
         int_fast32_t expA, expB, expDiff, expZ;
         uint_fast64_t sigA, sigB, sigExtra;
@@ -409,10 +409,10 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 if (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
-                    return state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
+                    return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
 
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.DefaultNaNExtFloat80;
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNExtFloat80;
             }
 
             expZ = expA;
@@ -432,7 +432,7 @@ partial class Internals
             }
             else
             {
-                return PackToExtF80(state.RoundingMode == RoundingMode.Min, 0, 0);
+                return PackToExtF80(context.RoundingMode == RoundingMode.Min, 0, 0);
             }
         }
         else if (0 < expDiff)
@@ -440,7 +440,7 @@ partial class Internals
             if (expA == 0x7FFF)
             {
                 return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : ExtFloat80.FromBitsUI80((ushort)uiA64, uiA0);
             }
 
@@ -464,7 +464,7 @@ partial class Internals
             if (expB == 0x7FFF)
             {
                 return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                    ? state.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
                     : PackToExtF80(!signZ, 0x7FFF, 0x8000000000000000);
             }
 
@@ -485,6 +485,6 @@ partial class Internals
             sig128 = Sub128(sigB, 0, sigA, sigExtra);
         }
 
-        return NormRoundPackToExtF80(state, signZ, expZ, sig128.V64, sig128.V00, state.ExtFloat80RoundingPrecision);
+        return NormRoundPackToExtF80(context, signZ, expZ, sig128.V64, sig128.V00, context.ExtFloat80RoundingPrecision);
     }
 }

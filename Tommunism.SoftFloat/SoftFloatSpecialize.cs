@@ -77,7 +77,7 @@ public abstract partial class SoftFloatSpecialize
     /// Gets or sets the default instance to use for specialized implementation details.
     /// </summary>
     /// <remarks>
-    /// This value will be used on new instances of <see cref="SoftFloatState"/> (after this property has changed). The default value is
+    /// This value will be used on new instances of <see cref="SoftFloatContext"/> (after this property has changed). The default value is
     /// <see cref="X86.Default"/>.
     /// </remarks>
     public static SoftFloatSpecialize Default
@@ -230,10 +230,10 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float16BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float16BitsToCommonNaN(SoftFloatContext context, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat16Bits(bits))
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
         {
@@ -256,7 +256,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB);
+    public abstract uint16_t PropagateNaNFloat16Bits(SoftFloatContext context, uint_fast16_t bitsA, uint_fast16_t bitsB);
 
     #endregion
 
@@ -289,10 +289,10 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float32BitsToCommonNaN(SoftFloatState state, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float32BitsToCommonNaN(SoftFloatContext context, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat32Bits(bits))
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
         {
@@ -315,7 +315,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB);
+    public abstract uint32_t PropagateNaNFloat32Bits(SoftFloatContext context, uint_fast32_t bitsA, uint_fast32_t bitsB);
 
     #endregion
 
@@ -349,10 +349,10 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float64BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float64BitsToCommonNaN(SoftFloatContext context, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat64Bits(bits))
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
         {
@@ -375,7 +375,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB);
+    public abstract uint64_t PropagateNaNFloat64Bits(SoftFloatContext context, uint_fast64_t bitsA, uint_fast64_t bitsB);
 
     #endregion
 
@@ -413,10 +413,10 @@ public abstract partial class SoftFloatSpecialize
     /// of an 80-bit extended floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the
     /// location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public virtual void ExtFloat80BitsToCommonNaN(SoftFloatState state, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
+    public virtual void ExtFloat80BitsToCommonNaN(SoftFloatContext context, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNExtFloat80Bits(bits64, bits0))
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
 
         commonNaN = new SoftFloatCommonNaN()
         {
@@ -443,7 +443,7 @@ public abstract partial class SoftFloatSpecialize
     /// values is a NaN, returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN,
     /// the invalid exception is raised.
     /// </summary>
-    public virtual UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
+    public virtual UInt128 PropagateNaNExtFloat80Bits(SoftFloatContext context, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
     {
         var isSigNaNA = IsSignalingNaNExtFloat80Bits(bitsA64, bitsA0);
         var isSigNaNB = IsSignalingNaNExtFloat80Bits(bitsB64, bitsB0);
@@ -454,7 +454,7 @@ public abstract partial class SoftFloatSpecialize
 
         if (isSigNaNA | isSigNaNB)
         {
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
             if (isSigNaNA)
             {
                 if (!isSigNaNB)
@@ -516,10 +516,10 @@ public abstract partial class SoftFloatSpecialize
     /// of an 128-bit floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the location
     /// pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public virtual void Float128BitsToCommonNaN(SoftFloatState state, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float128BitsToCommonNaN(SoftFloatContext context, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat128Bits(bits64, bits0))
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
 
         var NaNSig = ShortShiftLeft128(bits64, bits0, 16);
         commonNaN = new SoftFloatCommonNaN()
@@ -549,7 +549,7 @@ public abstract partial class SoftFloatSpecialize
     /// returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public abstract UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0);
+    public abstract UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0);
 
     #endregion
 }

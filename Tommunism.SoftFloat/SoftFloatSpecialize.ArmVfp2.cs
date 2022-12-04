@@ -81,12 +81,12 @@ partial class SoftFloatSpecialize
 
         public override uint16_t DefaultNaNFloat16Bits => 0x7E00;
 
-        public override uint16_t PropagateNaNFloat16Bits(SoftFloatState state, uint_fast16_t bitsA, uint_fast16_t bitsB)
+        public override uint16_t PropagateNaNFloat16Bits(SoftFloatContext context, uint_fast16_t bitsA, uint_fast16_t bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat16Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat16Bits(bitsB))
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (uint16_t)((isSigNaNA ? bitsA : bitsB) | 0x0200);
             }
 
@@ -99,12 +99,12 @@ partial class SoftFloatSpecialize
 
         public override uint32_t DefaultNaNFloat32Bits => 0x7FC00000;
 
-        public override uint32_t PropagateNaNFloat32Bits(SoftFloatState state, uint_fast32_t bitsA, uint_fast32_t bitsB)
+        public override uint32_t PropagateNaNFloat32Bits(SoftFloatContext context, uint_fast32_t bitsA, uint_fast32_t bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat32Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat32Bits(bitsB))
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (isSigNaNA ? bitsA : bitsB) | 0x00400000;
             }
 
@@ -117,12 +117,12 @@ partial class SoftFloatSpecialize
 
         public override uint64_t DefaultNaNFloat64Bits => 0x7FF8000000000000;
 
-        public override uint64_t PropagateNaNFloat64Bits(SoftFloatState state, uint_fast64_t bitsA, uint_fast64_t bitsB)
+        public override uint64_t PropagateNaNFloat64Bits(SoftFloatContext context, uint_fast64_t bitsA, uint_fast64_t bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat64Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat64Bits(bitsB))
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (isSigNaNA ? bitsA : bitsB) | 0x0008000000000000;
             }
 
@@ -135,12 +135,12 @@ partial class SoftFloatSpecialize
 
         public override UInt128 DefaultNaNExtFloat80Bits => new(upper: 0x7FFF, lower: 0xC000000000000000);
 
-        public override UInt128 PropagateNaNExtFloat80Bits(SoftFloatState state, uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0)
+        public override UInt128 PropagateNaNExtFloat80Bits(SoftFloatContext context, uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0)
         {
             var isSigNaNA = IsSignalingNaNExtFloat80Bits(bitsA64, bitsA0);
             if (isSigNaNA || IsSignalingNaNExtFloat80Bits(bitsB64, bitsB0))
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return isSigNaNA
                     ? new UInt128(upper: bitsA64, lower: bitsA0 | 0xC000000000000000)
                     : new UInt128(upper: bitsB64, lower: bitsB0 | 0xC000000000000000);
@@ -157,12 +157,12 @@ partial class SoftFloatSpecialize
 
         public override UInt128 DefaultNaNFloat128Bits => new(upper: 0x7FFF800000000000, lower: 0x0000000000000000);
 
-        public override UInt128 PropagateNaNFloat128Bits(SoftFloatState state, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
+        public override UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
         {
             var isSigNaNA = IsSignalingNaNFloat128Bits(bitsA64, bitsA0);
             if (isSigNaNA || IsSignalingNaNFloat128Bits(bitsB64, bitsB0))
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return isSigNaNA
                     ? new UInt128(upper: bitsA64 | 0x0000800000000000, lower: bitsA0)
                     : new UInt128(upper: bitsB64 | 0x0000800000000000, lower: bitsB0);

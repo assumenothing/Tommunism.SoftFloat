@@ -118,7 +118,7 @@ public readonly struct Float128
 
     // ui32_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromUInt32(uint32_t a, SoftFloatState state)
+    public static Float128 FromUInt32(uint32_t a, SoftFloatContext context)
     {
         if (a != 0)
         {
@@ -131,7 +131,7 @@ public readonly struct Float128
 
     // ui64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromUInt64(uint64_t a, SoftFloatState state)
+    public static Float128 FromUInt64(uint64_t a, SoftFloatContext context)
     {
         if (a != 0)
         {
@@ -147,7 +147,7 @@ public readonly struct Float128
 
     // i32_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromInt32(int32_t a, SoftFloatState state)
+    public static Float128 FromInt32(int32_t a, SoftFloatContext context)
     {
         if (a != 0)
         {
@@ -162,7 +162,7 @@ public readonly struct Float128
 
     // i64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromInt64(int64_t a, SoftFloatState state)
+    public static Float128 FromInt64(int64_t a, SoftFloatContext context)
     {
         if (a != 0)
         {
@@ -182,16 +182,16 @@ public readonly struct Float128
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(bool exact, SoftFloatState state) => ToUInt32(state.RoundingMode, exact, state);
+    public uint32_t ToUInt32(bool exact, SoftFloatContext context) => ToUInt32(context.RoundingMode, exact, context);
 
-    public uint64_t ToUInt64(bool exact, SoftFloatState state) => ToUInt64(state.RoundingMode, exact, state);
+    public uint64_t ToUInt64(bool exact, SoftFloatContext context) => ToUInt64(context.RoundingMode, exact, context);
 
-    public int32_t ToInt32(bool exact, SoftFloatState state) => ToInt32(state.RoundingMode, exact, state);
+    public int32_t ToInt32(bool exact, SoftFloatContext context) => ToInt32(context.RoundingMode, exact, context);
 
-    public int64_t ToInt64(bool exact, SoftFloatState state) => ToInt64(state.RoundingMode, exact, state);
+    public int64_t ToInt64(bool exact, SoftFloatContext context) => ToInt64(context.RoundingMode, exact, context);
 
     // f128_to_ui32
-    public uint32_t ToUInt32(RoundingMode roundingMode, bool exact, SoftFloatState state)
+    public uint32_t ToUInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist;
@@ -205,7 +205,7 @@ public readonly struct Float128
 
         if (exp == 0x7FFF && sig64 != 0)
         {
-            switch (state.Specialize.UInt32NaNKind)
+            switch (context.Specialize.UInt32NaNKind)
             {
                 case SpecializeNaNIntegerKind.NaNIsPosOverflow:
                     sign = false;
@@ -216,8 +216,8 @@ public readonly struct Float128
                     break;
 
                 case SpecializeNaNIntegerKind.NaNIsUnique:
-                    state.RaiseFlags(ExceptionFlags.Invalid);
-                    return state.UInt32FromNaN;
+                    context.RaiseFlags(ExceptionFlags.Invalid);
+                    return context.UInt32FromNaN;
             }
         }
 
@@ -228,11 +228,11 @@ public readonly struct Float128
         if (0 < shiftDist)
             sig64 = ShiftRightJam64(sig64, shiftDist);
 
-        return RoundToUI32(state, sign, sig64, roundingMode, exact);
+        return RoundToUI32(context, sign, sig64, roundingMode, exact);
     }
 
     // f128_to_ui64
-    public uint64_t ToUInt64(RoundingMode roundingMode, bool exact, SoftFloatState state)
+    public uint64_t ToUInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -250,10 +250,10 @@ public readonly struct Float128
         {
             if (shiftDist < -15)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (exp == 0x7FFF && (sig64 | sig0) != 0)
-                    ? state.UInt64FromNaN
-                    : state.UInt64FromOverflow(sign);
+                    ? context.UInt64FromNaN
+                    : context.UInt64FromOverflow(sign);
             }
 
             sig64 |= 0x0001000000000000;
@@ -268,11 +268,11 @@ public readonly struct Float128
             (sig0, sig64) = ShiftRightJam64Extra(sig64, sig0, shiftDist);
         }
 
-        return RoundToUI64(state, sign, sig64, sig0, roundingMode, exact);
+        return RoundToUI64(context, sign, sig64, sig0, roundingMode, exact);
     }
 
     // f128_to_i32
-    public int32_t ToInt32(RoundingMode roundingMode, bool exact, SoftFloatState state)
+    public int32_t ToInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -287,7 +287,7 @@ public readonly struct Float128
 
         if (exp == 0x7FFF && (sig64 | sig0) != 0)
         {
-            switch (state.Specialize.Int32NaNKind)
+            switch (context.Specialize.Int32NaNKind)
             {
                 case SpecializeNaNIntegerKind.NaNIsPosOverflow:
                     sign = false;
@@ -298,8 +298,8 @@ public readonly struct Float128
                     break;
 
                 case SpecializeNaNIntegerKind.NaNIsUnique:
-                    state.RaiseFlags(ExceptionFlags.Invalid);
-                    return state.Int32FromNaN;
+                    context.RaiseFlags(ExceptionFlags.Invalid);
+                    return context.Int32FromNaN;
             }
         }
 
@@ -311,11 +311,11 @@ public readonly struct Float128
         if (0 < shiftDist)
             sig64 = ShiftRightJam64(sig64, shiftDist);
 
-        return RoundToI32(state, sign, sig64, roundingMode, exact);
+        return RoundToI32(context, sign, sig64, roundingMode, exact);
     }
 
     // f128_to_i64
-    public int64_t ToInt64(RoundingMode roundingMode, bool exact, SoftFloatState state)
+    public int64_t ToInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -333,10 +333,10 @@ public readonly struct Float128
         {
             if (shiftDist < -15)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (exp == 0x7FFF && (sig64 | sig0) != 0)
-                    ? state.Int64FromNaN
-                    : state.Int64FromOverflow(sign);
+                    ? context.Int64FromNaN
+                    : context.Int64FromOverflow(sign);
             }
 
             sig64 |= 0x0001000000000000;
@@ -351,12 +351,11 @@ public readonly struct Float128
             (sig0, sig64) = ShiftRightJam64Extra(sig64, sig0, shiftDist);
         }
 
-        state ??= SoftFloatState.Default;
-        return RoundToI64(state, sign, sig64, sig0, roundingMode, exact);
+        return RoundToI64(context, sign, sig64, sig0, roundingMode, exact);
     }
 
     // f128_to_ui32_r_minMag
-    public uint32_t ToUInt32RoundMinMag(bool exact, SoftFloatState state)
+    public uint32_t ToUInt32RoundMinMag(bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist;
@@ -372,7 +371,7 @@ public readonly struct Float128
         if (49 <= shiftDist)
         {
             if (exact && ((uint_fast32_t)exp | sig64) != 0)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
 
             return 0;
         }
@@ -380,22 +379,22 @@ public readonly struct Float128
         sign = SignF128UI64(uiA64);
         if (sign || shiftDist < 17)
         {
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
             return (exp == 0x7FFF && sig64 != 0)
-                ? state.UInt32FromNaN
-                : state.UInt32FromOverflow(sign);
+                ? context.UInt32FromNaN
+                : context.UInt32FromOverflow(sign);
         }
 
         sig64 |= 0x0001000000000000;
         z = (uint_fast32_t)(sig64 >> shiftDist);
         if (exact && ((uint_fast64_t)z << shiftDist) != sig64)
-            state.ExceptionFlags |= ExceptionFlags.Inexact;
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
 
         return z;
     }
 
     // f128_to_ui64_r_minMag
-    public uint64_t ToUInt64RoundMinMag(bool exact, SoftFloatState state)
+    public uint64_t ToUInt64RoundMinMag(bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0, z;
         int_fast32_t exp, shiftDist;
@@ -414,47 +413,47 @@ public readonly struct Float128
         {
             if (sign || shiftDist < -15)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (exp == 0x7FFF && (sig64 | sig0) != 0)
-                    ? state.UInt64FromNaN
-                    : state.UInt64FromOverflow(sign);
+                    ? context.UInt64FromNaN
+                    : context.UInt64FromOverflow(sign);
             }
 
             sig64 |= 0x0001000000000000;
             negShiftDist = -shiftDist;
             z = (sig64 << negShiftDist) | (sig0 >> shiftDist);
             if (exact && (uint64_t)(sig0 << negShiftDist) != 0)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
         else
         {
             if (49 <= shiftDist)
             {
                 if (exact && ((uint_fast32_t)exp | sig64 | sig0) != 0)
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                 return 0;
             }
 
             if (sign)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (exp == 0x7FFF && (sig64 | sig0) != 0)
-                    ? state.UInt64FromNaN
-                    : state.UInt64FromOverflow(sign);
+                    ? context.UInt64FromNaN
+                    : context.UInt64FromOverflow(sign);
             }
 
             sig64 |= 0x0001000000000000;
             z = sig64 >> shiftDist;
             if (exact && (sig0 != 0 || (z << shiftDist) != sig64))
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return z;
     }
 
     // f128_to_i32_r_minMag
-    public int32_t ToInt32RoundMinMag(bool exact, SoftFloatState state)
+    public int32_t ToInt32RoundMinMag(bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist, absZ;
@@ -469,7 +468,7 @@ public readonly struct Float128
         if (49 <= shiftDist)
         {
             if (exact && ((uint_fast32_t)exp | sig64) != 0)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
 
             return 0;
         }
@@ -480,27 +479,27 @@ public readonly struct Float128
             if (sign && shiftDist == 17 && sig64 < 0x0000000000020000)
             {
                 if (exact && sig64 != 0)
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                 return -0x7FFFFFFF - 1;
             }
 
-            state.RaiseFlags(ExceptionFlags.Invalid);
+            context.RaiseFlags(ExceptionFlags.Invalid);
             return (exp == 0x7FFF && sig64 != 0)
-                ? state.Int32FromNaN
-                : state.Int32FromOverflow(sign);
+                ? context.Int32FromNaN
+                : context.Int32FromOverflow(sign);
         }
 
         sig64 |= 0x0001000000000000;
         absZ = (int_fast32_t)(uint_fast32_t)(sig64 >> shiftDist);
         if (exact && ((uint_fast64_t)(uint_fast32_t)absZ << shiftDist) != sig64)
-            state.ExceptionFlags |= ExceptionFlags.Inexact;
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
 
         return sign ? -absZ : absZ;
     }
 
     // f128_to_i64_r_minMag
-    public int64_t ToInt64RoundMinMag(bool exact, SoftFloatState state)
+    public int64_t ToInt64RoundMinMag(bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -523,29 +522,29 @@ public readonly struct Float128
                 if (uiA64 == 0xC03E000000000000 && sig0 < 0x0002000000000000)
                 {
                     if (exact && sig0 != 0)
-                        state.ExceptionFlags |= ExceptionFlags.Inexact;
+                        context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                     return -0x7FFFFFFFFFFFFFFF - 1;
                 }
 
-                state.RaiseFlags(ExceptionFlags.Invalid);
+                context.RaiseFlags(ExceptionFlags.Invalid);
                 return (exp == 0x7FFF && (sig64 | sig0) != 0)
-                    ? state.Int64FromNaN
-                    : state.Int64FromOverflow(sign);
+                    ? context.Int64FromNaN
+                    : context.Int64FromOverflow(sign);
             }
 
             sig64 |= 0x0001000000000000;
             negShiftDist = -shiftDist;
             absZ = (int_fast64_t)((sig64 << negShiftDist) | (sig0 >> shiftDist));
             if (exact && (uint64_t)(sig0 << negShiftDist) != 0)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
         else
         {
             if (49 <= shiftDist)
             {
                 if (exact && ((uint_fast32_t)exp | sig64 | sig0) != 0)
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                 return 0;
             }
@@ -553,7 +552,7 @@ public readonly struct Float128
             sig64 |= 0x0001000000000000;
             absZ = (int_fast64_t)(sig64 >> shiftDist);
             if (exact && (sig0 != 0 || (uint_fast64_t)(absZ << shiftDist) != sig64))
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return sign ? -absZ : absZ;
@@ -564,7 +563,7 @@ public readonly struct Float128
     #region Floating-point-to-floating-point Conversions
 
     // f128_to_f16
-    public Float16 ToFloat16(SoftFloatState state)
+    public Float16 ToFloat16(SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, frac64;
         int_fast32_t exp;
@@ -581,8 +580,8 @@ public readonly struct Float128
         {
             if (frac64 != 0)
             {
-                state.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
-                return state.CommonNaNToFloat16(in commonNaN);
+                context.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
+                return context.CommonNaNToFloat16(in commonNaN);
             }
 
             return PackToF16(sign, 0x1F, 0);
@@ -596,11 +595,11 @@ public readonly struct Float128
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x40)
             exp = -0x40;
 
-        return RoundPackToF16(state, sign, exp, frac16 | 0x4000);
+        return RoundPackToF16(context, sign, exp, frac16 | 0x4000);
     }
 
     // f128_to_f32
-    public Float32 ToFloat32(SoftFloatState state)
+    public Float32 ToFloat32(SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, frac64;
         int_fast32_t exp;
@@ -617,8 +616,8 @@ public readonly struct Float128
         {
             if (frac64 != 0)
             {
-                state.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
-                return state.CommonNaNToFloat32(in commonNaN);
+                context.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
+                return context.CommonNaNToFloat32(in commonNaN);
             }
 
             return PackToF32(sign, 0xFF, 0);
@@ -632,11 +631,11 @@ public readonly struct Float128
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x1000)
             exp = -0x1000;
 
-        return RoundPackToF32(state, sign, exp, frac32 | 0x40000000);
+        return RoundPackToF32(context, sign, exp, frac32 | 0x40000000);
     }
 
     // f128_to_f64
-    public Float64 ToFloat64(SoftFloatState state)
+    public Float64 ToFloat64(SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, frac64, frac0;
         int_fast32_t exp;
@@ -654,8 +653,8 @@ public readonly struct Float128
         {
             if ((frac64 | frac0) != 0)
             {
-                state.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
-                return state.CommonNaNToFloat64(in commonNaN);
+                context.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
+                return context.CommonNaNToFloat64(in commonNaN);
             }
 
             return PackToF64(sign, 0x7FF, 0);
@@ -670,11 +669,11 @@ public readonly struct Float128
         if (sizeof(int_fast16_t) < sizeof(int_fast32_t) && exp < -0x1000)
             exp = -0x1000;
 
-        return RoundPackToF64(state, sign, exp, frac64 | 0x4000000000000000);
+        return RoundPackToF64(context, sign, exp, frac64 | 0x4000000000000000);
     }
 
     // f128_to_extF80
-    public ExtFloat80 ToExtFloat80(SoftFloatState state)
+    public ExtFloat80 ToExtFloat80(SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, frac64, frac0;
         int_fast32_t exp;
@@ -692,8 +691,8 @@ public readonly struct Float128
         {
             if ((frac64 | frac0) != 0)
             {
-                state.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
-                return state.CommonNaNToExtFloat80(in commonNaN);
+                context.Float128BitsToCommonNaN(uiA64, uiA0, out var commonNaN);
+                return context.CommonNaNToExtFloat80(in commonNaN);
             }
 
             return PackToExtF80(sign, 0x7FFF, 0x8000000000000000);
@@ -708,17 +707,17 @@ public readonly struct Float128
         }
 
         sig128 = ShortShiftLeft128(frac64 | 0x0001000000000000, frac0, 15);
-        return RoundPackToExtF80(state, sign, exp, sig128.V64, sig128.V00, ExtFloat80RoundingPrecision._80);
+        return RoundPackToExtF80(context, sign, exp, sig128.V64, sig128.V00, ExtFloat80RoundingPrecision._80);
     }
 
     #endregion
 
     #region Arithmetic Operations
 
-    public Float128 RoundToInt(bool exact, SoftFloatState state) => RoundToInt(state.RoundingMode, exact, state);
+    public Float128 RoundToInt(bool exact, SoftFloatContext context) => RoundToInt(context.RoundingMode, exact, context);
 
     // f128_roundToInt
-    public Float128 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatState state)
+    public Float128 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, lastBitMask0, roundBitsMask, lastBitMask64;
         int_fast32_t exp;
@@ -734,7 +733,7 @@ public readonly struct Float128
             if (0x406F <= exp)
             {
                 if (exp == 0x7FFF && (FracF128UI64(uiA64) | uiA0) != 0)
-                    return state.PropagateNaNFloat128Bits(uiA64, uiA0, 0, 0);
+                    return context.PropagateNaNFloat128Bits(uiA64, uiA0, 0, 0);
 
                 return this;
             }
@@ -777,7 +776,7 @@ public readonly struct Float128
                     return this;
 
                 if (exact)
-                    state.ExceptionFlags |= ExceptionFlags.Inexact;
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                 uiZ = new SFUInt128(v64: uiA64 & PackToF128UI64(true, 0, 0), v0: 0);
                 switch (roundingMode)
@@ -848,36 +847,36 @@ public readonly struct Float128
                 uiZ = new SFUInt128(v64: lastBitMask64, v0: lastBitMask0);
 
             if (exact)
-                state.ExceptionFlags |= ExceptionFlags.Inexact;
+                context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
         return Float128.FromBitsUI128(uiZ);
     }
 
     // f128_add
-    public static Float128 Add(Float128 a, Float128 b, SoftFloatState state)
+    public static Float128 Add(Float128 a, Float128 b, SoftFloatContext context)
     {
         var signA = SignF128UI64(a._v64);
         var signB = SignF128UI64(b._v64);
 
         return (signA == signB)
-            ? AddMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA)
-            : SubMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA);
+            ? AddMagsF128(context, a._v64, a._v0, b._v64, b._v0, signA)
+            : SubMagsF128(context, a._v64, a._v0, b._v64, b._v0, signA);
     }
 
     // f128_sub
-    public static Float128 Subtract(Float128 a, Float128 b, SoftFloatState state)
+    public static Float128 Subtract(Float128 a, Float128 b, SoftFloatContext context)
     {
         var signA = SignF128UI64(a._v64);
         var signB = SignF128UI64(b._v64);
 
         return (signA == signB)
-            ? SubMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA)
-            : AddMagsF128(state, a._v64, a._v0, b._v64, b._v0, signA);
+            ? SubMagsF128(context, a._v64, a._v0, b._v64, b._v0, signA)
+            : AddMagsF128(context, a._v64, a._v0, b._v64, b._v0, signA);
     }
 
     // f128_mul
-    public static Float128 Multiply(Float128 a, Float128 b, SoftFloatState state)
+    public static Float128 Multiply(Float128 a, Float128 b, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, magBits, sigZExtra;
         int_fast32_t expA, expB, expZ;
@@ -900,13 +899,13 @@ public readonly struct Float128
         if (expA == 0x7FFF)
         {
             if (!sigA.IsZero || (expB == 0x7FFF && !sigB.IsZero))
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
             magBits = (uint_fast32_t)expB | sigB.V64 | sigB.V00;
             if (magBits == 0)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.DefaultNaNFloat128;
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNFloat128;
             }
 
             return PackToF128(signZ, 0x7FFF, 0, 0);
@@ -915,13 +914,13 @@ public readonly struct Float128
         if (expB == 0x7FFF)
         {
             if (!sigB.IsZero)
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
             magBits = (uint_fast32_t)expA | sigA.V64 | sigA.V00;
             if (magBits == 0)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.DefaultNaNFloat128;
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNFloat128;
             }
 
             return PackToF128(signZ, 0x7FFF, 0, 0);
@@ -959,15 +958,15 @@ public readonly struct Float128
             (sigZExtra, sigZ) = ShortShiftRightJam128Extra(sigZ, sigZExtra, 1);
         }
 
-        return RoundPackToF128(state, signZ, expZ, sigZ, sigZExtra);
+        return RoundPackToF128(context, signZ, expZ, sigZ, sigZExtra);
     }
 
     // f128_mulAdd
-    public static Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c, SoftFloatState state) =>
-        MulAddF128(state, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAdd.None);
+    public static Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c, SoftFloatContext context) =>
+        MulAddF128(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAdd.None);
 
     // f128_div
-    public static Float128 Divide(Float128 a, Float128 b, SoftFloatState state)
+    public static Float128 Divide(Float128 a, Float128 b, SoftFloatContext context)
     {
         Span<uint_fast32_t> qs = stackalloc uint_fast32_t[3];
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64, sigZExtra;
@@ -991,15 +990,15 @@ public readonly struct Float128
         if (expA == 0x7FFF)
         {
             if (!sigA.IsZero)
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
             if (expB == 0x7FFF)
             {
                 if (!sigB.IsZero)
-                    return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                    return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.DefaultNaNFloat128;
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNFloat128;
             }
 
             return PackToF128(signZ, 0x7FFF, 0, 0);
@@ -1008,7 +1007,7 @@ public readonly struct Float128
         if (expB == 0x7FFF)
         {
             if (!sigB.IsZero)
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
             return PackToF128(signZ, 0, 0, 0);
         }
@@ -1019,11 +1018,11 @@ public readonly struct Float128
             {
                 if (((uint_fast32_t)expA | sigA.V64 | sigA.V00) == 0)
                 {
-                    state.RaiseFlags(ExceptionFlags.Invalid);
-                    return state.DefaultNaNFloat128;
+                    context.RaiseFlags(ExceptionFlags.Invalid);
+                    return context.DefaultNaNFloat128;
                 }
 
-                state.RaiseFlags(ExceptionFlags.Infinite);
+                context.RaiseFlags(ExceptionFlags.Infinite);
                 return PackToF128(signZ, 0x7FFF, 0, 0);
             }
 
@@ -1095,11 +1094,11 @@ public readonly struct Float128
             term.V64, term.V00
         );
 
-        return RoundPackToF128(state, signZ, expZ, sigZ, sigZExtra);
+        return RoundPackToF128(context, signZ, expZ, sigZ, sigZExtra);
     }
 
     // f128_rem
-    public static Float128 Modulus(Float128 a, Float128 b, SoftFloatState state)
+    public static Float128 Modulus(Float128 a, Float128 b, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64;
         int_fast32_t expA, expB, expDiff;
@@ -1120,18 +1119,18 @@ public readonly struct Float128
         if (expA == 0x7FFF)
         {
             if (!sigA.IsZero || (expB == 0x7FFF && !sigB.IsZero))
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
-            state.RaiseFlags(ExceptionFlags.Invalid);
-            return state.DefaultNaNFloat128;
+            context.RaiseFlags(ExceptionFlags.Invalid);
+            return context.DefaultNaNFloat128;
         }
 
         if (expB == 0x7FFF)
         {
             if (!sigB.IsZero)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
             }
 
             return a;
@@ -1141,8 +1140,8 @@ public readonly struct Float128
         {
             if (sigB.IsZero)
             {
-                state.RaiseFlags(ExceptionFlags.Invalid);
-                return state.DefaultNaNFloat128;
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNFloat128;
             }
 
             (expB, sigB) = NormSubnormalF128Sig(sigB);
@@ -1230,11 +1229,11 @@ public readonly struct Float128
             rem = -rem;
         }
 
-        return NormRoundPackToF128(state, signRem, expB - 1, rem);
+        return NormRoundPackToF128(context, signRem, expB - 1, rem);
     }
 
     // f128_sqrt
-    public Float128 SquareRoot(SoftFloatState state)
+    public Float128 SquareRoot(SoftFloatContext context)
     {
         Span<uint32_t> qs = stackalloc uint32_t[3];
         uint_fast64_t uiA64, uiA0, x64, sig64Z, sigZExtra;
@@ -1252,13 +1251,13 @@ public readonly struct Float128
         if (expA == 0x7FFF)
         {
             if (!sigA.IsZero)
-                return state.PropagateNaNFloat128Bits(uiA64, uiA0, 0, 0);
+                return context.PropagateNaNFloat128Bits(uiA64, uiA0, 0, 0);
 
             if (!signA)
                 return this;
 
-            state.RaiseFlags(ExceptionFlags.Invalid);
-            return state.DefaultNaNFloat128;
+            context.RaiseFlags(ExceptionFlags.Invalid);
+            return context.DefaultNaNFloat128;
         }
 
         if (signA)
@@ -1266,8 +1265,8 @@ public readonly struct Float128
             if (((uint_fast32_t)expA | sigA.V64 | sigA.V00) == 0)
                 return this;
 
-            state.RaiseFlags(ExceptionFlags.Invalid);
-            return state.DefaultNaNFloat128;
+            context.RaiseFlags(ExceptionFlags.Invalid);
+            return context.DefaultNaNFloat128;
         }
 
         if (expA == 0)
@@ -1374,7 +1373,7 @@ public readonly struct Float128
             }
         }
 
-        return RoundPackToF128(state, false, expZ, sigZ, sigZExtra);
+        return RoundPackToF128(context, false, expZ, sigZ, sigZExtra);
     }
 
     #endregion
@@ -1382,7 +1381,7 @@ public readonly struct Float128
     #region Comparison Operations
 
     // f128_eq (quiet=true) & f128_eq_signaling (quiet=false)
-    public static bool CompareEqual(Float128 a, Float128 b, bool quiet, SoftFloatState state)
+    public static bool CompareEqual(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
 
@@ -1393,8 +1392,8 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
+            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+                context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
         }
@@ -1403,7 +1402,7 @@ public readonly struct Float128
     }
 
     // f128_le (quiet=false) & f128_le_quiet (quiet=true)
-    public static bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet, SoftFloatState state)
+    public static bool CompareLessThanOrEqual(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;
@@ -1415,8 +1414,8 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
+            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+                context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
         }
@@ -1430,7 +1429,7 @@ public readonly struct Float128
     }
 
     // f128_lt (quiet=false) & f128_lt_quiet (quiet=true)
-    public static bool CompareLessThan(Float128 a, Float128 b, bool quiet, SoftFloatState state)
+    public static bool CompareLessThan(Float128 a, Float128 b, bool quiet, SoftFloatContext context)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;
@@ -1442,8 +1441,8 @@ public readonly struct Float128
 
         if (IsNaNF128UI(uiA64, uiA0) || IsNaNF128UI(uiB64, uiB0))
         {
-            if (!quiet || state.IsSignalingNaNFloat128Bits(uiA64, uiA0) || state.IsSignalingNaNFloat128Bits(uiB64, uiB0))
-                state.RaiseFlags(ExceptionFlags.Invalid);
+            if (!quiet || context.IsSignalingNaNFloat128Bits(uiA64, uiA0) || context.IsSignalingNaNFloat128Bits(uiB64, uiB0))
+                context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
         }

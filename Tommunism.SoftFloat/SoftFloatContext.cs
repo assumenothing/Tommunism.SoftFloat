@@ -66,24 +66,24 @@ using uint_fast16_t = UInt32;
 using uint_fast32_t = UInt32;
 using uint_fast64_t = UInt64;
 
-public class SoftFloatState
+public class SoftFloatContext
 {
     #region Fields
 
     [ThreadStatic]
-    private static SoftFloatState? _currentThreadState;
+    private static SoftFloatContext? _currentThreadContext;
 
-    private static SoftFloatState? _sharedState;
+    private static SoftFloatContext? _sharedContext;
 
     #endregion
 
     #region Constructors
 
-    public SoftFloatState() : this(SoftFloatSpecialize.Default)
+    public SoftFloatContext() : this(SoftFloatSpecialize.Default)
     {
     }
 
-    public SoftFloatState(SoftFloatSpecialize specialize)
+    public SoftFloatContext(SoftFloatSpecialize specialize)
     {
         Specialize = specialize;
         DetectTininess = specialize.InitialDetectTininess;
@@ -104,37 +104,37 @@ public class SoftFloatState
     public static bool ThrowOnRaiseFlags { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating which state should be returned by <see cref="Default"/>.
+    /// Gets or sets a value indicating which context should be returned by <see cref="Default"/>.
     /// </summary>
     /// <remarks>
     /// This is not thread safe! It should not be changed inside or between software floating-point operations. Ideally this should be set
     /// once at the start of the program.
     /// </remarks>
-    public static bool UseThreadStaticStateByDefault { get; set; } = true;
+    public static bool UseThreadStaticContextByDefault { get; set; } = true;
 
     /// <summary>
-    /// Gets the default software floating-point state.
+    /// Gets the default software floating-point context.
     /// </summary>
     /// <remarks>
-    /// The returned value is determined by the <see cref="UseThreadStaticStateByDefault"/> property. If
-    /// <see cref="UseThreadStaticStateByDefault"/> is true, then <see cref="CurrentThreadState"/> is returned; otherwise,
-    /// <see cref="SharedState"/> is returned.
+    /// The returned value is determined by the <see cref="UseThreadStaticContextByDefault"/> property. If
+    /// <see cref="UseThreadStaticContextByDefault"/> is true, then <see cref="CurrentThreadContext"/> is returned; otherwise,
+    /// <see cref="SharedContext"/> is returned.
     /// </remarks>
-    public static SoftFloatState Default => UseThreadStaticStateByDefault ? CurrentThreadState : SharedState;
+    public static SoftFloatContext Default => UseThreadStaticContextByDefault ? CurrentThreadContext : SharedContext;
 
     /// <summary>
-    /// Gets a software floating-point state that is unique to each thread.
+    /// Gets a software floating-point context that is unique to each thread.
     /// </summary>
-    public static SoftFloatState CurrentThreadState
+    public static SoftFloatContext CurrentThreadContext
     {
         get
         {
             // Get or create state for current thread.
-            var state = _currentThreadState;
+            var state = _currentThreadContext;
             if (state == null)
             {
-                state = new SoftFloatState();
-                _currentThreadState = state;
+                state = new SoftFloatContext();
+                _currentThreadContext = state;
             }
 
             return state;
@@ -142,18 +142,18 @@ public class SoftFloatState
     }
 
     /// <summary>
-    /// Gets a software floating-point state that is shared with all threads. This is not thread safe!
+    /// Gets a software floating-point context that is shared with all threads. This is not thread safe!
     /// </summary>
-    public static SoftFloatState SharedState
+    public static SoftFloatContext SharedContext
     {
         get
         {
             // Get or create shared state.
-            var state = _sharedState;
+            var state = _sharedContext;
             if (state == null)
             {
-                state = new SoftFloatState();
-                _sharedState = state;
+                state = new SoftFloatContext();
+                _sharedContext = state;
             }
 
             return state;
