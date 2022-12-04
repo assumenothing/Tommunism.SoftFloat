@@ -114,8 +114,13 @@ public readonly struct ExtFloat80
     public (ushort signExp, ulong significant) ToUIntBits() => (_signExp, _signif);
 
 #if NET7_0_OR_GREATER
-    // TODO: Check value range?
-    public static ExtFloat80 FromUIntBits(UInt128 value) => new((ushort)value.GetUpperUI64(), value.GetLowerUI64());
+    public static ExtFloat80 FromUIntBits(UInt128 value)
+    {
+        if ((value >> 80) != UInt128.Zero)
+            throw new ArgumentOutOfRangeException(nameof(value), "ExtFloat80 cannot exceed an 80-bit integer.");
+
+        return new((ushort)value.GetUpperUI64(), value.GetLowerUI64());
+    }
 
     public UInt128 ToUInt128Bits() => new(_signExp, _signif);
 #endif
