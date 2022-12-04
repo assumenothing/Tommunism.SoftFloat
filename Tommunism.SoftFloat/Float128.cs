@@ -118,7 +118,7 @@ public readonly struct Float128
 
     // ui32_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromUInt32(uint32_t a, SoftFloatContext context)
+    public static Float128 FromUInt32(SoftFloatContext context, uint32_t a)
     {
         if (a != 0)
         {
@@ -131,7 +131,7 @@ public readonly struct Float128
 
     // ui64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromUInt64(uint64_t a, SoftFloatContext context)
+    public static Float128 FromUInt64(SoftFloatContext context, uint64_t a)
     {
         if (a != 0)
         {
@@ -147,7 +147,7 @@ public readonly struct Float128
 
     // i32_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromInt32(int32_t a, SoftFloatContext context)
+    public static Float128 FromInt32(SoftFloatContext context, int32_t a)
     {
         if (a != 0)
         {
@@ -162,7 +162,7 @@ public readonly struct Float128
 
     // i64_to_f128
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float128 FromInt64(int64_t a, SoftFloatContext context)
+    public static Float128 FromInt64(SoftFloatContext context, int64_t a)
     {
         if (a != 0)
         {
@@ -182,16 +182,16 @@ public readonly struct Float128
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(bool exact, SoftFloatContext context) => ToUInt32(context.RoundingMode, exact, context);
+    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.RoundingMode, exact);
 
-    public uint64_t ToUInt64(bool exact, SoftFloatContext context) => ToUInt64(context.RoundingMode, exact, context);
+    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.RoundingMode, exact);
 
-    public int32_t ToInt32(bool exact, SoftFloatContext context) => ToInt32(context.RoundingMode, exact, context);
+    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.RoundingMode, exact);
 
-    public int64_t ToInt64(bool exact, SoftFloatContext context) => ToInt64(context.RoundingMode, exact, context);
+    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.RoundingMode, exact);
 
     // f128_to_ui32
-    public uint32_t ToUInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist;
@@ -232,7 +232,7 @@ public readonly struct Float128
     }
 
     // f128_to_ui64
-    public uint64_t ToUInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -272,7 +272,7 @@ public readonly struct Float128
     }
 
     // f128_to_i32
-    public int32_t ToInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int32_t ToInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -315,7 +315,7 @@ public readonly struct Float128
     }
 
     // f128_to_i64
-    public int64_t ToInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int64_t ToInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -355,7 +355,7 @@ public readonly struct Float128
     }
 
     // f128_to_ui32_r_minMag
-    public uint32_t ToUInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist;
@@ -394,7 +394,7 @@ public readonly struct Float128
     }
 
     // f128_to_ui64_r_minMag
-    public uint64_t ToUInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0, z;
         int_fast32_t exp, shiftDist;
@@ -453,7 +453,7 @@ public readonly struct Float128
     }
 
     // f128_to_i32_r_minMag
-    public int32_t ToInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public int32_t ToInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64;
         int_fast32_t exp, shiftDist, absZ;
@@ -499,7 +499,7 @@ public readonly struct Float128
     }
 
     // f128_to_i64_r_minMag
-    public int64_t ToInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public int64_t ToInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast64_t uiA64, uiA0, sig64, sig0;
         int_fast32_t exp, shiftDist;
@@ -714,10 +714,10 @@ public readonly struct Float128
 
     #region Arithmetic Operations
 
-    public Float128 RoundToInt(bool exact, SoftFloatContext context) => RoundToInt(context.RoundingMode, exact, context);
+    public Float128 RoundToInt(SoftFloatContext context, bool exact) => RoundToInt(context, context.RoundingMode, exact);
 
     // f128_roundToInt
-    public Float128 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public Float128 RoundToInt(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast64_t uiA64, uiA0, lastBitMask0, roundBitsMask, lastBitMask64;
         int_fast32_t exp;
@@ -854,7 +854,7 @@ public readonly struct Float128
     }
 
     // f128_add
-    public static Float128 Add(Float128 a, Float128 b, SoftFloatContext context)
+    public static Float128 Add(SoftFloatContext context, Float128 a, Float128 b)
     {
         var signA = SignF128UI64(a._v64);
         var signB = SignF128UI64(b._v64);
@@ -865,7 +865,7 @@ public readonly struct Float128
     }
 
     // f128_sub
-    public static Float128 Subtract(Float128 a, Float128 b, SoftFloatContext context)
+    public static Float128 Subtract(SoftFloatContext context, Float128 a, Float128 b)
     {
         var signA = SignF128UI64(a._v64);
         var signB = SignF128UI64(b._v64);
@@ -876,7 +876,7 @@ public readonly struct Float128
     }
 
     // f128_mul
-    public static Float128 Multiply(Float128 a, Float128 b, SoftFloatContext context)
+    public static Float128 Multiply(SoftFloatContext context, Float128 a, Float128 b)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, magBits, sigZExtra;
         int_fast32_t expA, expB, expZ;
@@ -962,11 +962,11 @@ public readonly struct Float128
     }
 
     // f128_mulAdd
-    public static Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c, SoftFloatContext context) =>
+    public static Float128 MultiplyAndAdd(SoftFloatContext context, Float128 a, Float128 b, Float128 c) =>
         MulAddF128(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAdd.None);
 
     // f128_div
-    public static Float128 Divide(Float128 a, Float128 b, SoftFloatContext context)
+    public static Float128 Divide(SoftFloatContext context, Float128 a, Float128 b)
     {
         Span<uint_fast32_t> qs = stackalloc uint_fast32_t[3];
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64, sigZExtra;
@@ -1098,7 +1098,7 @@ public readonly struct Float128
     }
 
     // f128_rem
-    public static Float128 Modulus(Float128 a, Float128 b, SoftFloatContext context)
+    public static Float128 Modulus(SoftFloatContext context, Float128 a, Float128 b)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0, q64;
         int_fast32_t expA, expB, expDiff;
@@ -1381,7 +1381,7 @@ public readonly struct Float128
     #region Comparison Operations
 
     // f128_eq (signaling=false) & f128_eq_signaling (signaling=true)
-    public static bool CompareEqual(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
+    public static bool CompareEqual(SoftFloatContext context, Float128 a, Float128 b, bool signaling)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
 
@@ -1402,7 +1402,7 @@ public readonly struct Float128
     }
 
     // f128_le (signaling=true) & f128_le_quiet (signaling=false)
-    public static bool CompareLessThanOrEqual(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThanOrEqual(SoftFloatContext context, Float128 a, Float128 b, bool signaling)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;
@@ -1429,7 +1429,7 @@ public readonly struct Float128
     }
 
     // f128_lt (signaling=true) & f128_lt_quiet (signaling=false)
-    public static bool CompareLessThan(Float128 a, Float128 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThan(SoftFloatContext context, Float128 a, Float128 b, bool signaling)
     {
         uint_fast64_t uiA64, uiA0, uiB64, uiB0;
         bool signA, signB;

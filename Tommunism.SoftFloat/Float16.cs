@@ -110,7 +110,7 @@ public readonly struct Float16
     #region Integer-to-floating-point Conversions
 
     // ui32_to_f16
-    public static Float16 FromUInt32(uint32_t a, SoftFloatContext context)
+    public static Float16 FromUInt32(SoftFloatContext context, uint32_t a)
     {
         var shiftDist = CountLeadingZeroes32(a) - 21;
         if (0 <= shiftDist)
@@ -124,7 +124,7 @@ public readonly struct Float16
     }
 
     // ui64_to_f16
-    public static Float16 FromUInt64(uint64_t a, SoftFloatContext context)
+    public static Float16 FromUInt64(SoftFloatContext context, uint64_t a)
     {
         var shiftDist = CountLeadingZeroes64(a) - 53;
         if (0 <= shiftDist)
@@ -139,7 +139,7 @@ public readonly struct Float16
     }
 
     // i32_to_f16
-    public static Float16 FromInt32(int32_t a, SoftFloatContext context)
+    public static Float16 FromInt32(SoftFloatContext context, int32_t a)
     {
         var sign = a < 0;
         var absA = (uint_fast32_t)(sign ? -a : a);
@@ -156,7 +156,7 @@ public readonly struct Float16
     }
 
     // i64_to_f16
-    public static Float16 FromInt64(int64_t a, SoftFloatContext context)
+    public static Float16 FromInt64(SoftFloatContext context, int64_t a)
     {
         var sign = a < 0;
         var absA = (uint_fast64_t)(sign ? -a : a);
@@ -175,16 +175,16 @@ public readonly struct Float16
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(bool exact, SoftFloatContext context) => ToUInt32(context.RoundingMode, exact, context);
+    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.RoundingMode, exact);
 
-    public uint64_t ToUInt64(bool exact, SoftFloatContext context) => ToUInt64(context.RoundingMode, exact, context);
+    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.RoundingMode, exact);
 
-    public int32_t ToInt32(bool exact, SoftFloatContext context) => ToInt32(context.RoundingMode, exact, context);
+    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.RoundingMode, exact);
 
-    public int64_t ToInt64(bool exact, SoftFloatContext context) => ToInt64(context.RoundingMode, exact, context);
+    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.RoundingMode, exact);
 
     // f16_to_ui32
-    public uint32_t ToUInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -221,7 +221,7 @@ public readonly struct Float16
     }
 
     // f16_to_ui64
-    public uint64_t ToUInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -258,7 +258,7 @@ public readonly struct Float16
     }
 
     // f16_to_i32
-    public int32_t ToInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int32_t ToInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -298,7 +298,7 @@ public readonly struct Float16
     }
 
     // f16_to_i64
-    public int64_t ToInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int64_t ToInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -338,7 +338,7 @@ public readonly struct Float16
     }
 
     // f16_to_ui32_r_minMag
-    public uint32_t ToUInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA, frac;
         int_fast8_t exp, shiftDist;
@@ -375,7 +375,7 @@ public readonly struct Float16
     }
 
     // f16_to_ui64_r_minMag
-    public uint64_t ToUInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA, frac;
         int_fast8_t exp, shiftDist;
@@ -412,7 +412,7 @@ public readonly struct Float16
     }
 
     // f16_to_i32_r_minMag
-    public int32_t ToInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public int32_t ToInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -450,7 +450,7 @@ public readonly struct Float16
     }
 
     // f16_to_i64_r_minMag
-    public int64_t ToInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public int64_t ToInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA, frac;
         bool sign;
@@ -630,10 +630,10 @@ public readonly struct Float16
 
     #region Arithmetic Operations
 
-    public Float16 RoundToInt(bool exact, SoftFloatContext context) => RoundToInt(context.RoundingMode, exact, context);
+    public Float16 RoundToInt(SoftFloatContext context, bool exact) => RoundToInt(context, context.RoundingMode, exact);
 
     // f16_roundToInt
-    public Float16 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public Float16 RoundToInt(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA, uiZ, lastBitMask, roundBitsMask;
         int_fast8_t exp;
@@ -729,7 +729,7 @@ public readonly struct Float16
     }
 
     // f16_add
-    public static Float16 Add(Float16 a, Float16 b, SoftFloatContext context)
+    public static Float16 Add(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint_fast16_t uiA, uiB;
 
@@ -742,7 +742,7 @@ public readonly struct Float16
     }
 
     // f16_sub
-    public static Float16 Subtract(Float16 a, Float16 b, SoftFloatContext context)
+    public static Float16 Subtract(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint_fast16_t uiA, uiB;
 
@@ -755,7 +755,7 @@ public readonly struct Float16
     }
 
     // f16_mul
-    public static Float16 Multiply(Float16 a, Float16 b, SoftFloatContext context)
+    public static Float16 Multiply(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint_fast16_t uiA, sigA, uiB, sigB, sigZ;
         int_fast8_t expA, expB, expZ;
@@ -833,11 +833,11 @@ public readonly struct Float16
     }
 
     // f16_mulAdd
-    public static Float16 MultiplyAndAdd(Float16 a, Float16 b, Float16 c, SoftFloatContext context) =>
+    public static Float16 MultiplyAndAdd(SoftFloatContext context, Float16 a, Float16 b, Float16 c) =>
         MulAddF16(context, a._v, b._v, c._v, MulAdd.None);
 
     // f16_div
-    public static Float16 Divide(Float16 a, Float16 b, SoftFloatContext context)
+    public static Float16 Divide(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint_fast16_t uiA, sigA, uiB, sigB, sig32A, sigZ;
         int_fast8_t expA, expB, expZ;
@@ -924,7 +924,7 @@ public readonly struct Float16
     }
 
     // f16_rem
-    public static Float16 Modulus(Float16 a, Float16 b, SoftFloatContext context)
+    public static Float16 Modulus(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint_fast16_t uiA, sigA, uiB, sigB, q;
         int_fast8_t expA, expB, expDiff;
@@ -1133,7 +1133,7 @@ public readonly struct Float16
     #region Comparison Operations
 
     // f16_eq (signaling=false) & f16_eq_signaling (signaling=true)
-    public static bool CompareEqual(Float16 a, Float16 b, bool signaling, SoftFloatContext context)
+    public static bool CompareEqual(SoftFloatContext context, Float16 a, Float16 b, bool signaling)
     {
         uint_fast16_t uiA, uiB;
 
@@ -1152,7 +1152,7 @@ public readonly struct Float16
     }
 
     // f16_le (signaling=true) & f16_le_quiet (signaling=false)
-    public static bool CompareLessThanOrEqual(Float16 a, Float16 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThanOrEqual(SoftFloatContext context, Float16 a, Float16 b, bool signaling)
     {
         uint_fast16_t uiA, uiB;
         bool signA, signB;
@@ -1177,7 +1177,7 @@ public readonly struct Float16
     }
 
     // f16_lt (signaling=true) & f16_lt_quiet (signaling=false)
-    public static bool CompareLessThan(Float16 a, Float16 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThan(SoftFloatContext context, Float16 a, Float16 b, bool signaling)
     {
         uint_fast16_t uiA, uiB;
         bool signA, signB;

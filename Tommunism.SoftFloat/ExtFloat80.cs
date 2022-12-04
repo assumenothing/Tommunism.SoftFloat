@@ -140,7 +140,7 @@ public readonly struct ExtFloat80
 
     // ui32_to_extF80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static ExtFloat80 FromUInt32(uint32_t a, SoftFloatContext context)
+    public static ExtFloat80 FromUInt32(SoftFloatContext context, uint32_t a)
     {
         uint_fast16_t uiZ64;
         if (a != 0)
@@ -159,7 +159,7 @@ public readonly struct ExtFloat80
 
     // ui64_to_extF80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static ExtFloat80 FromUInt64(uint64_t a, SoftFloatContext context)
+    public static ExtFloat80 FromUInt64(SoftFloatContext context, uint64_t a)
     {
         uint_fast16_t uiZ64;
         if (a != 0)
@@ -178,7 +178,7 @@ public readonly struct ExtFloat80
 
     // i32_to_extF80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static ExtFloat80 FromInt32(int32_t a, SoftFloatContext context)
+    public static ExtFloat80 FromInt32(SoftFloatContext context, int32_t a)
     {
         uint_fast32_t absA;
         if (a != 0)
@@ -194,7 +194,7 @@ public readonly struct ExtFloat80
 
     // i64_to_extF80
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static ExtFloat80 FromInt64(int64_t a, SoftFloatContext context)
+    public static ExtFloat80 FromInt64(SoftFloatContext context, int64_t a)
     {
         uint_fast64_t absA;
         if (a != 0)
@@ -212,16 +212,16 @@ public readonly struct ExtFloat80
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(bool exact, SoftFloatContext context) => ToUInt32(context.RoundingMode, exact, context);
+    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.RoundingMode, exact);
 
-    public uint64_t ToUInt64(bool exact, SoftFloatContext context) => ToUInt64(context.RoundingMode, exact, context);
+    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.RoundingMode, exact);
 
-    public int32_t ToInt32(bool exact, SoftFloatContext context) => ToInt32(context.RoundingMode, exact, context);
+    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.RoundingMode, exact);
 
-    public int64_t ToInt64(bool exact, SoftFloatContext context) => ToInt64(context.RoundingMode, exact, context);
+    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.RoundingMode, exact);
 
     // extF80_to_ui32
-    public uint32_t ToUInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist;
@@ -260,7 +260,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_ui64
-    public uint64_t ToUInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA64;
         bool sign;
@@ -289,7 +289,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_i32
-    public int32_t ToInt32(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int32_t ToInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist;
@@ -328,7 +328,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_i64
-    public int64_t ToInt64(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public int64_t ToInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist;
@@ -362,7 +362,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_ui32_r_minMag
-    public uint32_t ToUInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public uint32_t ToUInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA64, z;
         int_fast32_t exp, shiftDist;
@@ -399,7 +399,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_ui64_r_minMag
-    public uint64_t ToUInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public uint64_t ToUInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist;
@@ -436,7 +436,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_i32_r_minMag
-    public int32_t ToInt32RoundMinMag(bool exact, SoftFloatContext context)
+    public int32_t ToInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist, absZ;
@@ -481,7 +481,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_to_i64_r_minMag
-    public int64_t ToInt64RoundMinMag(bool exact, SoftFloatContext context)
+    public int64_t ToInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         uint_fast16_t uiA64;
         int_fast32_t exp, shiftDist;
@@ -670,7 +670,7 @@ public readonly struct ExtFloat80
     #region Arithmetic Operations
 
     // extF80_roundToInt
-    public ExtFloat80 RoundToInt(RoundingMode roundingMode, bool exact, SoftFloatContext context)
+    public ExtFloat80 RoundToInt(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
         uint_fast16_t uiA64, signUI64, uiZ64;
         int_fast32_t exp;
@@ -789,7 +789,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_add
-    public static ExtFloat80 Add(ExtFloat80 a, ExtFloat80 b, SoftFloatContext context)
+    public static ExtFloat80 Add(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         var signA = SignExtF80UI64(a._signExp);
         var signB = SignExtF80UI64(b._signExp);
@@ -800,7 +800,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_sub
-    public static ExtFloat80 Subtract(ExtFloat80 a, ExtFloat80 b, SoftFloatContext context)
+    public static ExtFloat80 Subtract(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         var signA = SignExtF80UI64(a._signExp);
         var signB = SignExtF80UI64(b._signExp);
@@ -811,7 +811,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_mul
-    public static ExtFloat80 Multiply(ExtFloat80 a, ExtFloat80 b, SoftFloatContext context)
+    public static ExtFloat80 Multiply(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, sigA, uiB0, sigB;
@@ -898,7 +898,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_div
-    public static ExtFloat80 Divide(ExtFloat80 a, ExtFloat80 b, SoftFloatContext context)
+    public static ExtFloat80 Divide(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         uint_fast16_t uiA64, uiB64, recip32, q;
         uint_fast64_t uiA0, sigA, uiB0, sigB, sigZ, q64, sigZExtra;
@@ -1031,7 +1031,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_rem
-    public static ExtFloat80 Modulus(ExtFloat80 a, ExtFloat80 b, SoftFloatContext context)
+    public static ExtFloat80 Modulus(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         uint_fast16_t uiA64, uiB64, q, recip32;
         uint_fast64_t uiA0, sigA, uiB0, sigB, q64;
@@ -1308,7 +1308,7 @@ public readonly struct ExtFloat80
     #region Comparison Operations
 
     // extF80_eq (signaling=false) & extF80_eq_signaling (signaling=true)
-    public static bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
+    public static bool CompareEqual(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b, bool signaling)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
@@ -1330,7 +1330,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_le (signaling=true) & extF80_le_quiet (signaling=false)
-    public static bool CompareLessThanOrEqual(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThanOrEqual(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b, bool signaling)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
@@ -1358,7 +1358,7 @@ public readonly struct ExtFloat80
     }
 
     // extF80_lt (signaling=true) & extF80_lt_quiet (signaling=false)
-    public static bool CompareLessThan(ExtFloat80 a, ExtFloat80 b, bool signaling, SoftFloatContext context)
+    public static bool CompareLessThan(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b, bool signaling)
     {
         uint_fast16_t uiA64, uiB64;
         uint_fast64_t uiA0, uiB0;
