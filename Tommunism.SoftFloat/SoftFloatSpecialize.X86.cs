@@ -43,7 +43,7 @@ partial class SoftFloatSpecialize
 
         #endregion
 
-        public override Tininess InitialDetectTininess => Tininess.AfterRounding;
+        public override TininessMode InitialDetectTininess => TininessMode.AfterRounding;
 
         #region Integer Conversion Constants
 

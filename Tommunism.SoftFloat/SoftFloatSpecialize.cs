@@ -123,7 +123,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Default value for 'softfloat_detectTininess'.
     /// </summary>
-    public abstract Tininess InitialDetectTininess { get; }
+    public abstract TininessMode InitialDetectTininess { get; }
 
     #region Integer Conversion Constants
 

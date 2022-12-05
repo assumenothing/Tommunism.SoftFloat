@@ -112,7 +112,7 @@ partial class Internals
     // softfloat_roundPackToF64
     public static Float64 RoundPackToF64(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast64_t sig)
     {
-        var roundingMode = context.RoundingMode;
+        var roundingMode = context.Rounding;
         var roundNearEven = roundingMode == RoundingMode.NearEven;
         var roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
             ? ((roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? 0x3FFU : 0)
@@ -123,7 +123,7 @@ partial class Internals
         {
             if (exp < 0)
             {
-                var isTiny = context.DetectTininess == Tininess.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000000000000000;
+                var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000000000000000;
                 sig = ShiftRightJam64(sig, -exp);
                 exp = 0;
                 roundBits = sig & 0x3FF;
@@ -258,7 +258,7 @@ partial class Internals
 
             sigDiff = (int_fast64_t)sigA - (int_fast64_t)sigB;
             if (sigDiff == 0)
-                return PackToF64(context.RoundingMode == RoundingMode.Min, 0, 0);
+                return PackToF64(context.Rounding == RoundingMode.Min, 0, 0);
 
             if (expA != 0)
                 --expA;
@@ -372,7 +372,7 @@ partial class Internals
             if (sigA == 0)
             {
                 if (((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
-                    return PackToF64(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF64(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float64.FromBitsUI64(uiC);
             }
@@ -385,7 +385,7 @@ partial class Internals
             if (sigB == 0)
             {
                 if (((uint_fast64_t)(long)expC | sigC) == 0 && signZ != signC)
-                    return PackToF64(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF64(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float64.FromBitsUI64(uiC);
             }
@@ -470,7 +470,7 @@ partial class Internals
             {
                 sig128Z.V64 -= sigC;
                 if ((sig128Z.V64 | sig128Z.V00) == 0)
-                    return PackToF64(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF64(context.Rounding == RoundingMode.Min, 0, 0);
 
                 if ((sig128Z.V64 & 0x8000000000000000) != 0)
                 {

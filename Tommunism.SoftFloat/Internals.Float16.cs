@@ -112,7 +112,7 @@ partial class Internals
     // softfloat_roundPackToF16
     public static Float16 RoundPackToF16(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast16_t sig)
     {
-        var roundingMode = context.RoundingMode;
+        var roundingMode = context.Rounding;
         var roundNearEven = roundingMode == RoundingMode.NearEven;
         var roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
             ? ((roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? 0xFU : 0)
@@ -123,7 +123,7 @@ partial class Internals
         {
             if (exp < 0)
             {
-                var isTiny = context.DetectTininess == Tininess.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000;
+                var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000;
                 sig = ShiftRightJam32(sig, -exp);
                 exp = 0;
                 roundBits = sig & 0xF;
@@ -283,7 +283,7 @@ partial class Internals
         return RoundPackToF16(context, signZ, expZ, sigZ);
 
     addEpsilon:
-        var roundingMode = context.RoundingMode;
+        var roundingMode = context.Rounding;
         if (roundingMode != RoundingMode.NearEven)
         {
             if (roundingMode == (SignF16UI(uiZ) ? RoundingMode.Min : RoundingMode.Max))
@@ -329,7 +329,7 @@ partial class Internals
 
             sigDiff = (int_fast16_t)sigA - (int_fast16_t)sigB;
             if (sigDiff == 0)
-                return PackToF16(context.RoundingMode == RoundingMode.Min, 0, 0);
+                return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
             if (expA != 0)
                 --expA;
@@ -426,7 +426,7 @@ partial class Internals
         }
 
     subEpsilon:
-        var roundingMode = context.RoundingMode;
+        var roundingMode = context.Rounding;
         if (roundingMode != RoundingMode.NearEven)
         {
             if (roundingMode == RoundingMode.MinMag || (roundingMode == (SignF16UI(uiZ) ? RoundingMode.Max : RoundingMode.Min)))
@@ -495,7 +495,7 @@ partial class Internals
             if (sigA == 0)
             {
                 if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
-                    return PackToF16(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float16.FromBitsUI16((ushort)uiC);
             }
@@ -508,7 +508,7 @@ partial class Internals
             if (sigB == 0)
             {
                 if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
-                    return PackToF16(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float16.FromBitsUI16((ushort)uiC);
             }
@@ -577,7 +577,7 @@ partial class Internals
                 expZ = expProd;
                 sig32Z = sigProd - sig32C;
                 if (sig32Z == 0)
-                    return PackToF16(context.RoundingMode == RoundingMode.Min, 0, 0);
+                    return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
                 if ((sig32Z & 0x80000000) != 0)
                 {

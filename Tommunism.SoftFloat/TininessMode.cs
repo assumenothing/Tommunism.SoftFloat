@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Tommunism.SoftFloat;
 
-public enum Tininess : byte
+public enum TininessMode : byte
 {
     BeforeRounding = 0,
     AfterRounding = 1

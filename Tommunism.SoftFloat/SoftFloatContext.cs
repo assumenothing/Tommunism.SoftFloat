@@ -169,13 +169,13 @@ public class SoftFloatContext
     /// <summary>
     /// Gets or sets software floating-point underflow tininess-detection mode.
     /// </summary>
-    public Tininess DetectTininess { get; set; }
+    public TininessMode DetectTininess { get; set; }
 
     // softfloat_roundingMode
     /// <summary>
     /// Gets or sets software floating-point rounding mode.
     /// </summary>
-    public RoundingMode RoundingMode { get; set; } = RoundingMode.NearEven;
+    public RoundingMode Rounding { get; set; } = RoundingMode.NearEven;
 
     // softfloat_exceptionFlags
     /// <summary>
@@ -188,10 +188,11 @@ public class SoftFloatContext
     /// </remarks>
     public virtual ExceptionFlags ExceptionFlags { get; set; } = ExceptionFlags.None;
 
+    // extF80_roundingPrecision
     /// <summary>
     /// Gets or sets the rounding precision for 80-bit extended double-precision floating-point.
     /// </summary>
-    public ExtFloat80RoundingPrecision ExtFloat80RoundingPrecision { get; set; } = ExtFloat80RoundingPrecision._80;
+    public ExtFloat80RoundingPrecision RoundingPrecisionExtFloat80 { get; set; } = ExtFloat80RoundingPrecision._80;
 
     #endregion
 
@@ -228,19 +229,19 @@ public class SoftFloatContext
     public Float16 ToFloat16(int32_t value) => Float16.FromInt32(this, value);
     public Float16 ToFloat16(int64_t value) => Float16.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float16 value, bool exact) => value.ToUInt32(this, RoundingMode, exact);
+    public uint32_t ToUInt32(Float16 value, bool exact) => value.ToUInt32(this, Rounding, exact);
     public uint32_t ToUInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
     public uint32_t ToUInt32RoundMinMag(Float16 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float16 value, bool exact) => value.ToUInt64(this, RoundingMode, exact);
+    public uint64_t ToUInt64(Float16 value, bool exact) => value.ToUInt64(this, Rounding, exact);
     public uint64_t ToUInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
     public uint64_t ToUInt64RoundMinMag(Float16 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float16 value, bool exact) => value.ToInt32(this, RoundingMode, exact);
+    public int32_t ToInt32(Float16 value, bool exact) => value.ToInt32(this, Rounding, exact);
     public int32_t ToInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
     public int32_t ToInt32RoundMinMag(Float16 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float16 value, bool exact) => value.ToInt64(this, RoundingMode, exact);
+    public int64_t ToInt64(Float16 value, bool exact) => value.ToInt64(this, Rounding, exact);
     public int64_t ToInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
     public int64_t ToInt64RoundMinMag(Float16 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
@@ -249,7 +250,7 @@ public class SoftFloatContext
     public ExtFloat80 ToExtFloat80(Float16 value) => value.ToExtFloat80(this);
     public Float128 ToFloat128(Float16 value) => value.ToFloat128(this);
 
-    public Float16 RoundToInt(Float16 value, bool exact) => value.RoundToInt(this, RoundingMode, exact);
+    public Float16 RoundToInt(Float16 value, bool exact) => value.RoundToInt(this, Rounding, exact);
     public Float16 RoundToInt(Float16 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(this, roundingMode, exact);
 
     public Float16 Add(Float16 a, Float16 b) => Float16.Add(this, a, b);
@@ -273,19 +274,19 @@ public class SoftFloatContext
     public Float32 ToFloat32(int32_t value) => Float32.FromInt32(this, value);
     public Float32 ToFloat32(int64_t value) => Float32.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float32 value, bool exact) => value.ToUInt32(this, RoundingMode, exact);
+    public uint32_t ToUInt32(Float32 value, bool exact) => value.ToUInt32(this, Rounding, exact);
     public uint32_t ToUInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
     public uint32_t ToUInt32RoundMinMag(Float32 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float32 value, bool exact) => value.ToUInt64(this, RoundingMode, exact);
+    public uint64_t ToUInt64(Float32 value, bool exact) => value.ToUInt64(this, Rounding, exact);
     public uint64_t ToUInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
     public uint64_t ToUInt64RoundMinMag(Float32 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float32 value, bool exact) => value.ToInt32(this, RoundingMode, exact);
+    public int32_t ToInt32(Float32 value, bool exact) => value.ToInt32(this, Rounding, exact);
     public int32_t ToInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
     public int32_t ToInt32RoundMinMag(Float32 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float32 value, bool exact) => value.ToInt64(this, RoundingMode, exact);
+    public int64_t ToInt64(Float32 value, bool exact) => value.ToInt64(this, Rounding, exact);
     public int64_t ToInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
     public int64_t ToInt64RoundMinMag(Float32 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
@@ -294,7 +295,7 @@ public class SoftFloatContext
     public ExtFloat80 ToExtFloat80(Float32 value) => value.ToExtFloat80(this);
     public Float128 ToFloat128(Float32 value) => value.ToFloat128(this);
 
-    public Float32 RoundToInt(Float32 value, bool exact) => value.RoundToInt(this, RoundingMode, exact);
+    public Float32 RoundToInt(Float32 value, bool exact) => value.RoundToInt(this, Rounding, exact);
     public Float32 RoundToInt(Float32 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(this, roundingMode, exact);
 
     public Float32 Add(Float32 a, Float32 b) => Float32.Add(this, a, b);
@@ -318,19 +319,19 @@ public class SoftFloatContext
     public Float64 ToFloat64(int32_t value) => Float64.FromInt32(this, value);
     public Float64 ToFloat64(int64_t value) => Float64.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float64 value, bool exact) => value.ToUInt32(this, RoundingMode, exact);
+    public uint32_t ToUInt32(Float64 value, bool exact) => value.ToUInt32(this, Rounding, exact);
     public uint32_t ToUInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
     public uint32_t ToUInt32RoundMinMag(Float64 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float64 value, bool exact) => value.ToUInt64(this, RoundingMode, exact);
+    public uint64_t ToUInt64(Float64 value, bool exact) => value.ToUInt64(this, Rounding, exact);
     public uint64_t ToUInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
     public uint64_t ToUInt64RoundMinMag(Float64 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float64 value, bool exact) => value.ToInt32(this, RoundingMode, exact);
+    public int32_t ToInt32(Float64 value, bool exact) => value.ToInt32(this, Rounding, exact);
     public int32_t ToInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
     public int32_t ToInt32RoundMinMag(Float64 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float64 value, bool exact) => value.ToInt64(this, RoundingMode, exact);
+    public int64_t ToInt64(Float64 value, bool exact) => value.ToInt64(this, Rounding, exact);
     public int64_t ToInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
     public int64_t ToInt64RoundMinMag(Float64 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
@@ -339,7 +340,7 @@ public class SoftFloatContext
     public ExtFloat80 ToExtFloat80(Float64 value) => value.ToExtFloat80(this);
     public Float128 ToFloat128(Float64 value) => value.ToFloat128(this);
 
-    public Float64 RoundToInt(Float64 value, bool exact) => value.RoundToInt(this, RoundingMode, exact);
+    public Float64 RoundToInt(Float64 value, bool exact) => value.RoundToInt(this, Rounding, exact);
     public Float64 RoundToInt(Float64 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(this, roundingMode, exact);
 
     public Float64 Add(Float64 a, Float64 b) => Float64.Add(this, a, b);
@@ -363,19 +364,19 @@ public class SoftFloatContext
     public ExtFloat80 ToExtFloat80(int32_t value) => ExtFloat80.FromInt32(this, value);
     public ExtFloat80 ToExtFloat80(int64_t value) => ExtFloat80.FromInt64(this, value);
 
-    public uint32_t ToUInt32(ExtFloat80 value, bool exact) => value.ToUInt32(this, RoundingMode, exact);
+    public uint32_t ToUInt32(ExtFloat80 value, bool exact) => value.ToUInt32(this, Rounding, exact);
     public uint32_t ToUInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
     public uint32_t ToUInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(ExtFloat80 value, bool exact) => value.ToUInt64(this, RoundingMode, exact);
+    public uint64_t ToUInt64(ExtFloat80 value, bool exact) => value.ToUInt64(this, Rounding, exact);
     public uint64_t ToUInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
     public uint64_t ToUInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(ExtFloat80 value, bool exact) => value.ToInt32(this, RoundingMode, exact);
+    public int32_t ToInt32(ExtFloat80 value, bool exact) => value.ToInt32(this, Rounding, exact);
     public int32_t ToInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
     public int32_t ToInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(ExtFloat80 value, bool exact) => value.ToInt64(this, RoundingMode, exact);
+    public int64_t ToInt64(ExtFloat80 value, bool exact) => value.ToInt64(this, Rounding, exact);
     public int64_t ToInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
     public int64_t ToInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
@@ -384,7 +385,7 @@ public class SoftFloatContext
     public Float64 ToFloat64(ExtFloat80 value) => value.ToFloat64(this);
     public Float128 ToFloat128(ExtFloat80 value) => value.ToFloat128(this);
 
-    public ExtFloat80 RoundToInt(ExtFloat80 value, bool exact) => value.RoundToInt(this, RoundingMode, exact);
+    public ExtFloat80 RoundToInt(ExtFloat80 value, bool exact) => value.RoundToInt(this, Rounding, exact);
     public ExtFloat80 RoundToInt(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(this, roundingMode, exact);
 
     public ExtFloat80 Add(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Add(this, a, b);
@@ -407,19 +408,19 @@ public class SoftFloatContext
     public Float128 ToFloat128(int32_t value) => Float128.FromInt32(this, value);
     public Float128 ToFloat128(int64_t value) => Float128.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float128 value, bool exact) => value.ToUInt32(this, RoundingMode, exact);
+    public uint32_t ToUInt32(Float128 value, bool exact) => value.ToUInt32(this, Rounding, exact);
     public uint32_t ToUInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
     public uint32_t ToUInt32RoundMinMag(Float128 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float128 value, bool exact) => value.ToUInt64(this, RoundingMode, exact);
+    public uint64_t ToUInt64(Float128 value, bool exact) => value.ToUInt64(this, Rounding, exact);
     public uint64_t ToUInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
     public uint64_t ToUInt64RoundMinMag(Float128 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float128 value, bool exact) => value.ToInt32(this, RoundingMode, exact);
+    public int32_t ToInt32(Float128 value, bool exact) => value.ToInt32(this, Rounding, exact);
     public int32_t ToInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
     public int32_t ToInt32RoundMinMag(Float128 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float128 value, bool exact) => value.ToInt64(this, RoundingMode, exact);
+    public int64_t ToInt64(Float128 value, bool exact) => value.ToInt64(this, Rounding, exact);
     public int64_t ToInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
     public int64_t ToInt64RoundMinMag(Float128 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
@@ -428,7 +429,7 @@ public class SoftFloatContext
     public Float64 ToFloat64(Float128 value) => value.ToFloat64(this);
     public ExtFloat80 ToExtFloat80(Float128 value) => value.ToExtFloat80(this);
 
-    public Float128 RoundToInt(Float128 value, bool exact) => value.RoundToInt(this, RoundingMode, exact);
+    public Float128 RoundToInt(Float128 value, bool exact) => value.RoundToInt(this, Rounding, exact);
     public Float128 RoundToInt(Float128 value, RoundingMode roundingMode, bool exact) => value.RoundToInt(this, roundingMode, exact);
 
     public Float128 Add(Float128 a, Float128 b) => Float128.Add(this, a, b);

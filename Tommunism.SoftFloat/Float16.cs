@@ -175,13 +175,13 @@ public readonly struct Float16
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.RoundingMode, exact);
+    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.Rounding, exact);
 
-    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.RoundingMode, exact);
+    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.Rounding, exact);
 
-    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.RoundingMode, exact);
+    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.Rounding, exact);
 
-    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.RoundingMode, exact);
+    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.Rounding, exact);
 
     // f16_to_ui32
     public uint32_t ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
@@ -630,7 +630,7 @@ public readonly struct Float16
 
     #region Arithmetic Operations
 
-    public Float16 RoundToInt(SoftFloatContext context, bool exact) => RoundToInt(context, context.RoundingMode, exact);
+    public Float16 RoundToInt(SoftFloatContext context, bool exact) => RoundToInt(context, context.Rounding, exact);
 
     // f16_roundToInt
     public Float16 RoundToInt(SoftFloatContext context, RoundingMode roundingMode, bool exact)
