@@ -133,12 +133,5 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     public static SFUInt128 operator *(SFUInt128 left, uint right) => Mul128By32(left.V64, left.V00, right);
 
-    public static SFUInt256 operator *(SFUInt128 left, SFUInt128 right)
-    {
-        Span<ulong> result = stackalloc ulong[4];
-        Mul128To256M(left.V64, left.V00, right.V64, right.V00, result);
-        return new SFUInt256(result);
-    }
-
     #endregion
 }

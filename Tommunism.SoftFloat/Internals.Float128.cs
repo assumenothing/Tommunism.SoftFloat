@@ -511,7 +511,7 @@ partial class Internals
         sigA <<= 8;
         sigB <<= 15;
 
-        sig256Z = sigA * sigB;
+        sig256Z = Mul128To256M(sigA, sigB);
         sigZ = sig256Z.V128_UI128; // IndexWord(4, 3) & IndexWord(4, 2)
 
         shiftDist = 0;

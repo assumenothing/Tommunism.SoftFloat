@@ -783,6 +783,14 @@ internal static class Primitives
 #endif
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SFUInt256 Mul128To256M(SFUInt128 a, SFUInt128 b)
+    {
+        Span<ulong> result = stackalloc ulong[4];
+        Mul128To256M(a.V64, a.V00, b.V64, b.V00, result);
+        return new SFUInt256(result);
+    }
+
     // softfloat_mul128To256M
     /// <summary>
     /// Multiplies the 128-bit unsigned integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> by the 128-bit

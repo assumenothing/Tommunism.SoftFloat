@@ -945,7 +945,7 @@ public readonly struct Float128
         expZ = expA + expB - 0x4000;
         sigA.V64 |= 0x0001000000000000;
         sigB <<= 16;
-        sig256Z = sigA * sigB;
+        sig256Z = Mul128To256M(sigA, sigB);
         sigZExtra = sig256Z[IndexWord(4, 1)] | (sig256Z[IndexWord(4, 0)] != 0 ? 1U : 0);
         sigZ = Add128(
             sig256Z[IndexWord(4, 3)], sig256Z[IndexWord(4, 2)],
