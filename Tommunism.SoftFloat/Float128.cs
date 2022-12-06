@@ -98,7 +98,7 @@ public readonly struct Float128
 
     #region Methods
 
-    public static Float128 FromUInt64x2Bits(ulong valueHi, ulong valueLo) => new(v64: valueHi, v0: valueLo);
+    public static Float128 FromUIntBits(ulong upper, ulong lower) => new(v64: upper, v0: lower);
 
     public (ulong hi, ulong lo) ToUInt64x2Bits() => (_v64, _v0);
 

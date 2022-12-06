@@ -101,9 +101,9 @@ public readonly struct ExtFloat80
 
     #region Properties
 
-    internal uint64_t Significand => _signif;
+    public uint64_t Significand => _signif;
 
-    internal uint16_t SignAndExponent => _signExp;
+    public uint16_t SignAndExponent => _signExp;
 
     #endregion
 
