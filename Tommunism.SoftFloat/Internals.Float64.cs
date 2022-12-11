@@ -85,7 +85,7 @@ partial class Internals
     // packToF64UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong PackToF64UI(bool sign, int_fast16_t exp, uint_fast64_t sig) =>
-        (sign ? (1UL << 63) : 0UL) + ((uint_fast64_t)exp << 52) | sig;
+        (sign ? (1UL << 63) : 0UL) + ((uint_fast64_t)exp << 52) + sig;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float64 PackToF64(bool sign, int_fast16_t exp, uint_fast64_t sig) =>
