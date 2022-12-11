@@ -170,8 +170,7 @@ internal class TestRunner
                 // TODO: If the verifier process quits before the generator, then there are probably too many errors.
                 // (Figure out a good way to handle that, if necessary.)
 
-                while (!generatorProcess.HasExited &&
-                    !(verifierProcess?.HasExited ?? false) &&
+                while (!(verifierProcess?.HasExited ?? false) &&
                     !cancellationToken.IsCancellationRequested)
                 {
                     // TODO: Is there a more efficient way to do this without allocating a string every time?
