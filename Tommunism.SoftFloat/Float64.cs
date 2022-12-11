@@ -581,7 +581,7 @@ public readonly struct Float64
                 return context.CommonNaNToExtFloat80(in commonNaN);
             }
 
-            return PackToExtF80(sign, 0x7FF, 0x8000000000000000);
+            return PackToExtF80(sign, 0x7FFF, 0x8000000000000000);
         }
 
         if (exp == 0)
