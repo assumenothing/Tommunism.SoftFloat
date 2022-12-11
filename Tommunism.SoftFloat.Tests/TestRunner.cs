@@ -178,6 +178,10 @@ internal class TestRunner
                     if (generatorLine == null)
                         break;
 
+                    // Skip empty lines.
+                    if (string.IsNullOrWhiteSpace(generatorLine))
+                        continue;
+
                     if (ConsoleDebug >= 3)
                         Console.WriteLine($"GEN: {generatorLine}");
 
