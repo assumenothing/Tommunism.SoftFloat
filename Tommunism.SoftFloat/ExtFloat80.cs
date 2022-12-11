@@ -145,7 +145,7 @@ public readonly struct ExtFloat80
         uint_fast16_t uiZ64;
         if (a != 0)
         {
-            var shiftDist = CountLeadingZeroes32(a);
+            int_fast8_t shiftDist = CountLeadingZeroes32(a);
             uiZ64 = 0x401E - (uint_fast16_t)shiftDist;
             a <<= shiftDist;
         }
@@ -154,7 +154,7 @@ public readonly struct ExtFloat80
             uiZ64 = 0;
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: (uint_fast64_t)a << 32);
+        return FromBitsUI80(signExp: (uint16_t)uiZ64, signif: (uint_fast64_t)a << 32);
     }
 
     // ui64_to_extF80
@@ -164,8 +164,8 @@ public readonly struct ExtFloat80
         uint_fast16_t uiZ64;
         if (a != 0)
         {
-            var shiftDist = CountLeadingZeroes64(a);
-            uiZ64 = 0x401E - (uint_fast16_t)shiftDist;
+            int_fast8_t shiftDist = CountLeadingZeroes64(a);
+            uiZ64 = 0x403E - (uint_fast16_t)shiftDist;
             a <<= shiftDist;
         }
         else
@@ -173,7 +173,7 @@ public readonly struct ExtFloat80
             uiZ64 = 0;
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: a << 32);
+        return FromBitsUI80(signExp: (uint16_t)uiZ64, signif: a);
     }
 
     // i32_to_extF80
