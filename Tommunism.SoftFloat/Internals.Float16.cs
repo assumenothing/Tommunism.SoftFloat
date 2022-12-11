@@ -288,7 +288,7 @@ partial class Internals
                 if ((ushort)(uiZ << 1) == 0xF800U)
                     context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
             }
-            else
+            else if (roundingMode == RoundingMode.Odd)
             {
                 uiZ |= 1;
             }
@@ -401,7 +401,7 @@ partial class Internals
             }
 
             uint_fast32_t sig32Z = (sigX << expDiff) - sigY;
-            shiftDist = CountLeadingZeroes16(sig32Z) - 1;
+            shiftDist = CountLeadingZeroes32(sig32Z) - 1;
             sig32Z <<= shiftDist;
             expZ -= shiftDist;
             sigZ = sig32Z >> 16;
