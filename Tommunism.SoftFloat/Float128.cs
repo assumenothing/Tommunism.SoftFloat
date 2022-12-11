@@ -662,7 +662,7 @@ public readonly struct Float128
 
         frac128 = ShortShiftLeft128(frac64, frac0, 14);
         frac64 = frac128.V64 | (frac128.V00 != 0 ? 1U : 0);
-        if (((uint_fast32_t)exp | frac64) != 0)
+        if (((uint_fast32_t)exp | frac64) == 0)
             return PackToF64(sign, 0, 0);
 
         exp -= 0x3C01;
