@@ -436,21 +436,26 @@ internal static class Program
         }
     }
 
-    private static void RunTests(TestRunner runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler)
+    private static bool RunTests(TestRunner runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler)
     {
         // Skip unimplemented functions.
         if (functionHandler == null)
-            return;
+            return true;
 
         // Enumerate all useful test configurations for given function.
+        var failureCount = 0;
         foreach (var config in GetTestConfigurations(functionName, options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess))
         {
             // Set configuration options.
             (options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess) = config;
 
             PrintTestName(options, functionName);
-            runner.Run(functionName, functionHandler, options);
+            if (runner.Run(functionName, functionHandler, options) != 0)
+                failureCount++;
         }
+
+        // Did all of the test configurations pass?
+        return failureCount == 0;
     }
 
     // TODO: Add support for CancellationToken?

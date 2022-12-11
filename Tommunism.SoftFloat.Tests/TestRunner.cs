@@ -33,39 +33,17 @@ internal class TestRunner
 
     #region Methods
 
-    public Task QueueRunInThreadPool(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options) =>
-        QueueRunInThreadPool(testFunction, testHandler, options, CancellationToken.None);
-
-    public Task QueueRunInThreadPool(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options, CancellationToken cancellationToken)
-    {
-        var tcs = new TaskCompletionSource(TaskCreationOptions.LongRunning);
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try
-            {
-                Run(testFunction, testHandler, options, cancellationToken);
-                tcs.SetResult();
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-
-        return tcs.Task;
-    }
-
-    public Task RunAsync(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options) =>
+    public Task<int> RunAsync(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options) =>
         RunAsync(testFunction, testHandler, options, CancellationToken.None);
 
-    public Task RunAsync(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options, CancellationToken cancellationToken) =>
+    public Task<int> RunAsync(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options, CancellationToken cancellationToken) =>
         Task.Factory.StartNew(() => Run(testFunction, testHandler, options, cancellationToken), TaskCreationOptions.LongRunning);
 
-    public void Run(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options) =>
+    public int Run(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options) =>
         Run(testFunction, testHandler, options, CancellationToken.None);
 
     // NOTE: This is a blocking operation! It is highly recommended to use some kind of thread pool or parallel execution. This is not thread-safe, do not call more than once at a time!
-    public void Run(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options, CancellationToken cancellationToken)
+    public int Run(string testFunction, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> testHandler, TestRunnerOptions options, CancellationToken cancellationToken)
     {
         Process? generatorProcess = null;
         Process? verifierProcess = null;
@@ -293,6 +271,9 @@ internal class TestRunner
             Console.WriteLine(message);
             Debug.WriteLine(message);
         }
+
+        // Probably abnormal termination if the exit code is not set.
+        return verifierExitCode ?? 1;
     }
 
     #endregion
