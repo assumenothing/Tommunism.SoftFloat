@@ -844,7 +844,7 @@ public readonly struct Float128
         if (uiZ.V64 != uiA64 || uiZ.V00 != uiA0)
         {
             if (roundingMode == RoundingMode.Odd)
-                uiZ = new SFUInt128(v64: lastBitMask64, v0: lastBitMask0);
+                uiZ = new SFUInt128(v64: uiZ.V64 | lastBitMask64, v0: uiZ.V00 | lastBitMask0);
 
             if (exact)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
