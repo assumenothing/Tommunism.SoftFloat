@@ -23,5 +23,6 @@ internal record TestRunnerState(object TestRunner, TestRunnerOptions Options, st
         context.DetectTininess = Options.DetectTininess ?? 0;
         context.Rounding = Options.Rounding ?? 0;
         context.RoundingPrecisionExtFloat80 = Options.RoundingPrecisionExtFloat80 ?? 0;
+        context.ExceptionFlags = 0;
     }
 }
