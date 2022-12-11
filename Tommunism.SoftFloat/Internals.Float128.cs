@@ -106,7 +106,7 @@ partial class Internals
         {
             shiftDist = CountLeadingZeroes64(sig0) - 15;
             return (
-                exp: -64 - shiftDist,
+                exp: -63 - shiftDist,
                 sig: (shiftDist < 0)
                     ? new SFUInt128(
                         v64: sig0 >> (-shiftDist),

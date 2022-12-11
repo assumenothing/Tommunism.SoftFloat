@@ -212,7 +212,7 @@ partial class Internals
             if (exp <= 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < 0 || !roundIncrement || sig < 0xFFFFFFFFFFFFFFFF;
-                sig = ShiftRightJam64Extra(sig, sigExtra, 1 - exp).V;
+                (sigExtra, sig) = ShiftRightJam64Extra(sig, sigExtra, 1 - exp);
                 exp = 0;
                 if (sigExtra != 0)
                 {
