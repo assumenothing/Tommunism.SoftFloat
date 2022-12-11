@@ -84,12 +84,8 @@ partial class Internals
 
     // packToF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint64_t PackToF128UI64(bool sign, int_fast32_t exp, uint_fast64_t sig64)
-    {
-        Debug.Assert(((uint_fast16_t)exp & ~0x7FFFU) == 0); // TODO: If this is signed, then how are negative values handled?
-        Debug.Assert((sig64 & ~0x0000FFFFFFFFFFFFU) == 0);
-        return (sign ? (1UL << 63) : 0UL) | ((uint64_t)((uint_fast32_t)exp & 0x7FFF) << 48) | (sig64 & 0x0000FFFFFFFFFFFF);
-    }
+    public static uint64_t PackToF128UI64(bool sign, int_fast32_t exp, uint_fast64_t sig64) =>
+        (sign ? (1UL << 63) : 0UL) + ((uint64_t)exp << 48) + sig64;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float128 PackToF128(bool sign, int_fast32_t exp, uint_fast64_t sig64, uint_fast64_t sig0) =>

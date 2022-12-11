@@ -112,13 +112,13 @@ public readonly struct Float16
     // ui32_to_f16
     public static Float16 FromUInt32(SoftFloatContext context, uint32_t a)
     {
-        var shiftDist = CountLeadingZeroes32(a) - 21;
+        int_fast8_t shiftDist = CountLeadingZeroes32(a) - 21;
         if (0 <= shiftDist)
             return FromBitsUI16(a != 0 ? PackToF16UI(false, 0x18 - shiftDist, a << shiftDist) : (uint16_t)0);
 
         shiftDist += 4;
-        var sig = (shiftDist < 0)
-            ? (a >> (-shiftDist) | (a << shiftDist))
+        uint_fast16_t sig = (shiftDist < 0)
+            ? ((a >> (-shiftDist)) | ((a << shiftDist) != 0 ? 1U : 0))
             : (a << shiftDist);
         return RoundPackToF16(context, false, 0x1C - shiftDist, sig);
     }
@@ -135,7 +135,6 @@ public readonly struct Float16
             ? (uint_fast16_t)ShortShiftRightJam64(a, -shiftDist)
             : ((uint_fast16_t)a << shiftDist);
         return RoundPackToF16(context, false, 0x1C - shiftDist, sig);
-
     }
 
     // i32_to_f16
@@ -152,7 +151,6 @@ public readonly struct Float16
             ? (absA >> (-shiftDist)) | ((absA << shiftDist) != 0 ? 1U : 0U)
             : (absA << shiftDist);
         return RoundPackToF16(context, sign, 0x1C - shiftDist, sig);
-
     }
 
     // i64_to_f16

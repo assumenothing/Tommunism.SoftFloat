@@ -84,12 +84,8 @@ partial class Internals
 
     // packToF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint16_t PackToF16UI(bool sign, int_fast8_t exp, uint_fast16_t sig)
-    {
-        Debug.Assert(((uint_fast8_t)exp & ~0x1FU) == 0); // TODO: If this is signed, then how are negative values handled?
-        Debug.Assert((sig & ~0x03FFU) == 0);
-        return (uint16_t)((sign ? (1U << 15) : 0U) | (((uint_fast16_t)exp & 0x1F) << 10) | (sig & 0x03FF));
-    }
+    public static uint16_t PackToF16UI(bool sign, int_fast8_t exp, uint_fast16_t sig) =>
+        (uint16_t)((sign ? (1U << 15) : 0U) + (uint16_t)((uint_fast16_t)exp << 10) + sig);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float16 PackToF16(bool sign, int_fast8_t exp, uint_fast16_t sig) =>

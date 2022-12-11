@@ -84,12 +84,8 @@ partial class Internals
 
     // packToF64UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong PackToF64UI(bool sign, int_fast16_t exp, uint_fast64_t sig)
-    {
-        Debug.Assert(((uint_fast16_t)exp & ~0x7FFU) == 0); // TODO: If this is signed, then how are negative values handled?
-        Debug.Assert((sig & ~0x000FFFFFFFFFFFFFU) == 0);
-        return (sign ? (1UL << 63) : 0UL) | (((uint_fast64_t)exp & 0x7FF) << 52) | (sig & 0x000FFFFFFFFFFFFF);
-    }
+    public static ulong PackToF64UI(bool sign, int_fast16_t exp, uint_fast64_t sig) =>
+        (sign ? (1UL << 63) : 0UL) + ((uint_fast64_t)exp << 52) | sig;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float64 PackToF64(bool sign, int_fast16_t exp, uint_fast64_t sig) =>

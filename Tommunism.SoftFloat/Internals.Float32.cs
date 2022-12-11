@@ -84,12 +84,8 @@ partial class Internals
 
     // packToF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint32_t PackToF32UI(bool sign, int_fast16_t exp, uint_fast32_t sig)
-    {
-        Debug.Assert(((uint_fast16_t)exp & ~0xFFU) == 0); // TODO: If this is signed, then how are negative values handled?
-        Debug.Assert((sig & ~0x007FFFFFU) == 0);
-        return (sign ? (1U << 31) : 0U) | (((uint_fast32_t)exp & 0xFF) << 23) | (sig & 0x007FFFFF);
-    }
+    public static uint32_t PackToF32UI(bool sign, int_fast16_t exp, uint_fast32_t sig) =>
+        (sign ? (1U << 31) : 0U) + ((uint_fast32_t)exp << 23) + sig;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float32 PackToF32(bool sign, int_fast16_t exp, uint_fast32_t sig) =>

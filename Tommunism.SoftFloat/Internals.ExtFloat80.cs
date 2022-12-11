@@ -80,11 +80,8 @@ partial class Internals
 
     // packToExtF80UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint16_t PackToExtF80UI64(bool sign, int_fast32_t exp)
-    {
-        Debug.Assert(((uint_fast16_t)exp & ~0x7FFFU) == 0); // TODO: If this is signed, then how are negative values handled?
-        return (uint16_t)((sign ? (1U << 15) : 0U) | ((uint_fast32_t)exp & 0x7FFF));
-    }
+    public static uint16_t PackToExtF80UI64(bool sign, int_fast32_t exp) =>
+        (uint16_t)((sign ? (1U << 15) : 0U) | (uint_fast32_t)exp);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExtFloat80 PackToExtF80(bool sign, int_fast32_t exp, uint_fast64_t sig) =>
