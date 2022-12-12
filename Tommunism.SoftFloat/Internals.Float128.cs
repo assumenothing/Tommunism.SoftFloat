@@ -130,7 +130,7 @@ partial class Internals
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, SFUInt128 sig, uint_fast64_t sigExtra) =>
-        RoundPackToF128(context, sign, exp, sig.V00, sig.V64, sigExtra);
+        RoundPackToF128(context, sign, exp, sig.V64, sig.V00, sigExtra);
 
     // softfloat_roundPackToF128
     public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig64, uint_fast64_t sig0, uint_fast64_t sigExtra)
@@ -210,7 +210,7 @@ partial class Internals
                 (sig64, sig0) = ShortShiftLeft128(sig64, sig0, shiftDist);
 
             if ((uint32_t)exp < 0x7FFD)
-                return PackToF128(sign, (int_fast32_t)sig64 | (sig0 != 0 ? exp : 0), sig64, sig0);
+                return PackToF128(sign, (sig64 | sig0) != 0 ? exp : 0, sig64, sig0);
 
             sigExtra = 0;
         }
@@ -239,7 +239,7 @@ partial class Internals
         {
             if (expA == 0x7FFF)
             {
-                return ((sigA.V64 | sigA.V00 | sigB.V64 | sigB.V00) != 0)
+                return (!sigA.IsZero || !sigB.IsZero)
                     ? context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0)
                     : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
             }
@@ -258,7 +258,7 @@ partial class Internals
             {
                 if (expB == 0x7FFF)
                 {
-                    return sigB.IsZero
+                    return !sigB.IsZero
                         ? context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0)
                         : PackToF128(signZ, 0x7FFF, 0, 0);
                 }
@@ -282,7 +282,7 @@ partial class Internals
             {
                 if (expA == 0x7FFF)
                 {
-                    return sigA.IsZero
+                    return !sigA.IsZero
                         ? context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0)
                         : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
                 }
@@ -336,7 +336,7 @@ partial class Internals
         {
             if (expA == 0x7FFF)
             {
-                if ((sigA.V64 | sigA.V00 | sigB.V64 | sigB.V00) != 0)
+                if (!sigA.IsZero || !sigB.IsZero)
                     return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
 
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -371,7 +371,7 @@ partial class Internals
         {
             if (expA == 0x7FFF)
             {
-                return sigA.IsZero
+                return !sigA.IsZero
                     ? context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0)
                     : Float128.FromBitsUI128(v64: uiA64, v0: uiA0);
             }
@@ -397,7 +397,7 @@ partial class Internals
         {
             if (expB == 0x7FFF)
             {
-                return sigB.IsZero
+                return !sigB.IsZero
                     ? context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0)
                     : PackToF128(!signZ, 0x7FFF, 0, 0);
             }
