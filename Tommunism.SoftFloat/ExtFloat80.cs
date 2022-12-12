@@ -851,7 +851,7 @@ public readonly struct ExtFloat80
             if ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
                 return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
 
-            if (((uint_fast32_t)expB | sigB) == 0)
+            if (((uint_fast32_t)expA | sigA) == 0)
             {
                 context.RaiseFlags(ExceptionFlags.Invalid);
                 return context.DefaultNaNExtFloat80;
@@ -882,7 +882,7 @@ public readonly struct ExtFloat80
             if (sigB == 0)
                 return PackToExtF80(signZ, 0, 0);
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigB);
+            (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
             expB += expTmp;
         }
 
