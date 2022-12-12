@@ -912,7 +912,7 @@ public readonly struct Float32
 
         sigZ = (uint_fast32_t)(sig64A / sigB);
         if ((sigZ & 0x3F) == 0)
-            sigZ |= (uint_fast32_t)((uint_fast64_t)sigB * (sigZ != sig64A ? 1U : 0));
+            sigZ |= ((uint_fast64_t)sigB * sigZ != sig64A) ? 1U : 0;
 
         return RoundPackToF32(context, signZ, expZ, sigZ);
     }
