@@ -413,7 +413,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 ShiftRightJam128(SFUInt128 a, int dist) => ShiftRightJam128(a, dist);
+    public static SFUInt128 ShiftRightJam128(SFUInt128 a, int dist) => ShiftRightJam128(a.V64, a.V00, dist);
 
     // softfloat_shiftRightJam128
     /// <summary>
