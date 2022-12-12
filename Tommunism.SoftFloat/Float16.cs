@@ -749,7 +749,7 @@ public readonly struct Float16
 
         return SignF16UI(uiA ^ uiB)
             ? AddMagsF16(context, uiA, uiB)
-            : AddMagsF16(context, uiA, uiB);
+            : SubMagsF16(context, uiA, uiB);
     }
 
     // f16_mul
