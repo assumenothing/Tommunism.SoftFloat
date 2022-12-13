@@ -973,10 +973,10 @@ public readonly struct Float16
             (expA, sigA) = NormSubnormalF16Sig(sigA);
         }
 
-        rem = (ushort)(sigA | 0x0400);
+        rem = (uint16_t)(sigA | 0x0400);
         sigB |= 0x0400;
         expDiff = expA - expB;
-        if (expDiff < 0)
+        if (expDiff < 1)
         {
             if (expDiff < -1)
                 return a;
@@ -990,7 +990,7 @@ public readonly struct Float16
             else
             {
                 rem <<= 3;
-                q = sigB <= rem ? 1U : 0;
+                q = (sigB <= rem) ? 1U : 0;
                 if (q != 0)
                     rem -= (uint16_t)sigB;
             }
@@ -1017,9 +1017,9 @@ public readonly struct Float16
             }
 
             // ('expDiff' cannot be less than -30 here.)
-            q32 >>= ~expDiff & 31;
+            q32 >>= ~expDiff;
             q = q32;
-            rem = (uint16_t)((uint32_t)(rem << (expDiff + 30)) - q * sigB);
+            rem = (uint16_t)(((uint32_t)rem << (expDiff + 30)) - q * sigB);
         }
 
         do
