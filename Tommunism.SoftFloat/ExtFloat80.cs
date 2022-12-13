@@ -1326,7 +1326,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
+            if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1349,7 +1349,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
+            if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1377,7 +1377,7 @@ public readonly struct ExtFloat80
 
         if (IsNaNExtF80UI((int_fast16_t)uiA64, uiA0) || IsNaNExtF80UI((int_fast16_t)uiB64, uiB0))
         {
-            if (signaling && (context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0)))
+            if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
