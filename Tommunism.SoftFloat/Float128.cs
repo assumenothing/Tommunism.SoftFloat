@@ -1128,10 +1128,7 @@ public readonly struct Float128
         if (expB == 0x7FFF)
         {
             if (!sigB.IsZero)
-            {
-                context.RaiseFlags(ExceptionFlags.Invalid);
                 return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0);
-            }
 
             return a;
         }
