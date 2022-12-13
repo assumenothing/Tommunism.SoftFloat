@@ -924,17 +924,22 @@ public readonly struct ExtFloat80
             if ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
                 return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
 
-            if (expB == 0x7FFF && (sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
+            if (expB == 0x7FFF)
+            {
+                if ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
+                    return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
+
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNExtFloat80;
+            }
 
             return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
         }
         else if (expB == 0x7FFF)
         {
-            if ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
-                return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
-
-            return PackToExtF80(signZ, 0, 0);
+            return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
+                ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                : PackToExtF80(signZ, 0, 0);
         }
 
         if (expB == 0)
@@ -997,7 +1002,7 @@ public readonly struct ExtFloat80
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
                 --q;
-                rem = Add128(rem.V64, rem.V00, sigB >> 32, sigB << 32);
+                rem += new SFUInt128(v64: sigB >> 32, v0: sigB << 32);
             }
 
             sigZ = (sigZ << 29) + q;
@@ -1005,16 +1010,16 @@ public readonly struct ExtFloat80
 
         if (((q + 1) & 0x3FFFFF) < 2)
         {
-            rem >>= 29;
+            rem <<= 29;
             term = Mul64ByShifted32To128(sigB, q);
             rem -= term;
             term = ShortShiftLeft128(0, sigB, 32);
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
                 --q;
-                rem -= term;
+                rem += term;
             }
-            else if (term < rem)
+            else if (term <= rem)
             {
                 ++q;
                 rem -= term;
