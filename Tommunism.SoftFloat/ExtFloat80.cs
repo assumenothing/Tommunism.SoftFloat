@@ -1196,7 +1196,8 @@ public readonly struct ExtFloat80
     // extF80_sqrt
     public ExtFloat80 SquareRoot(SoftFloatContext context)
     {
-        uint_fast16_t uiA64, sig32A, recipSqrt32, sig32Z;
+        uint_fast16_t uiA64;
+        uint_fast32_t sig32A, recipSqrt32, sig32Z;
         uint_fast64_t uiA0, sigA, q, x64, sigZ, sigZExtra;
         int_fast32_t expA, expZ;
         SFUInt128 rem, y, term;
@@ -1246,17 +1247,17 @@ public readonly struct ExtFloat80
 
         expZ = ((expA - 0x3FFF) >> 1) + 0x3FFF;
         expA &= 1;
-        sig32A = (uint_fast16_t)(sigA >> 32);
+        sig32A = (uint_fast32_t)(sigA >> 32);
         recipSqrt32 = ApproxRecipSqrt32_1((uint_fast32_t)expA, sig32A);
-        sig32Z = (uint_fast16_t)(((uint_fast64_t)sig32A * recipSqrt32) >> 32);
+        sig32Z = (uint_fast32_t)(((uint_fast64_t)sig32A * recipSqrt32) >> 32);
         if (expA != 0)
         {
             sig32Z >>= 1;
-            rem = ShortShiftLeft128(0, sigA, 61);
+            rem = new SFUInt128(0, sigA) << 61;
         }
         else
         {
-            rem = ShortShiftLeft128(0, sigA, 62);
+            rem = new SFUInt128(0, sigA) << 62;
         }
 
         rem.V64 -= (uint_fast64_t)sig32Z * sig32Z;
@@ -1287,7 +1288,7 @@ public readonly struct ExtFloat80
             q &= ~0xFFFFUL;
             sigZExtra = q << 39;
             term = Mul64ByShifted32To128(x64 + (q >> 27), (uint_fast32_t)q);
-            x64 = (q << 5) * (uint32_t)q;
+            x64 = (uint32_t)(q << 5) * (uint_fast64_t)(uint32_t)q;
             term += x64;
             rem <<= 28;
             rem -= term;
