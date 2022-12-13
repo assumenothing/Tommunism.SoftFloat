@@ -1120,20 +1120,20 @@ public readonly struct ExtFloat80
             return PackToExtF80(signA, expA, sigA);
         }
 
-        rem = ShortShiftLeft128(0, sigB, 32);
-        shiftedSigB = ShortShiftLeft128(0, sigB, 32);
+        rem = new SFUInt128(0, sigA) << 32;
+        shiftedSigB = new SFUInt128(0, sigB) << 32;
 
         if (expDiff < 1)
         {
             if (expDiff != 0)
             {
-                //--expB;
-                shiftedSigB = ShortShiftLeft128(0, sigB, 33);
+                --expB;
+                shiftedSigB = new SFUInt128(0, sigB) << 33;
                 q = 0;
             }
             else
             {
-                q = sigB <= sigA ? 1U : 0;
+                q = (sigB <= sigA) ? 1U : 0;
                 if (q != 0)
                     rem -= shiftedSigB;
             }
@@ -1149,7 +1149,7 @@ public readonly struct ExtFloat80
                     break;
 
                 q = (uint_fast16_t)((q64 + 0x80000000) >> 32);
-                rem >>= 29;
+                rem <<= 29;
                 term = Mul64ByShifted32To128(sigB, q);
                 rem -= term;
                 if ((rem.V64 & 0x8000000000000000) != 0)
@@ -1159,7 +1159,7 @@ public readonly struct ExtFloat80
             }
 
             // ('expDiff' cannot be less than -29 here.)
-            q = (uint32_t)(q64 >> 32) >> (~expDiff & 31);
+            q = (uint32_t)(q64 >> 32) >> (~expDiff);
             rem <<= expDiff + 30;
             term = Mul64ByShifted32To128(sigB, q);
             rem -= term;
@@ -1190,7 +1190,7 @@ public readonly struct ExtFloat80
             rem = -rem;
         }
 
-        return NormRoundPackToExtF80(context, signRem, rem.IsZero ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
+        return NormRoundPackToExtF80(context, signRem, !rem.IsZero ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
     }
 
     // extF80_sqrt

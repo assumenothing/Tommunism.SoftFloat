@@ -301,7 +301,7 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 ShortShiftLeft128(ulong a64, ulong a0, int dist)
     {
-        Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
+        // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
         return new SFUInt128(
             v64: (a64 << dist) | (a0 >> (-dist)),
             v0: a0 << dist
