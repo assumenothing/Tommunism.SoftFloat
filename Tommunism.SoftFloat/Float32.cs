@@ -1117,7 +1117,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
+            if (signaling || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1137,7 +1137,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
+            if (signaling || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
@@ -1162,7 +1162,7 @@ public readonly struct Float32
 
         if (IsNaNF32UI(uiA) || IsNaNF32UI(uiB))
         {
-            if (signaling && (context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB)))
+            if (signaling || context.IsSignalingNaNFloat32Bits(uiA) || context.IsSignalingNaNFloat32Bits(uiB))
                 context.RaiseFlags(ExceptionFlags.Invalid);
 
             return false;
