@@ -218,9 +218,9 @@ internal struct SFUInt256 : IEquatable<SFUInt256>, IReadOnlyList<ulong>
             switch (index)
             {
                 case 0: _v0 = value; return;
-                case 1: _v0 = value; return;
-                case 2: _v0 = value; return;
-                case 3: _v0 = value; return;
+                case 1: _v1 = value; return;
+                case 2: _v2 = value; return;
+                case 3: _v3 = value; return;
             }
 
             // easier to inline without exception
