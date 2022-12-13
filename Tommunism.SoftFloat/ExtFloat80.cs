@@ -1359,7 +1359,7 @@ public readonly struct ExtFloat80
         signB = SignExtF80UI64(uiB64);
 
         return (signA != signB)
-            ? (signA || ((uiA64 | uiB64) & 0x7FFF) == 0 || (uiA0 | uiB0) != 0)
+            ? (signA || (((uiA64 | uiB64) & 0x7FFF) == 0 && (uiA0 | uiB0) == 0))
             : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ LT128(uiA64, uiA0, uiB64, uiB0));
     }
 
