@@ -972,7 +972,7 @@ public readonly struct Float32
         rem = sigA | 0x00800000;
         sigB |= 0x00800000;
         expDiff = expA - expB;
-        if (expDiff < 0)
+        if (expDiff < 1)
         {
             if (expDiff < -1)
                 return a;
@@ -986,7 +986,7 @@ public readonly struct Float32
             else
             {
                 rem <<= 6;
-                q = sigB <= rem ? 1U : 0;
+                q = (sigB <= rem) ? 1U : 0;
                 if (q != 0)
                     rem -= sigB;
             }
@@ -1008,12 +1008,12 @@ public readonly struct Float32
                 if (expDiff < 0)
                     break;
 
-                rem = (uint32_t)(-(q * sigB));
+                rem = (uint32_t)(-(int32_t)(q * sigB));
                 expDiff -= 29;
             }
 
             // ('expDiff' cannot be less than -30 here.)
-            q >>= ~expDiff & 31;
+            q >>= ~expDiff;
             rem = (rem << (expDiff + 30)) - (q * sigB);
         }
 
@@ -1033,7 +1033,7 @@ public readonly struct Float32
         if (0x80000000 <= rem)
         {
             signRem = !signRem;
-            rem = (uint32_t)(-rem);
+            rem = (uint32_t)(-(int32_t)rem);
         }
 
         return NormRoundPackToF32(context, signRem, expB, rem);
