@@ -337,7 +337,7 @@ internal static class Program
         // This is the original test runner. Single threaded and monolithic. Not great, but it does the job.
         var testRunner = new TestRunner
         {
-            ConsoleDebug = 2, // see comments for property for details (for best speeds, use 0 or 1; use 2 if checking verifier STDERR or 3 if we want everything)
+            ConsoleDebug = 3, // see comments for property for details (for best speeds, use 0 or 1; use 2 if checking verifier STDERR or 3 if we want everything)
         };
 
         // This is a parallel test runner. Capable of utilizing many cores for running tests and verifying. Test generator is still single threaded though.
@@ -354,10 +354,11 @@ internal static class Program
             GeneratorLevel = 1,
 
             // Display all errors (may be a lot of results for "buggy" implementations).
-            MaxErrors = 0,
+            //MaxErrors = 0,
 
-            //CheckNaNs = true, // doesn't seem to make much difference whether or not this is set -- probably because they are treated as "signal NaNs", which SlowFloat doesn't support
-            //CheckInvalidIntegers = true,
+            // Set these to true if SoftFloat specializations match the implementation used by TestFloat.
+            CheckNaNs = true,
+            CheckInvalidIntegers = true,
 
             //Rounding = RoundingMode.NearEven,
             //Exact = true,
@@ -365,9 +366,24 @@ internal static class Program
             //DetectTininess = TininessMode.BeforeRounding,
         };
 
+        // TestFloat was compiled with a SoftFloat implementation using the X86-SSE specializations.
+        SoftFloatSpecialize.Default = SoftFloatSpecialize.X86Sse.Default;
+
         // Let's run some actual tests.
-        const string testFunctionName = "extF80_add";
-        return await RunTestsAsync(testRunner2, options, testFunctionName, SlowFloatTests.Functions[testFunctionName]) ? 0 : 1;
+        const string? testFunctionName = null; // if non-null, then only a single test function will be tested; otherwise, all tests will be tested
+        var testFunctions = testFunctionName != null ? Enumerable.Repeat(testFunctionName, 1) : FunctionInfos.Keys;
+        var failureCount = 0;
+        foreach (var testFunction in testFunctions)
+        {
+            var testFunctionHandler = SoftFloatTests.Functions[testFunction];
+            if (!await RunTestsAsync(testRunner2, options, testFunction, testFunctionHandler))
+            //if (!RunTests(testRunner, options, testFunction, testFunctionHandler))
+            {
+                failureCount++;
+            }
+        }
+
+        return failureCount == 0 ? 0 : 1;
     }
 
     // This uses the functions info and input arguments to generate all "useful" test configurations for a given function (algorithm mostly copied from the "-all" argument that can be passed into "testsoftfloat").
@@ -436,7 +452,7 @@ internal static class Program
         }
     }
 
-    private static bool RunTests(TestRunner runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler)
+    private static bool RunTests(TestRunner runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler, bool stopOnFailure = false)
     {
         // Skip unimplemented functions.
         if (functionHandler == null)
@@ -451,7 +467,11 @@ internal static class Program
 
             PrintTestName(options, functionName);
             if (runner.Run(functionName, functionHandler, options) != 0)
+            {
                 failureCount++;
+                if (stopOnFailure)
+                    break;
+            }
         }
 
         // Did all of the test configurations pass?
@@ -459,7 +479,7 @@ internal static class Program
     }
 
     // TODO: Add support for CancellationToken?
-    private static async Task<bool> RunTestsAsync(TestRunner2 runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler)
+    private static async Task<bool> RunTestsAsync(TestRunner2 runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler, bool stopOnFailure = false)
     {
         // Skip unimplemented functions.
         if (functionHandler == null)
@@ -485,7 +505,11 @@ internal static class Program
             runner.TotalTestCount = 0;
             PrintTestName(options, functionName);
             if (!await runner.RunAsync(CancellationToken.None))
+            {
                 failureCount++;
+                if (stopOnFailure)
+                    break;
+            }
 
             // Use DateTime instead of Stopwatch in case this finishes on a different thread. (The internal Stopwatch implementation may
             // not be guaranteed to have consistent timing between CPU cores. Though I think newer operating systems try to sync them.)
