@@ -127,7 +127,7 @@ internal static class Primitives
     /// result will be either 0 or 1, depending on whether <paramref name="a"/> is zero or nonzero.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint ShiftRightJam32(uint a, int dist) => (dist < 31) ? (a >> dist) | ((a << (-dist & 31)) != 0 ? 1U : 0U) : (a != 0 ? 1U : 0U);
+    public static uint ShiftRightJam32(uint a, int dist) => (dist < 31) ? (a >> dist) | ((a << (-dist)) != 0 ? 1U : 0U) : (a != 0 ? 1U : 0U);
 
     // softfloat_shiftRightJam64
     /// <summary>
@@ -140,7 +140,7 @@ internal static class Primitives
     /// result will be either 0 or 1, depending on whether <paramref name="a"/> is zero or nonzero.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong ShiftRightJam64(ulong a, int dist) => (dist < 63) ? (a >> dist) | ((a << (-dist & 63)) != 0 ? 1UL : 0UL) : (a != 0 ? 1UL : 0UL);
+    public static ulong ShiftRightJam64(ulong a, int dist) => (dist < 63) ? (a >> dist) | ((a << (-dist)) != 0 ? 1UL : 0UL) : (a != 0 ? 1UL : 0UL);
 
     // softfloat_countLeadingZeros8
     /// <summary>
@@ -275,7 +275,14 @@ internal static class Primitives
     /// the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EQ128(ulong a64, ulong a0, ulong b64, ulong b0) => (a64 == b64) && (a0 == b0);
+    public static bool EQ128(ulong a64, ulong a0, ulong b64, ulong b0)
+    {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) == new UInt128(upper: b64, lower: b0);
+#else
+        return (a64 == b64) && (a0 == b0);
+#endif
+    }
 
     // softfloat_le128
     /// <summary>
@@ -283,7 +290,14 @@ internal static class Primitives
     /// or equal to the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool LE128(ulong a64, ulong a0, ulong b64, ulong b0) => (a64 < b64) || ((a64 == b64) && (a0 <= b0));
+    public static bool LE128(ulong a64, ulong a0, ulong b64, ulong b0)
+    {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) <= new UInt128(upper: b64, lower: b0);
+#else
+        return (a64 < b64) || ((a64 == b64) && (a0 <= b0));
+#endif
+    }
 
     // softfloat_lt128
     /// <summary>
@@ -291,7 +305,14 @@ internal static class Primitives
     /// the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool LT128(ulong a64, ulong a0, ulong b64, ulong b0) => (a64 < b64) || ((a64 == b64) && (a0 < b0));
+    public static bool LT128(ulong a64, ulong a0, ulong b64, ulong b0)
+    {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) < new UInt128(upper: b64, lower: b0);
+#else
+        return (a64 < b64) || ((a64 == b64) && (a0 < b0));
+#endif
+    }
 
     // softfloat_shortShiftLeft128
     /// <summary>
@@ -301,11 +322,15 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 ShortShiftLeft128(ulong a64, ulong a0, int dist)
     {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) << dist;
+#else
         // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
         return new SFUInt128(
             v64: (a64 << dist) | (a0 >> (-dist)),
             v0: a0 << dist
         );
+#endif
     }
 
     // softfloat_shortShiftRight128
@@ -316,11 +341,15 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 ShortShiftRight128(ulong a64, ulong a0, int dist)
     {
-        Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) >> dist;
+#else
+        // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
         return new SFUInt128(
-            v64: a0 >> dist,
+            v64: a64 >> dist,
             v0: (a64 << (-dist)) | (a0 >> dist)
         );
+#endif
     }
 
     // softfloat_shortShiftRightJam64Extra
@@ -348,11 +377,16 @@ internal static class Primitives
     public static SFUInt128 ShortShiftRightJam128(ulong a64, ulong a0, int dist)
     {
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
+#if NET7_0_OR_GREATER
+        var a = new UInt128(upper: a64, lower: a0);
+        return (a >> dist) | (((ulong)a << (-dist)) != 0 ? UInt128.One : UInt128.Zero);
+#else
         var negDist = -dist;
         return new SFUInt128(
             v64: a64 >> dist,
             v0: (a64 << negDist) | (a0 >> dist) | ((a0 << negDist) != 0 ? 1UL : 0UL)
         );
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -639,10 +673,14 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt128 Add128(ulong a64, ulong a0, ulong b64, ulong b0)
     {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) + new UInt128(upper: b64, lower: b0);
+#else
         SFUInt128 z;
         z.V00 = a0 + b0;
         z.V64 = a64 + b64 + (z.V00 < a0 ? 1UL : 0UL);
         return z;
+#endif
     }
 
     // softfloat_add256M
@@ -682,10 +720,17 @@ internal static class Primitives
     /// borrow out (carry out) is lost.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Sub128(ulong a64, ulong a0, ulong b64, ulong b0) => new(
-        v0: a0 - b0,
-        v64: a64 - b64 - (a0 < b0 ? 1UL : 0UL)
-    );
+    public static SFUInt128 Sub128(ulong a64, ulong a0, ulong b64, ulong b0)
+    {
+#if NET7_0_OR_GREATER
+        return new UInt128(upper: a64, lower: a0) - new UInt128(upper: b64, lower: b0);
+#else
+        return new(
+            v0: a0 - b0,
+            v64: a64 - b64 - (a0 < b0 ? 1UL : 0UL)
+        );
+#endif
+    }
 
     // softfloat_sub256M
     /// <summary>
@@ -808,10 +853,11 @@ internal static class Primitives
         mid1 = (UInt128)a64 * b0;
         mid = mid1 + (UInt128)a0 * b64;
         z128 = (UInt128)a64 * b64;
-        z128 += new UInt128(upper: mid < mid1 ? 1UL : 0, lower: (ulong)(mid >> 64));
+        z128 += new UInt128(upper: (mid < mid1) ? 1UL : 0, lower: (ulong)(mid >> 64));
+        //z128 += ((mid < mid1 ? UInt128.One : UInt128.Zero) << 64) | (mid >> 64); // should be identical to above, but maybe slightly slower
         mid <<= 64;
         z0 += mid;
-        z128 += z0 < mid ? UInt128.One : UInt128.Zero;
+        z128 += (z0 < mid) ? UInt128.One : UInt128.Zero;
 
         zPtr[IndexWord(4, 0)] = (ulong)z0;
         zPtr[IndexWord(4, 1)] = (ulong)(z0 >> 64);
