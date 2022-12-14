@@ -452,12 +452,15 @@ partial class Internals
         signA = SignF16UI(uiA);
         expA = ExpF16UI(uiA);
         sigA = FracF16UI(uiA);
+
         signB = SignF16UI(uiB);
         expB = ExpF16UI(uiB);
         sigB = FracF16UI(uiB);
+
         signC = SignF16UI(uiC) ^ (op == MulAdd.SubC);
         expC = ExpF16UI(uiC);
         sigC = FracF16UI(uiC);
+
         signProd = signA ^ signB ^ (op == MulAdd.SubProd);
 
         if (expA == 0x1F)

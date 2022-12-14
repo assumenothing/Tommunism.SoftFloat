@@ -330,12 +330,15 @@ partial class Internals
         signA = SignF64UI(uiA);
         expA = ExpF64UI(uiA);
         sigA = FracF64UI(uiA);
+
         signB = SignF64UI(uiB);
         expB = ExpF64UI(uiB);
         sigB = FracF64UI(uiB);
+
         signC = SignF64UI(uiC) ^ (op == MulAdd.SubC);
         expC = ExpF64UI(uiC);
         sigC = FracF64UI(uiC);
+
         signZ = signA ^ signB ^ (op == MulAdd.SubProd);
 
         if (expA == 0x7FF)

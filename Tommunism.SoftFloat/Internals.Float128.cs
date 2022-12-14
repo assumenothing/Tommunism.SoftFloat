@@ -76,7 +76,7 @@ partial class Internals
 
     // expF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int_fast32_t ExpF128UI64(uint64_t a64) => (int_fast32_t)((uint)(a64 >> 48) & 0x7FFF);
+    public static int_fast32_t ExpF128UI64(uint64_t a64) => (int_fast32_t)(a64 >> 48) & 0x7FFF;
 
     // fracF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,7 +123,7 @@ partial class Internals
             shiftDist = CountLeadingZeroes64(sig64) - 15;
             return (
                 exp: 1 - shiftDist,
-                sig: ShortShiftLeft128(sig64, sig0, shiftDist)
+                sig: new SFUInt128(v64: sig64, v0: sig0) << shiftDist
             );
         }
     }
@@ -435,15 +435,20 @@ partial class Internals
         uint_fast64_t magBits, sigZExtra, sig256Z0;
         SFUInt256 sig256Z, sig256C;
 
+        Unsafe.SkipInit(out sig256C); // workaround weird spaghetti code logic
+
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
         sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
+
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
         sigB = new SFUInt128(v64: FracF128UI64(uiB64), v0: uiB0);
+
         signC = SignF128UI64(uiC64) ^ (op == MulAdd.SubC);
         expC = ExpF128UI64(uiC64);
         sigC = new SFUInt128(v64: FracF128UI64(uiC64), v0: uiC0);
+
         signZ = signA ^ signB ^ (op == MulAdd.SubProd);
 
         if (expA == 0x7FFF)
@@ -508,7 +513,7 @@ partial class Internals
         sigB <<= 15;
 
         sig256Z = Mul128To256M(sigA, sigB);
-        sigZ = sig256Z.V128_UI128; // IndexWord(4, 3) & IndexWord(4, 2)
+        sigZ = new SFUInt128(v64: sig256Z[IndexWord(4, 3)], v0: sig256Z[IndexWord(4, 2)]); //sig256Z.V128_UI128;
 
         shiftDist = 0;
         if ((sigZ.V64 & 0x0100000000000000) == 0)
@@ -522,7 +527,7 @@ partial class Internals
             if (sigC.IsZero)
             {
                 shiftDist += 8;
-                sigZExtra = sig256Z.V064 | sig256Z.V000;
+                sigZExtra = sig256Z[IndexWord(4, 1)] | sig256Z[IndexWord(4, 0)]; // jam 128 bits into extra
                 sigZExtra = (sigZ.V00 << (64 - shiftDist)) | (sigZExtra != 0 ? 1UL : 0);
                 sigZ >>= shiftDist;
                 return RoundPackToF128(context, signZ, expZ - 1, sigZ, sigZExtra);
@@ -548,11 +553,14 @@ partial class Internals
             {
                 if (shiftDist == 0)
                 {
-                    x128 = ShortShiftRightJam128(sig256Z.V064, sig256Z.V000, 1);
-                    sig256Z.V064 = (sigZ.V00 << 63) | x128.V64;
-                    sig256Z.V000 = x128.V00;
+                    x128 = ShortShiftRight128(sig256Z[IndexWord(4, 1)]/*sig256Z.V064*/, sig256Z[IndexWord(4, 0)]/*sig256Z.V000*/, 1);
+                    sig256Z[IndexWord(4, 1)]/*sig256Z.V064*/ = (sigZ.V00 << 63) | x128.V64;
+                    sig256Z[IndexWord(4, 0)]/*sig256Z.V000*/ = x128.V00;
                     sigZ >>= 1;
-                    sig256Z.V128_UI128 = sigZ;
+
+                    //sig256Z.V128_UI128 = sigZ;
+                    sig256Z[IndexWord(4, 3)] = sigZ.V64;
+                    sig256Z[IndexWord(4, 2)] = sigZ.V00;
                 }
             }
         }
@@ -563,15 +571,18 @@ partial class Internals
 
             if (expDiff == 0)
             {
-                sigZ = sig256Z.V128_UI128; // IndexWord(4, 3) & IndexWord(4, 2)
+                sigZ = new SFUInt128(v64: sig256Z[IndexWord(4, 3)], v0: sig256Z[IndexWord(4, 2)]); //sig256Z.V128_UI128
             }
             else
             {
                 // Compiler thinks that it isn't used, because of the SkipInit hacks later in the code.
-                sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
+                //sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
+                sig256C = new SFUInt256();
+                sig256C[IndexWord(4, 3)] = sigC.V64;
+                sig256C[IndexWord(4, 2)] = sigC.V00;
+                sig256C[IndexWord(4, 1)] = 0;
+                sig256C[IndexWord(4, 0)] = 0;
                 sig256C = ShiftRightJam256M(sig256C, expDiff);
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
             }
         }
 
@@ -584,9 +595,8 @@ partial class Internals
             }
             else
             {
-                Unsafe.SkipInit(out sig256C); // prevent compiler error -- it's always assigned
                 sig256Z += sig256C;
-                sigZ = sig256Z.V128_UI128;
+                sigZ = new SFUInt128(v64: sig256Z[IndexWord(4, 3)], v0: sig256Z[IndexWord(4, 2)]); //sigZ = sig256Z.V128_UI128;
             }
 
             if ((sigZ.V64 & 0x0200000000000000) != 0)
@@ -603,7 +613,7 @@ partial class Internals
                 if (expDiff < -1)
                 {
                     sigZ = sigC - sigZ;
-                    sigZExtra = sig256Z.V064 | sig256Z.V000; // part of !IsZero check
+                    sigZExtra = sig256Z[IndexWord(4, 1)] | sig256Z[IndexWord(4, 0)]; //sig256Z.V064 | sig256Z.V000; // part of !IsZero check
                     if (sigZExtra != 0)
                         sigZ -= new SFUInt128(v64: 0, v0: 1);
 
@@ -619,17 +629,25 @@ partial class Internals
                 }
                 else
                 {
-                    sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
+                    //sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
+                    sig256C = default; // added safety
+                    sig256C[IndexWord(4, 3)] = sigC.V64;
+                    sig256C[IndexWord(4, 2)] = sigC.V00;
+                    sig256C[IndexWord(4, 1)] = 0;
+                    sig256C[IndexWord(4, 0)] = 0;
                     sig256Z = sig256C - sig256Z;
                 }
             }
             else if (expDiff == 0)
             {
                 sigZ -= sigC;
-                if (sigZ.IsZero && sig256Z.V000_UI128.IsZero)
+                if (sigZ.IsZero && sig256Z[IndexWord(4, 1)] == 0 && sig256Z[IndexWord(4, 0)] == 0)
                     return PackToF128(context.Rounding == RoundingMode.Min, 0, 0, 0);
 
-                sig256Z.V128_UI128 = sigZ;
+                //sig256Z.V128_UI128 = sigZ;
+                sig256Z[IndexWord(4, 3)] = sigZ.V64;
+                sig256Z[IndexWord(4, 2)] = sigZ.V00;
+
                 if ((sigZ.V64 & 0x8000000000000000) != 0)
                 {
                     signZ = !signZ;
@@ -638,28 +656,27 @@ partial class Internals
             }
             else
             {
-                Unsafe.SkipInit(out sig256C); // prevent compiler error -- it's always assigned
                 sig256Z -= sig256C;
 
                 if (1 < expDiff)
                 {
-                    sigZ = sig256Z.V128_UI128;
+                    sigZ = new SFUInt128(v64: sig256Z[IndexWord(4, 3)], v0: sig256Z[IndexWord(4, 2)]); //sigZ = sig256Z.V128_UI128;
                     if ((sigZ.V64 & 0x0100000000000000) == 0)
                     {
                         --expZ;
                         shiftDist = 7;
                     }
 
-                    sigZExtra = sig256Z.V064 | sig256Z.V000;
+                    sigZExtra = sig256Z[IndexWord(4, 1)] | sig256Z[IndexWord(4, 0)];
                     sigZExtra = (sigZ.V00 << (64 - shiftDist)) | (sigZExtra != 0 ? 1UL : 0);
                     sigZ >>= shiftDist;
                     return RoundPackToF128(context, signZ, expZ - 1, sigZ, sigZExtra);
                 }
             }
 
-            sigZ = sig256Z.V128_UI128;
-            sigZExtra = sig256Z.V064;
-            sig256Z0 = sig256Z.V000;
+            sigZ = new SFUInt128(v64: sig256Z[IndexWord(4, 3)], v0: sig256Z[IndexWord(4, 2)]); //sigZ = sig256Z.V128_UI128;
+            sigZExtra = sig256Z[IndexWord(4, 1)]; //sig256Z.V064;
+            sig256Z0 = sig256Z[IndexWord(4, 0)]; //sig256Z.V000;
             if (sigZ.V64 != 0)
             {
                 if (sig256Z0 != 0)
@@ -707,7 +724,7 @@ partial class Internals
             return RoundPackToF128(context, signZ, expZ - 1, sigZ, sigZExtra);
         }
 
-        sigZExtra = sig256Z.V064 | sig256Z.V000;
+        sigZExtra = sig256Z[IndexWord(4, 1)] | sig256Z[IndexWord(4, 0)]; //sig256Z.V064 | sig256Z.V000;
         sigZExtra = (sigZ.V00 << (64 - shiftDist)) | (sigZExtra != 0 ? 1UL : 0);
         sigZ >>= shiftDist;
         return RoundPackToF128(context, signZ, expZ - 1, sigZ, sigZExtra);

@@ -352,12 +352,15 @@ partial class Internals
         signA = SignF32UI(uiA);
         expA = ExpF32UI(uiA);
         sigA = FracF32UI(uiA);
+
         signB = SignF32UI(uiB);
         expB = ExpF32UI(uiB);
         sigB = FracF32UI(uiB);
+
         signC = SignF32UI(uiC) ^ (op == MulAdd.SubC);
         expC = ExpF32UI(uiC);
         sigC = FracF32UI(uiC);
+
         signProd = signA ^ signB ^ (op == MulAdd.SubProd);
 
         if (expA == 0xFF)
