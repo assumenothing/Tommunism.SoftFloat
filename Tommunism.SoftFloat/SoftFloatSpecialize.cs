@@ -71,14 +71,14 @@ public abstract partial class SoftFloatSpecialize
 {
     #region Default Instance
 
-    private static SoftFloatSpecialize _default = X86.Default;
+    private static SoftFloatSpecialize _default = X86.Instance;
 
     /// <summary>
     /// Gets or sets the default instance to use for specialized implementation details.
     /// </summary>
     /// <remarks>
     /// This value will be used on new instances of <see cref="SoftFloatContext"/> (after this property has changed). The default value is
-    /// <see cref="X86.Default"/>.
+    /// <see cref="X86.Instance"/>.
     /// </remarks>
     public static SoftFloatSpecialize Default
     {

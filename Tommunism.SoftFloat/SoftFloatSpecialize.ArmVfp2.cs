@@ -34,9 +34,9 @@ partial class SoftFloatSpecialize
         #region Default Instance & Constructor
 
         /// <summary>
-        /// Gets or sets the default instance to use for specialized implementation details.
+        /// Gets the instance to use for the ARM-VFPv2 specialized implementation details.
         /// </summary>
-        public static new ArmVfp2 Default { get; } = new();
+        public static ArmVfp2 Instance { get; } = new();
 
         // This is a sealed class with constant default NaN bits, so it should be safe to cache them.
         public ArmVfp2() => InitializeDefaultNaNs();

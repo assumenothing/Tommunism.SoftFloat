@@ -367,7 +367,7 @@ internal static class Program
         };
 
         // TestFloat was compiled with a SoftFloat implementation using the X86-SSE specializations.
-        SoftFloatSpecialize.Default = SoftFloatSpecialize.X86Sse.Default;
+        SoftFloatSpecialize.Default = SoftFloatSpecialize.X86Sse.Instance;
 
         // Let's run some actual tests.
         const string? testFunctionName = null; // if non-null, then only a single test function will be tested; otherwise, all tests will be tested
