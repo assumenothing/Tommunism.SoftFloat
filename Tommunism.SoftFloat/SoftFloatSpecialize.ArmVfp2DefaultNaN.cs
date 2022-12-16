@@ -36,7 +36,7 @@ partial class SoftFloatSpecialize
         /// <summary>
         /// Gets the instance to use for the ARM-VFPv2-defaultNaN specialized implementation details.
         /// </summary>
-        public static new ArmVfp2DefaultNaN Default { get; } = new();
+        public static ArmVfp2DefaultNaN Instance { get; } = new();
 
         // This is a sealed class with constant default NaN bits, so it should be safe to cache them.
         public ArmVfp2DefaultNaN() => InitializeDefaultNaNs();
