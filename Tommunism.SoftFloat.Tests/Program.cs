@@ -1,4 +1,7 @@
-﻿namespace Tommunism.SoftFloat.Tests;
+﻿using System.Globalization;
+using System.Runtime.Intrinsics.Arm;
+
+namespace Tommunism.SoftFloat.Tests;
 
 internal static class Program
 {
@@ -332,58 +335,446 @@ internal static class Program
     private static bool[]? _exactValues;
     public static IReadOnlyList<bool> ExactModes => _exactValues ??= new bool[] { false, true };
 
+    /// <summary>
+    /// Options for configuring test runs. Set common options here (individual test runs may change this slightly, especially
+    /// state-specific properties).
+    /// </summary>
+    public static TestRunnerOptions Options { get; private set; } = new();
+
+    // NOTE: These must be function names (see FunctionInfos), not types (as there is no way to test them directly).
+    // Using a hash set to avoid duplicate tests being run.
+    public static HashSet<string> TestFunctions { get; private set; } = new();
+
+    // NOTE: The higher this value is, the longer it will take to start verifying (as the generator has to generate this many tests before
+    // starting executing tests and verification).
+    public static int MaxTestsPerThread { get; private set; } = 1_000_000;
+
+    // NOTE: If zero, then the max number of threads is the number of cores/threads on the CPU.
+    public static int MaxTestThreads { get; private set; } = 0;
+
+    // If true, then TestRunner (synchronous) will be used; otherwise, TestRunner2 (asynchronous) will be used. There may be some
+    // variations between how they run, but it should be "okay".
+    public static bool UseSynchronousTestRunner { get; private set; } = false;
+
+    // If true, then the builtin SlowFloat implementation will be tested instead of the SoftFloat library.
+    public static bool TestSlowFloat { get; private set; } = false;
+
     public static async Task<int> Main(string[] args)
     {
         // This is the original test runner. Single threaded and monolithic. Not great, but it does the job.
         var testRunner = new TestRunner
         {
-            ConsoleDebug = 3, // see comments for property for details (for best speeds, use 0 or 1; use 2 if checking verifier STDERR or 3 if we want everything)
+            ConsoleDebug = 1,
         };
 
-        // This is a parallel test runner. Capable of utilizing many cores for running tests and verifying. Test generator is still single threaded though.
+        // This is a parallel test runner. Capable of utilizing many threads for running tests and verifying. Test generator is still
+        // single threaded though (which is probably one of the biggest reasons why these tests run so slowly).
         var testRunner2 = new TestRunner2
         {
-            //MaxVerifierProcesses = 1, // maybe easier to debug with a single thread
         };
 
-        // Options for configuring test runs. Set common options here (individual test runs may change this slightly, especially state-specific properties).
-        var options = new TestRunnerOptions
-        {
-            // Perform more exhaustive testing on lower bit count operations (level 2 potentially finds bugs that would normally be hidden
-            // by a level 1 pass--but it takes a very long time to even generate the test cases for some of the functions).
-            GeneratorLevel = 1,
+        // This technically depends on how TestFloat (and the associated SoftFloat library) was compiled. If running on an ARM processor,
+        // then use the VFPv2 implementation by default. Otherwise, use the 8086-SSE implementation on 64-bit processors and the 8086
+        // implementation on 32-bit processors by default (unfortunately there is no easy way of knowing what the verifier process is
+        // using--that is why there is an argument to change it).
+        SoftFloatSpecialize.Default = ArmBase.IsSupported
+            ? SoftFloatSpecialize.ArmVfp2.Instance
+            : Environment.Is64BitOperatingSystem ? SoftFloatSpecialize.X86Sse.Instance : SoftFloatSpecialize.X86.Instance;
 
-            // Display all errors (may be a lot of results for "buggy" implementations).
-            //MaxErrors = 0,
+        // Parse arguments.
+        var argParserResult = ParseArguments(args);
+        if (argParserResult != 0)
+            return argParserResult;
 
-            // Set these to true if SoftFloat specializations match the implementation used by TestFloat.
-            CheckNaNs = true,
-            CheckInvalidIntegers = true,
-
-            //Rounding = RoundingMode.NearEven,
-            //Exact = true,
-            //RoundingPrecisionExtFloat80 = ExtFloat80RoundingPrecision._80,
-            //DetectTininess = TininessMode.BeforeRounding,
-        };
-
-        // TestFloat was compiled with a SoftFloat implementation using the X86-SSE specializations.
-        SoftFloatSpecialize.Default = SoftFloatSpecialize.X86Sse.Instance;
+        testRunner2.MaxTestThreads = MaxTestThreads;
+        testRunner2.MaxTestsPerProcess = MaxTestsPerThread;
 
         // Let's run some actual tests.
-        const string? testFunctionName = null; // if non-null, then only a single test function will be tested; otherwise, all tests will be tested
-        var testFunctions = testFunctionName != null ? Enumerable.Repeat(testFunctionName, 1) : FunctionInfos.Keys;
         var failureCount = 0;
-        foreach (var testFunction in testFunctions)
+        foreach (var testFunction in TestFunctions)
         {
-            var testFunctionHandler = SoftFloatTests.Functions[testFunction];
-            if (!await RunTestsAsync(testRunner2, options, testFunction, testFunctionHandler))
-            //if (!RunTests(testRunner, options, testFunction, testFunctionHandler))
+            var testFunctionHandler = TestSlowFloat
+                ? SlowFloatTests.Functions[testFunction]
+                : SoftFloatTests.Functions[testFunction];
+            if (UseSynchronousTestRunner)
             {
-                failureCount++;
+                if (!RunTests(testRunner, Options, testFunction, testFunctionHandler))
+                {
+                    failureCount++;
+                }
+            }
+            else
+            {
+                if (!await RunTestsAsync(testRunner2, Options, testFunction, testFunctionHandler))
+                {
+                    failureCount++;
+                }
             }
         }
 
+        // Report whether or not there were any failures.
         return failureCount == 0 ? 0 : 1;
+    }
+
+    private static int ParseArguments(string[] args)
+    {
+        int i; // keep external in case there was an unknown argument error
+        for (i = 0; i < args.Length; i++)
+        {
+            var arg = args[i].AsSpan();
+            if (arg.Length > 0 && arg[0] == '-')
+            {
+                arg = arg[1..];
+                if (arg.Equals("seed", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"seed"} value argument.");
+                        return 1;
+                    }
+
+                    if (!uint.TryParse(args[i], NumberStyles.Integer & ~NumberStyles.AllowLeadingSign, null, out var seedValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse {"seed"} value: {args[i]}");
+                        return 1;
+                    }
+
+                    Options.GeneratorSeed = seedValue;
+                }
+                else if (arg.Equals("level", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing level value argument.");
+                        return 1;
+                    }
+
+                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var levelValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse level value: {args[i]}");
+                        return 1;
+                    }
+
+                    Options.GeneratorLevel = levelValue;
+                }
+                else if (arg.Equals("level1", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.GeneratorLevel = 1;
+                }
+                else if (arg.Equals("level2", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.GeneratorLevel = 2;
+                }
+                else if (arg.Equals("n", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"test count"} value argument.");
+                        return 1;
+                    }
+
+                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var countValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse {"test count"} value: {args[i]}");
+                        return 1;
+                    }
+
+                    Options.GeneratorCount = countValue;
+                }
+                else if (arg.Equals("forever", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.GeneratorCount = 0;
+                }
+                else if (arg.Equals("errors", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"error count"} value argument.");
+                        return 1;
+                    }
+
+                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var errorCountValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse {"error count"} value: {args[i]}");
+                        return 1;
+                    }
+
+                    Options.MaxErrors = errorCountValue;
+                }
+                else if (arg.Equals("checkNaNs", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.CheckNaNs = true;
+                }
+                else if (arg.Equals("checkInvInts", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.CheckInvalidIntegers = true;
+                }
+                else if (arg.Equals("checkAll", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.CheckNaNs = true;
+                    Options.CheckInvalidIntegers = true;
+                }
+                else if (arg.StartsWith("precision", StringComparison.OrdinalIgnoreCase))
+                {
+                    arg = arg["precision".Length..];
+                    if (arg.SequenceEqual("32"))
+                    {
+                        Options.RoundingPrecisionExtFloat80 = ExtFloat80RoundingPrecision._32;
+                    }
+                    else if (arg.SequenceEqual("64"))
+                    {
+                        Options.RoundingPrecisionExtFloat80 = ExtFloat80RoundingPrecision._64;
+                    }
+                    else if (arg.SequenceEqual("80"))
+                    {
+                        Options.RoundingPrecisionExtFloat80 = ExtFloat80RoundingPrecision._80;
+                    }
+                    else
+                    {
+                        goto UnknownArgument;
+                    }
+                }
+                else if (arg.StartsWith("r", StringComparison.OrdinalIgnoreCase))
+                {
+                    arg = arg["r".Length..];
+                    if (arg.Equals("near_even", StringComparison.OrdinalIgnoreCase) ||
+                        arg.Equals("neareven", StringComparison.OrdinalIgnoreCase) ||
+                        arg.Equals("nearest_even", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.NearEven;
+                    }
+                    else if (arg.Equals("minmag", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.MinMag;
+                    }
+                    else if (arg.Equals("min", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.Min;
+                    }
+                    else if (arg.Equals("max", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.Max;
+                    }
+                    else if (arg.Equals("near_maxmag", StringComparison.OrdinalIgnoreCase) ||
+                        arg.Equals("nearmaxmag", StringComparison.OrdinalIgnoreCase) ||
+                        arg.Equals("nearest_maxmag", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.NearMaxMag;
+                    }
+                    else if (arg.Equals("odd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.Rounding = RoundingMode.Odd;
+                    }
+                    else
+                    {
+                        goto UnknownArgument;
+                    }
+                }
+                else if (arg.StartsWith("tininess", StringComparison.OrdinalIgnoreCase))
+                {
+                    arg = arg["tininess".Length..];
+                    if (arg.Equals("before", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.DetectTininess = TininessMode.BeforeRounding;
+                    }
+                    else if (arg.Equals("after", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Options.DetectTininess = TininessMode.AfterRounding;
+                    }
+                    else
+                    {
+                        goto UnknownArgument;
+                    }
+                }
+                else if (arg.Equals("notexact", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.Exact = false;
+                }
+                else if (arg.Equals("exact", StringComparison.OrdinalIgnoreCase))
+                {
+                    Options.Exact = true;
+                }
+                else if (arg.Equals("testThreads", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"max test thread count"} value argument.");
+                        return 1;
+                    }
+
+                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var countValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse {"max test thread count"} value: {args[i]}");
+                        return 1;
+                    }
+
+                    MaxTestThreads = countValue;
+                }
+                else if (arg.Equals("testCountPerThread", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"max test count per thread"} value argument.");
+                        return 1;
+                    }
+
+                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var countValue))
+                    {
+                        Console.Error.WriteLine($"ERROR: Could not parse {"max test count per thread"} value: {args[i]}");
+                        return 1;
+                    }
+
+                    MaxTestThreads = countValue;
+                }
+                else if (arg.Equals("synchronous", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("sync", StringComparison.OrdinalIgnoreCase))
+                {
+                    UseSynchronousTestRunner = true;
+                }
+                else if (arg.StartsWith("specialize", StringComparison.OrdinalIgnoreCase))
+                {
+                    arg = arg["specialize".Length..];
+                    if (arg.StartsWith("8086") || arg.StartsWith("X86", StringComparison.OrdinalIgnoreCase))
+                    {
+                        arg = arg[(arg[0] == '8' ? "8086".Length : "X86".Length)..];
+                        if (arg.IsEmpty)
+                        {
+                            SoftFloatSpecialize.Default = SoftFloatSpecialize.X86.Instance;
+                        }
+                        else
+                        {
+                            // Hyphen between words is optional.
+                            if (arg[0] == '-')
+                                arg = arg[1..];
+
+                            if (arg.Equals("SSE", StringComparison.OrdinalIgnoreCase))
+                            {
+                                SoftFloatSpecialize.Default = SoftFloatSpecialize.X86Sse.Instance;
+                            }
+                            else
+                            {
+                                goto UnknownArgument;
+                            }
+                        }
+                    }
+                    else if (arg.StartsWith("ARM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        arg = arg["ARM".Length..];
+
+                        // Hyphen between words is optional.
+                        if (arg.Length > 0 && arg[0] == '-')
+                            arg = arg[1..];
+
+                        if (arg.StartsWith("VFPv2", StringComparison.OrdinalIgnoreCase) ||
+                            arg.StartsWith("VFP2", StringComparison.OrdinalIgnoreCase))
+                        {
+                            arg = arg[(arg.StartsWith("VFPv2", StringComparison.OrdinalIgnoreCase) ? "VFPv2".Length : "VFP2".Length)..];
+
+                            if (arg.IsEmpty)
+                            {
+                                SoftFloatSpecialize.Default = SoftFloatSpecialize.ArmVfp2.Instance;
+                            }
+                            else
+                            {
+                                // Hyphen between words is optional.
+                                if (arg.Length > 0 && arg[0] == '-')
+                                    arg = arg[1..];
+
+                                if (arg.Equals("defaultNaN", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    SoftFloatSpecialize.Default = SoftFloatSpecialize.ArmVfp2DefaultNaN.Instance;
+                                }
+                                else
+                                {
+                                    goto UnknownArgument;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            goto UnknownArgument;
+                        }
+                    }
+                    else
+                    {
+                        goto UnknownArgument;
+                    }
+                }
+                else if (arg.Equals("slowfloat", StringComparison.OrdinalIgnoreCase))
+                {
+                    TestSlowFloat = true;
+                }
+                else
+                {
+                    Console.Error.WriteLine($"ERROR: Unknown argument: {args[i]}");
+                    return 1;
+                }
+            }
+            else if (arg.StartsWith("all"))
+            {
+                arg = arg["all".Length..];
+                if (arg.IsEmpty)
+                {
+                    // All functions.
+                    TestFunctions.UnionWith(FunctionInfos.Keys);
+                }
+                else if (arg.SequenceEqual("1"))
+                {
+                    // Only functions with a single argument.
+                    foreach (var func in FunctionInfos)
+                        if (func.Value.ArgumentCount == 1)
+                            TestFunctions.Add(func.Key);
+                }
+                else if (arg.SequenceEqual("2"))
+                {
+                    // Only functions with two arguments.
+                    foreach (var func in FunctionInfos)
+                        if (func.Value.ArgumentCount == 2)
+                            TestFunctions.Add(func.Key);
+                }
+                else if (arg.SequenceEqual("3"))
+                {
+                    // Only functions with three arguments.
+                    foreach (var func in FunctionInfos)
+                        if (func.Value.ArgumentCount == 3)
+                            TestFunctions.Add(func.Key);
+                }
+                else
+                {
+                    goto UnknownArgument;
+                }
+            }
+            else if (FunctionInfos.ContainsKey(args[i]))
+            {
+                // Add specific test function.
+                TestFunctions.Add(args[i]);
+            }
+            else
+            {
+                goto UnknownArgument;
+            }
+        }
+
+        // Make sure there is at least one test function defined.
+        if (TestFunctions.Count == 0)
+        {
+            Console.Error.WriteLine($"ERROR: Missing required test function argument(s).");
+            return 1;
+        }
+
+        // If any of the test functions is "all", then replace test functions with all known functions.
+
+        return 0;
+
+    UnknownArgument:
+        Console.Error.WriteLine($"ERROR: Unknown argument: {args[i]}");
+        return 1;
     }
 
     // This uses the functions info and input arguments to generate all "useful" test configurations for a given function (algorithm mostly copied from the "-all" argument that can be passed into "testsoftfloat").
@@ -591,8 +982,4 @@ internal static class Program
                 : ", not exact");
         }
     }
-
-    // How to debug arguments inside test runs (requires hard-coding -- conditional breakpoints don't work with the ReadOnlySpan<char> arguments used for parsing):
-    //if (arguments.Argument1 == TestRunnerArgument.ParseFloat16("+00.001") && arguments.Argument2 == TestRunnerArgument.ParseFloat16("-00.001"))
-    //    Debugger.Break();
 }

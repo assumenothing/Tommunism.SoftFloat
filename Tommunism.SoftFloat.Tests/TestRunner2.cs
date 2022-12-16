@@ -28,8 +28,9 @@ internal class TestRunner2
 
     // If not set, then then Environment.ProcessorCount is used. Technically this could probably be one less (because the generator thread
     // may take a long time too), but this assumes that performing the test and verifying will take longer than the generator. The
-    // generator will probably also wait for very large numbers of tests to complete before generating more tests (sort of).
-    public int MaxVerifierProcesses { get; set; } = 0;
+    // generator will probably also wait for very large numbers of tests to complete before generating more tests (depends on the generator
+    // process' output buffer size).
+    public int MaxTestThreads { get; set; } = 0;
 
     // Used to split generated tests between multiple execution/verifier threads.
     public int MaxTestsPerProcess { get; set; } = 1_000_000; // increasing this adds significant memory costs, but should reduce the number of tasks/processes which have to be spawned
@@ -71,7 +72,7 @@ internal class TestRunner2
             throw new InvalidOperationException("Test handler is not defined.");
 
         // Calculate the maximum number of verifier processes that can run at any given time for this test runner instance.
-        var verifierProcessCount = MaxVerifierProcesses;
+        var verifierProcessCount = MaxTestThreads;
         if (verifierProcessCount <= 0)
             verifierProcessCount = Environment.ProcessorCount;
         //Trace.TraceInformation($"VerifierProcessCount = {verifierProcessCount}");
