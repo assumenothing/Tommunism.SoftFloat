@@ -458,6 +458,9 @@ internal static class Program
         if (functionHandler == null)
             return true;
 
+        // Make a copy of the test options to make sure the original options don't get mangled.
+        options = options.Clone();
+
         // Enumerate all useful test configurations for given function.
         var failureCount = 0;
         foreach (var config in GetTestConfigurations(functionName, options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess))
@@ -484,6 +487,9 @@ internal static class Program
         // Skip unimplemented functions.
         if (functionHandler == null)
             return true;
+
+        // Make a copy of the test options to make sure the original options don't get mangled.
+        options = options.Clone();
 
         runner.Options = options;
         runner.TestFunction = functionName;

@@ -82,6 +82,20 @@ internal sealed class TestRunnerOptions
     /// </remarks>
     public bool? Exact { get; set; } = null;
 
+    public TestRunnerOptions Clone() => new()
+    {
+        GeneratorSeed = GeneratorSeed,
+        GeneratorLevel = GeneratorLevel,
+        GeneratorCount = GeneratorCount,
+        MaxErrors = MaxErrors,
+        CheckNaNs = CheckNaNs,
+        CheckInvalidIntegers = CheckInvalidIntegers,
+        RoundingPrecisionExtFloat80 = RoundingPrecisionExtFloat80,
+        Rounding = Rounding,
+        DetectTininess = DetectTininess,
+        Exact = Exact
+    };
+
     public void SetupGeneratorArguments(ICollection<string> arguments)
     {
         if (GeneratorSeed.HasValue)
