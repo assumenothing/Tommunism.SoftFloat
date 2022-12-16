@@ -98,6 +98,9 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+# dotnet launch settings
+launchSettings.json
+
 # Chutzpah Test files
 _Chutzpah*
 
