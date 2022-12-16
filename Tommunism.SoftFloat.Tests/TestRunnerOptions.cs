@@ -98,8 +98,15 @@ internal sealed class TestRunnerOptions
 
         if (GeneratorCount.HasValue)
         {
-            arguments.Add("-n");
-            arguments.Add(GeneratorCount.Value.ToString());
+            if (GeneratorCount.Value <= 0)
+            {
+                arguments.Add("-forever");
+            }
+            else
+            {
+                arguments.Add("-n");
+                arguments.Add(GeneratorCount.Value.ToString());
+            }
         }
 
         SetupCommonArguments(arguments);
