@@ -120,6 +120,9 @@ internal class TestVerifier
                     lineIndex++;
                 }
                 while (!span.IsEmpty);
+
+                // Release any allocated memory.
+                builder.Dispose();
             });
         }
 
@@ -193,6 +196,9 @@ internal class TestVerifier
         _writer.Write(builder.AsSpan());
         if (flush)
             _writer.Flush();
+
+        // Release any allocated memory.
+        builder.Dispose();
     }
 
     public void FlushResults()

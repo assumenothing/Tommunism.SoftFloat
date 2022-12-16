@@ -393,8 +393,6 @@ internal static class Program
         // Get function attributes.
         var functionAttributes = FunctionInfos[functionName];
 
-        var stringBuilder = new ValueStringBuilder(stackalloc char[128]);
-
         // Check for configuration overrides.
         var hasExplicitRoundingPrecision = roundingPrecision.HasValue;
         var hasExplicitRounding = rounding.HasValue;
@@ -540,6 +538,9 @@ internal static class Program
         stringBuilder.Append(Environment.NewLine);
         Console.Out.Write(stringBuilder.AsSpan());
         Debug.Write(stringBuilder.AsSpan().ToString()); // Too bad this requires a string allocation.
+
+        // Release any allocated memory.
+        stringBuilder.Dispose();
     }
 
     private static void AppendTestDescription(ref ValueStringBuilder builder, string functionName, ExtFloat80RoundingPrecision? roundingPrecision, RoundingMode? rounding, bool? exact, TininessMode? tininess)

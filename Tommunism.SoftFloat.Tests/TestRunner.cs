@@ -149,6 +149,9 @@ internal class TestRunner
                                 lineIndex++;
                             }
                             while (!span.IsEmpty);
+
+                            // Release any allocated memory.
+                            builder.Dispose();
                         });
                     }
                 }
