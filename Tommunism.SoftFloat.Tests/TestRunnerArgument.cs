@@ -342,7 +342,7 @@ internal record struct TestRunnerArgument(UInt128 Value, TestRunnerArgumentKind 
             {
                 // flag not set
             }
-            else if (span[0] == 'v')
+            else if (span[0] == code)
             {
                 // flag set
                 flags |= flag;
