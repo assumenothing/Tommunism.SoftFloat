@@ -45,8 +45,8 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct ExtFloat80

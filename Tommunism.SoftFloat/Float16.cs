@@ -44,8 +44,8 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ushort), Size = sizeof(ushort))]
 public readonly struct Float16

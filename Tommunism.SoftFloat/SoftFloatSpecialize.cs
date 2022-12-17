@@ -42,8 +42,8 @@ using System;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 public abstract partial class SoftFloatSpecialize
 {

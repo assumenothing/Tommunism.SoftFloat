@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =============================================================================*/
 #endregion
 
-using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 

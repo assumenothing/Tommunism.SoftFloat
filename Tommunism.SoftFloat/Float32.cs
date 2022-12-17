@@ -44,8 +44,8 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(uint), Size = sizeof(uint))]
 public readonly struct Float32
@@ -1101,7 +1101,7 @@ public readonly struct Float32
             return false;
         }
 
-        return (uiA == uiB) || (uint)((uiA | uiB) << 1) == 0;
+        return (uiA == uiB) || ((uiA | uiB) << 1) == 0;
     }
 
     // f32_le (signaling=true) & f32_le_quiet (signaling=false)
@@ -1125,7 +1125,7 @@ public readonly struct Float32
         signB = SignF32UI(uiB);
 
         return (signA != signB)
-            ? (signA || (uint)((uiA | uiB) << 1) == 0)
+            ? (signA || ((uiA | uiB) << 1) == 0)
             : (uiA == uiB || (signA ^ (uiA < uiB)));
     }
 
@@ -1150,7 +1150,7 @@ public readonly struct Float32
         signB = SignF32UI(uiB);
 
         return (signA != signB)
-            ? (signA && (uint)((uiA | uiB) << 1) != 0)
+            ? (signA && ((uiA | uiB) << 1) != 0)
             : (uiA != uiB && (signA ^ (uiA < uiB)));
     }
 

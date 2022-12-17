@@ -44,8 +44,8 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 2)]
 public readonly struct Float128
@@ -400,7 +400,7 @@ public readonly struct Float128
             sig64 |= 0x0001000000000000;
             negShiftDist = -shiftDist;
             z = (sig64 << negShiftDist) | (sig0 >> shiftDist);
-            if (exact && (ulong)(sig0 << negShiftDist) != 0)
+            if (exact && (sig0 << negShiftDist) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
         else
@@ -514,7 +514,7 @@ public readonly struct Float128
             sig64 |= 0x0001000000000000;
             negShiftDist = -shiftDist;
             absZ = (long)((sig64 << negShiftDist) | (sig0 >> shiftDist));
-            if (exact && (ulong)(sig0 << negShiftDist) != 0)
+            if (exact && (sig0 << negShiftDist) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
         else
@@ -1065,7 +1065,7 @@ public readonly struct Float128
                 q |= 1;
         }
 
-        sigZExtra = (ulong)((ulong)q << 60);
+        sigZExtra = (ulong)q << 60;
         term = ShortShiftLeft128(0, qs[1], 54);
         sigZ = Add128(
             (ulong)qs[2] << 19, ((ulong)qs[0] << 25) + (q >> 4),
@@ -1312,14 +1312,14 @@ public readonly struct Float128
         qs[0] = q;
 
         q = (uint)((((rem.V64 >> 2) * recipSqrt32) >> 32) + 2);
-        sigZExtra = (ulong)((ulong)q << 59);
+        sigZExtra = (ulong)q << 59;
         term = (SFUInt128)qs[1] << 53;
         sigZ = new SFUInt128(v64: (ulong)qs[2] << 18, v0: ((ulong)qs[0] << 24) + (q >> 5)) + term;
 
         if ((q & 0xF) <= 2)
         {
             q &= ~3U;
-            sigZExtra = (ulong)((ulong)q << 59);
+            sigZExtra = (ulong)q << 59;
             y = sigZ << 6;
             y.V00 |= sigZExtra >> 58;
             term = y - q;

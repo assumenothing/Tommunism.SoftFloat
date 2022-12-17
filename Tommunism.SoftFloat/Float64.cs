@@ -44,8 +44,8 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
+using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong))]
 public readonly struct Float64
@@ -377,7 +377,7 @@ public readonly struct Float64
         {
             sig |= 0x0010000000000000;
             z = sig >> shiftDist;
-            if (exact && (ulong)(sig << (-shiftDist)) != 0)
+            if (exact && (sig << (-shiftDist)) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
@@ -1022,7 +1022,7 @@ public readonly struct Float64
 
                 q = (uint)((q64 + 0x80000000) >> 32);
                 rem <<= 29;
-                rem -= q * (ulong)sigB;
+                rem -= q * sigB;
                 if ((rem & 0x8000000000000000) != 0)
                     rem += sigB;
 
@@ -1031,7 +1031,7 @@ public readonly struct Float64
 
             // ('expDiff' cannot be less than -29 here.)
             q = (uint)(q64 >> 32) >> (~expDiff & 31);
-            rem = (rem << (expDiff + 30)) - q * (ulong)sigB;
+            rem = (rem << (expDiff + 30)) - q * sigB;
             if ((rem & 0x8000000000000000) != 0)
             {
                 altRem = rem + sigB;

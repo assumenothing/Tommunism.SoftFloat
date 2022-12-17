@@ -38,12 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =============================================================================*/
 #endregion
 
-using System;
 
 namespace Tommunism.SoftFloat;
-
-using static Primitives;
-
 internal static partial class Internals
 {
     #region Rounding
