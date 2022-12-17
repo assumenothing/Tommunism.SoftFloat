@@ -3,28 +3,6 @@
 
 namespace Tommunism.SoftFloat.Tests;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 // TODO: Add a way to quickly and easily save and restore these properties? Should be able to pack these properties into a 64-bit integer.
 public sealed class SlowFloatContext
 {
@@ -87,7 +65,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     private static readonly UInt128 _x8000000000000000_0000000000000000 = new(upper: 0x8000000000000000, lower: 0x0000000000000000);
 
     internal UInt128 _sig;
-    internal int_fast32_t _exp;
+    internal int _exp;
     internal bool _sign;
     internal bool _isZero;
     internal bool _isInf;
@@ -110,10 +88,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     }
 
     // ui32ToFloatX
-    public SlowFloat(uint32_t value)
+    public SlowFloat(uint value)
     {
-        uint_fast64_t sig64;
-        int_fast32_t exp;
+        ulong sig64;
+        int exp;
 
         _isNaN = false;
         _isInf = false;
@@ -141,10 +119,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     }
 
     // ui64ToFloatX
-    public SlowFloat(uint64_t value)
+    public SlowFloat(ulong value)
     {
         UInt128 sig;
-        int_fast32_t exp;
+        int exp;
 
         _isNaN = false;
         _isInf = false;
@@ -172,17 +150,17 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     }
 
     // i32ToFloatX
-    public SlowFloat(int32_t value)
+    public SlowFloat(int value)
     {
         bool sign;
         ulong sig64;
-        int_fast32_t exp;
+        int exp;
 
         _isNaN = false;
         _isInf = false;
         sign = value < 0;
         _sign = sign;
-        sig64 = sign ? (uint64_t)(-(int64_t)value) : (uint64_t)value;
+        sig64 = sign ? (ulong)(-(long)value) : (ulong)value;
         if (value != 0)
         {
             _isZero = false;
@@ -205,17 +183,17 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     }
 
     // i64ToFloatX
-    public SlowFloat(int64_t value)
+    public SlowFloat(long value)
     {
         bool sign;
         UInt128 sig;
-        int_fast32_t exp;
+        int exp;
 
         _isNaN = false;
         _isInf = false;
         sign = value < 0;
         _sign = sign;
-        sig = sign ? (uint64_t)(-value) : (uint64_t)value;
+        sig = sign ? (ulong)(-value) : (ulong)value;
         if (value != 0)
         {
             _isZero = false;
@@ -240,16 +218,16 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // f16ToFloatX
     public SlowFloat(Float16 value)
     {
-        uint_fast16_t uiA;
-        int_fast8_t exp;
-        uint_fast64_t sig64;
+        uint uiA;
+        int exp;
+        ulong sig64;
 
         uiA = value.ToUInt16Bits();
         _isNaN = false;
         _isInf = false;
         _isZero = false;
         _sign = (uiA & 0x8000) != 0;
-        exp = (int_fast8_t)((uiA >> 10) & 0x1F);
+        exp = (int)((uiA >> 10) & 0x1F);
         sig64 = uiA & 0x03FF;
         sig64 <<= 45;
         if (exp == 0x1F)
@@ -301,16 +279,16 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // f32ToFloatX
     public SlowFloat(Float32 value)
     {
-        uint_fast32_t uiA;
-        int_fast16_t exp;
-        uint_fast64_t sig64;
+        uint uiA;
+        int exp;
+        ulong sig64;
 
         uiA = value.ToUInt32Bits();
         _isNaN = false;
         _isInf = false;
         _isZero = false;
         _sign = (uiA & 0x80000000) != 0;
-        exp = (int_fast16_t)((uiA >> 23) & 0xFF);
+        exp = (int)((uiA >> 23) & 0xFF);
         sig64 = uiA & 0x007FFFFF;
         sig64 <<= 32;
         if (exp == 0xFF)
@@ -362,16 +340,16 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // f64ToFloatX
     public SlowFloat(Float64 value)
     {
-        uint_fast64_t uiA;
-        int_fast16_t exp;
-        uint_fast64_t sig64;
+        ulong uiA;
+        int exp;
+        ulong sig64;
 
         uiA = value.ToUInt64Bits();
         _isNaN = false;
         _isInf = false;
         _isZero = false;
         _sign = (uiA & 0x8000000000000000) != 0;
-        exp = (int_fast16_t)((uiA >> 52) & 0x7FF);
+        exp = (int)((uiA >> 52) & 0x7FF);
         sig64 = uiA & 0x000FFFFFFFFFFFFF;
         if (exp == 0x7FF)
         {
@@ -422,8 +400,8 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // extF80MToFloatX
     public SlowFloat(ExtFloat80 value)
     {
-        uint_fast64_t uiA64;
-        int_fast16_t exp;
+        ulong uiA64;
+        int exp;
         UInt128 sig;
 
         _isNaN = false;
@@ -431,7 +409,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         _isZero = false;
         uiA64 = value.SignAndExponent;
         _sign = (uiA64 & 0x8000) != 0;
-        exp = (int_fast16_t)(uiA64 & 0x7FFF);
+        exp = (int)(uiA64 & 0x7FFF);
         sig = value.Significand;
         if (exp == 0x7FFF)
         {
@@ -440,7 +418,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
                 _isNaN = true;
 
                 // HACK: This is technically "specialized", but every version defined in SoftFloat 3e uses the same bit pattern.
-                if (((uint64_t)sig & 0x4000000000000000) == 0 && ((uint64_t)sig & 0x3FFFFFFFFFFFFFFF) != 0)
+                if (((ulong)sig & 0x4000000000000000) == 0 && ((ulong)sig & 0x3FFFFFFFFFFFFFFF) != 0)
                     _isSignaling = true;
             }
             else
@@ -477,8 +455,8 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // f128MToFloatX
     public SlowFloat(Float128 value)
     {
-        uint_fast64_t uiA64;
-        int_fast16_t exp;
+        ulong uiA64;
+        int exp;
         UInt128 sig;
 
         var uiA = value.ToUInt128Bits();
@@ -487,8 +465,8 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         _isZero = false;
         uiA64 = V64(uiA);
         _sign = (uiA64 & 0x8000000000000000) != 0;
-        exp = (int_fast16_t)((uiA64 >> 48) & 0x7FFF);
-        sig = new(upper: uiA64 & 0x0000FFFFFFFFFFFF, lower: (uint64_t)uiA);
+        exp = (int)((uiA64 >> 48) & 0x7FFF);
+        sig = new(upper: uiA64 & 0x0000FFFFFFFFFFFF, lower: (ulong)uiA);
         if (exp == 0x7FFF)
         {
             if (sig != UInt128.Zero)
@@ -496,7 +474,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
                 _isNaN = true;
 
                 // HACK: This is technically "specialized", but every version defined in SoftFloat 3e uses the same bit pattern.
-                if ((uiA64 & 0x7FFF800000000000) == 0x7FFF000000000000 && ((uint64_t)sig != 0 || (uiA64 & 0x00007FFFFFFFFFFF) != 0))
+                if ((uiA64 & 0x7FFF800000000000) == 0x7FFF000000000000 && ((ulong)sig != 0 || (uiA64 & 0x00007FFFFFFFFFFF) != 0))
                     _isSignaling = true;
             }
             else
@@ -556,11 +534,11 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
 
     // Too bad the upper & lower fields on UInt128 are private... makes sense though.
 
-    internal static uint_fast64_t V64(UInt128 value) => (uint64_t)(value >> 64);
-    internal static uint_fast64_t V0(UInt128 value) => (uint64_t)value;
+    internal static ulong V64(UInt128 value) => (ulong)(value >> 64);
+    internal static ulong V0(UInt128 value) => (ulong)value;
 
     internal static UInt128 ShortShiftRightJam128(UInt128 value, int count) => (value >> count)
-        | (((uint64_t)value << (-count)) != 0 ? UInt128.One : UInt128.Zero);
+        | (((ulong)value << (-count)) != 0 ? UInt128.One : UInt128.Zero);
 
     internal static UInt128 Neg128(UInt128 value)
     {
@@ -569,13 +547,13 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         {
             return new UInt128(
                 ~V64(value),
-                (uint64_t)(-(int64_t)V0(value))
+                (ulong)(-(long)V0(value))
             );
         }
         else
         {
             return new UInt128(
-                (uint64_t)(-(int64_t)V64(value)),
+                (ulong)(-(long)V64(value)),
                 V0(value)
             );
         }
@@ -657,10 +635,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     public void RoundTo24(SlowFloatContext context, bool isTiny, RoundingMode roundingMode, bool exact)
     {
         ulong sigX64;
-        uint_fast32_t roundBits;
+        uint roundBits;
 
         sigX64 = V64(_sig);
-        roundBits = (uint32_t)sigX64 | (V0(_sig) != 0 ? 1U : 0);
+        roundBits = (uint)sigX64 | (V0(_sig) != 0 ? 1U : 0);
         if (roundBits != 0)
         {
             sigX64 &= 0xFFFFFFFF00000000;
@@ -724,10 +702,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     public void RoundTo53(SlowFloatContext context, bool isTiny, RoundingMode roundingMode, bool exact)
     {
         ulong sigX64;
-        uint_fast8_t roundBits;
+        uint roundBits;
 
         sigX64 = V64(_sig);
-        roundBits = (uint_fast8_t)(sigX64 & 7) | (V0(_sig) != 0 ? 1U : 0);
+        roundBits = (uint)(sigX64 & 7) | (V0(_sig) != 0 ? 1U : 0);
         if (roundBits != 0)
         {
             sigX64 &= 0xFFFFFFFFFFFFFFF8;
@@ -861,10 +839,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     public void RoundTo113(SlowFloatContext context, bool isTiny, RoundingMode roundingMode, bool exact)
     {
         ulong sigX0, sigX64;
-        uint_fast8_t roundBits;
+        uint roundBits;
 
         sigX0 = V0(_sig);
-        roundBits = (uint_fast8_t)(sigX0 & 0x7F);
+        roundBits = (uint)(sigX0 & 0x7F);
         if (roundBits != 0)
         {
             sigX0 &= 0xFFFFFFFFFFFFFF80;
@@ -931,7 +909,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXRoundToInt
     public void RoundToInt(SlowFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        int_fast32_t exp, shiftDist;
+        int exp, shiftDist;
         UInt128 sig;
 
         if (_isNaN)
@@ -979,29 +957,29 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     #region Integer To Float / Float To Integer
 
     // ui32ToFloatX (ctor alias)
-    public static SlowFloat FromUInt32(uint32_t a) => new(a);
+    public static SlowFloat FromUInt32(uint a) => new(a);
 
     // ui64ToFloatX (ctor alias)
-    public static SlowFloat FromUInt64(uint64_t a) => new(a);
+    public static SlowFloat FromUInt64(ulong a) => new(a);
 
     // i32ToFloatX (ctor alias)
-    public static SlowFloat FromInt32(int32_t a) => new(a);
+    public static SlowFloat FromInt32(int a) => new(a);
 
     // i64ToFloatX (ctor alias)
-    public static SlowFloat FromInt64(int64_t a) => new(a);
+    public static SlowFloat FromInt64(long a) => new(a);
 
     // floatXToUI32
-    public uint32_t ToUInt32(SlowFloatContext context, RoundingMode roundingMode, bool exact)
+    public uint ToUInt32(SlowFloatContext context, RoundingMode roundingMode, bool exact)
     {
         ExceptionFlags savedExceptionFlags;
         SlowFloat x;
-        int_fast32_t shiftDist;
-        uint32_t z;
+        int shiftDist;
+        uint z;
 
         if (_isInf || _isNaN)
         {
             context.ExceptionFlags |= ExceptionFlags.Invalid;
-            return (_isInf && _sign) ? uint32_t.MinValue : uint32_t.MaxValue;
+            return (_isInf && _sign) ? uint.MinValue : uint.MaxValue;
         }
 
         if (_isZero)
@@ -1025,28 +1003,28 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
 
         x.RoundTo53(context, false, roundingMode, exact);
         x._sig = ShortShiftRightJam128(x._sig, 3);
-        z = (uint_fast32_t)V64(x._sig);
+        z = (uint)V64(x._sig);
         if (shiftDist < 0 || (V64(x._sig) >> 32) != 0 || (x._sign && z != 0))
         {
             context.ExceptionFlags = savedExceptionFlags | ExceptionFlags.Invalid;
-            return x._sign ? uint32_t.MinValue : uint32_t.MaxValue;
+            return x._sign ? uint.MinValue : uint.MaxValue;
         }
 
         return z;
     }
 
     // floatXToUI64
-    public uint64_t ToUInt64(SlowFloatContext context, RoundingMode roundingMode, bool exact)
+    public ulong ToUInt64(SlowFloatContext context, RoundingMode roundingMode, bool exact)
     {
         ExceptionFlags savedExceptionFlags;
         SlowFloat x;
-        int_fast32_t shiftDist;
-        uint64_t z;
+        int shiftDist;
+        ulong z;
 
         if (_isInf || _isNaN)
         {
             context.ExceptionFlags |= ExceptionFlags.Invalid;
-            return (_isInf && _sign) ? uint64_t.MinValue : uint64_t.MaxValue;
+            return (_isInf && _sign) ? ulong.MinValue : ulong.MaxValue;
         }
 
         if (_isZero)
@@ -1074,24 +1052,24 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         if (shiftDist < 0 || V64(x._sig) != 0 || (x._sign && z != 0))
         {
             context.ExceptionFlags = savedExceptionFlags | ExceptionFlags.Invalid;
-            return x._sign ? uint64_t.MinValue : uint64_t.MaxValue;
+            return x._sign ? ulong.MinValue : ulong.MaxValue;
         }
 
         return z;
     }
 
     // floatXToI32
-    public int32_t ToInt32(SlowFloatContext context, RoundingMode roundingMode, bool exact)
+    public int ToInt32(SlowFloatContext context, RoundingMode roundingMode, bool exact)
     {
         ExceptionFlags savedExceptionFlags;
         SlowFloat x;
-        int_fast32_t shiftDist;
-        int32_t z;
+        int shiftDist;
+        int z;
 
         if (_isInf || _isNaN)
         {
             context.ExceptionFlags |= ExceptionFlags.Invalid;
-            return (_isInf && _sign) ? int32_t.MinValue : int32_t.MaxValue;
+            return (_isInf && _sign) ? int.MinValue : int.MaxValue;
         }
 
         if (_isZero)
@@ -1115,29 +1093,29 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
 
         x.RoundTo53(context, false, roundingMode, exact);
         x._sig = ShortShiftRightJam128(x._sig, 3);
-        z = (int32_t)(uint_fast32_t)V64(x._sig);
+        z = (int)(uint)V64(x._sig);
         if (x._sign) z = -z;
         if (shiftDist < 0 || (V64(x._sig) >> 32) != 0 || (z != 0 && x._sign != (z < 0)))
         {
             context.ExceptionFlags = savedExceptionFlags | ExceptionFlags.Invalid;
-            return x._sign ? int32_t.MinValue : int32_t.MaxValue;
+            return x._sign ? int.MinValue : int.MaxValue;
         }
 
         return z;
     }
 
     // floatXToI64
-    public int64_t ToInt64(SlowFloatContext context, RoundingMode roundingMode, bool exact)
+    public long ToInt64(SlowFloatContext context, RoundingMode roundingMode, bool exact)
     {
         ExceptionFlags savedExceptionFlags;
         SlowFloat x;
-        int_fast32_t shiftDist;
-        int64_t z;
+        int shiftDist;
+        long z;
 
         if (_isInf || _isNaN)
         {
             context.ExceptionFlags |= ExceptionFlags.Invalid;
-            return (_isInf && _sign) ? int64_t.MinValue : int64_t.MaxValue;
+            return (_isInf && _sign) ? long.MinValue : long.MaxValue;
         }
 
         if (_isZero)
@@ -1161,12 +1139,12 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
 
         x.RoundTo113(context, false, roundingMode, exact);
         x._sig = ShortShiftRightJam128(x._sig, 7);
-        z = (int64_t)V0(x._sig);
+        z = (long)V0(x._sig);
         if (x._sign) z = -z;
         if (shiftDist < 0 || V64(x._sig) != 0 || (z != 0 && x._sign != (z < 0)))
         {
             context.ExceptionFlags = savedExceptionFlags | ExceptionFlags.Invalid;
-            return x._sign ? int64_t.MinValue : int64_t.MaxValue;
+            return x._sign ? long.MinValue : long.MaxValue;
         }
 
         return z;
@@ -1183,10 +1161,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXToF16
     public Float16 ToFloat16(SlowFloatContext context)
     {
-        uint_fast16_t uiZ;
+        uint uiZ;
         SlowFloat x, savedX;
         bool isTiny;
-        int_fast32_t exp;
+        int exp;
 
         if (_isNaN)
         {
@@ -1198,10 +1176,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         }
 
         if (_isInf)
-            return Float16.FromUIntBits((uint16_t)(_sign ? 0xFC00 : 0x7C00));
+            return Float16.FromUIntBits((ushort)(_sign ? 0xFC00 : 0x7C00));
 
         if (_isZero)
-            return Float16.FromUIntBits((uint16_t)(_sign ? 0x8000 : 0));
+            return Float16.FromUIntBits((ushort)(_sign ? 0x8000 : 0));
 
         x = this;
         while (0x0100000000000000 <= V64(x._sig))
@@ -1265,31 +1243,31 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
             exp = 0x0080000000000000 <= V64(x._sig) ? 1 : 0;
         }
 
-        uiZ = (uint_fast16_t)exp << 10;
+        uiZ = (uint)exp << 10;
         if (x._sign) uiZ |= 0x8000;
-        uiZ |= (uint_fast16_t)(x._sig >> 109) & 0x03FF;
-        return Float16.FromUIntBits((uint16_t)uiZ);
+        uiZ |= (uint)(x._sig >> 109) & 0x03FF;
+        return Float16.FromUIntBits((ushort)uiZ);
     }
 
     #region Float to Integer
 
     // slow_f16_to_ui32
-    public static uint32_t ToUInt32(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
+    public static uint ToUInt32(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
     // slow_f16_to_ui64
-    public static uint64_t ToUInt64(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
+    public static ulong ToUInt64(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
     // slow_f16_to_i32
-    public static int32_t ToInt32(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
+    public static int ToInt32(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
     // slow_f16_to_i64
-    public static int64_t ToInt64(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
+    public static long ToInt64(SlowFloatContext context, Float16 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
 
     // slow_f16_to_ui32_r_minMag
-    public static uint32_t ToUInt32RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
+    public static uint ToUInt32RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
     // slow_f16_to_ui64_r_minMag
-    public static uint64_t ToUInt64RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
+    public static ulong ToUInt64RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
     // slow_f16_to_i32_r_minMag
-    public static int32_t ToInt32RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
+    public static int ToInt32RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
     // slow_f16_to_i64_r_minMag
-    public static int64_t ToInt64RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
+    public static long ToInt64RoundMinMag(SlowFloatContext context, Float16 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
 
     #endregion
 
@@ -1355,10 +1333,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXToF32
     public Float32 ToFloat32(SlowFloatContext context)
     {
-        uint_fast32_t uiZ;
+        uint uiZ;
         SlowFloat x, savedX;
         bool isTiny;
-        int_fast32_t exp;
+        int exp;
 
         if (_isNaN)
         {
@@ -1437,31 +1415,31 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
             exp = 0x0080000000000000 <= V64(x._sig) ? 1 : 0;
         }
 
-        uiZ = (uint_fast32_t)exp << 23;
+        uiZ = (uint)exp << 23;
         if (x._sign) uiZ |= 0x80000000;
-        uiZ |= (uint_fast32_t)(x._sig >> 96) & 0x007FFFFF;
+        uiZ |= (uint)(x._sig >> 96) & 0x007FFFFF;
         return Float32.FromUIntBits(uiZ);
     }
 
     #region Float to Integer
 
     // slow_f32_to_ui32
-    public static uint32_t ToUInt32(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
+    public static uint ToUInt32(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
     // slow_f32_to_ui64
-    public static uint64_t ToUInt64(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
+    public static ulong ToUInt64(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
     // slow_f32_to_i32
-    public static int32_t ToInt32(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
+    public static int ToInt32(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
     // slow_f32_to_i64
-    public static int64_t ToInt64(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
+    public static long ToInt64(SlowFloatContext context, Float32 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
 
     // slow_f32_to_ui32_r_minMag
-    public static uint32_t ToUInt32RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
+    public static uint ToUInt32RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
     // slow_f32_to_ui64_r_minMag
-    public static uint64_t ToUInt64RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
+    public static ulong ToUInt64RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
     // slow_f32_to_i32_r_minMag
-    public static int32_t ToInt32RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
+    public static int ToInt32RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
     // slow_f32_to_i64_r_minMag
-    public static int64_t ToInt64RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
+    public static long ToInt64RoundMinMag(SlowFloatContext context, Float32 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
 
     #endregion
 
@@ -1527,10 +1505,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXToF64
     public Float64 ToFloat64(SlowFloatContext context)
     {
-        uint_fast64_t uiZ;
+        ulong uiZ;
         SlowFloat x, savedX;
         bool isTiny;
-        int_fast32_t exp;
+        int exp;
 
         if (_isNaN)
         {
@@ -1609,31 +1587,31 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
             exp = 0x0080000000000000 <= V64(x._sig) ? 1 : 0;
         }
 
-        uiZ = (uint_fast64_t)exp << 52;
+        uiZ = (ulong)exp << 52;
         if (x._sign) uiZ |= 0x8000000000000000;
-        uiZ |= (uint_fast64_t)(x._sig >> 67) & 0x000FFFFFFFFFFFFF;
+        uiZ |= (ulong)(x._sig >> 67) & 0x000FFFFFFFFFFFFF;
         return Float64.FromUIntBits(uiZ);
     }
 
     #region Float to Integer
 
     // slow_f64_to_ui32
-    public static uint32_t ToUInt32(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
+    public static uint ToUInt32(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
     // slow_f64_to_ui64
-    public static uint64_t ToUInt64(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
+    public static ulong ToUInt64(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
     // slow_f64_to_i32
-    public static int32_t ToInt32(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
+    public static int ToInt32(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
     // slow_f64_to_i64
-    public static int64_t ToInt64(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
+    public static long ToInt64(SlowFloatContext context, Float64 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
 
     // slow_f64_to_ui32_r_minMag
-    public static uint32_t ToUInt32RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
+    public static uint ToUInt32RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
     // slow_f64_to_ui64_r_minMag
-    public static uint64_t ToUInt64RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
+    public static ulong ToUInt64RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
     // slow_f64_to_i32_r_minMag
-    public static int32_t ToInt32RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
+    public static int ToInt32RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
     // slow_f64_to_i64_r_minMag
-    public static int64_t ToInt64RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
+    public static long ToInt64RoundMinMag(SlowFloatContext context, Float64 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
 
     #endregion
 
@@ -1700,8 +1678,8 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     {
         SlowFloat x, savedX;
         bool isTiny;
-        int_fast32_t exp;
-        uint_fast16_t uiZ64;
+        int exp;
+        uint uiZ64;
 
         if (_isNaN)
         {
@@ -1713,10 +1691,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         }
 
         if (_isInf)
-            return ExtFloat80.FromUIntBits((uint16_t)(_sign ? 0xFFFF : 0x7FFF), 0x8000000000000000);
+            return ExtFloat80.FromUIntBits((ushort)(_sign ? 0xFFFF : 0x7FFF), 0x8000000000000000);
 
         if (_isZero)
-            return ExtFloat80.FromUIntBits((uint16_t)(_sign ? 0x8000 : 0), 0);
+            return ExtFloat80.FromUIntBits((ushort)(_sign ? 0x8000 : 0), 0);
 
         x = this;
         while (0x0100000000000000 <= V64(x._sig))
@@ -1832,30 +1810,30 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
             exp = (0x0080000000000000 <= V64(x._sig)) ? 1 : 0;
         }
 
-        uiZ64 = (uint_fast16_t)exp;
+        uiZ64 = (uint)exp;
         if (x._sign) uiZ64 |= 0x8000;
-        return ExtFloat80.FromUIntBits((uint16_t)uiZ64, (ulong)ShortShiftRightJam128(x._sig, 56));
+        return ExtFloat80.FromUIntBits((ushort)uiZ64, (ulong)ShortShiftRightJam128(x._sig, 56));
     }
 
     #region Float to Integer
 
     // slow_extF80M_to_ui32
-    public static uint32_t ToUInt32(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
+    public static uint ToUInt32(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
     // slow_extF80M_to_ui64
-    public static uint64_t ToUInt64(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
+    public static ulong ToUInt64(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
     // slow_extF80M_to_i32
-    public static int32_t ToInt32(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
+    public static int ToInt32(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
     // slow_extF80M_to_i64
-    public static int64_t ToInt64(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
+    public static long ToInt64(SlowFloatContext context, ExtFloat80 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
 
     // slow_extF80M_to_ui32_r_minMag
-    public static uint32_t ToUInt32RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
+    public static uint ToUInt32RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
     // slow_extF80M_to_ui64_r_minMag
-    public static uint64_t ToUInt64RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
+    public static ulong ToUInt64RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
     // slow_extF80M_to_i32_r_minMag
-    public static int32_t ToInt32RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
+    public static int ToInt32RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
     // slow_extF80M_to_i64_r_minMag
-    public static int64_t ToInt64RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
+    public static long ToInt64RoundMinMag(SlowFloatContext context, ExtFloat80 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
 
     #endregion
 
@@ -1918,10 +1896,10 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXToF128M
     public Float128 ToFloat128(SlowFloatContext context)
     {
-        uint_fast64_t uiZ64;
+        ulong uiZ64;
         SlowFloat x, savedX;
         bool isTiny;
-        int_fast32_t exp;
+        int exp;
 
         if (_isNaN)
         {
@@ -2000,7 +1978,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
             exp = 0x0080000000000000 <= V64(x._sig) ? 1 : 0;
         }
 
-        uiZ64 = (uint_fast64_t)exp << 48;
+        uiZ64 = (ulong)exp << 48;
         if (x._sign) uiZ64 |= 0x8000000000000000;
         x._sig = ShortShiftRightJam128(x._sig, 7);
         return Float128.FromUIntBits((x._sig & _x0000FFFFFFFFFFFF_FFFFFFFFFFFFFFFF) | new UInt128(upper: uiZ64, lower: 0x0000000000000000));
@@ -2009,22 +1987,22 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     #region Float to Integer
 
     // slow_f128M_to_ui32
-    public static uint32_t ToUInt32(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
+    public static uint ToUInt32(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt32(context, roundingMode, exact);
     // slow_f128M_to_ui64
-    public static uint64_t ToUInt64(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
+    public static ulong ToUInt64(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToUInt64(context, roundingMode, exact);
     // slow_f128M_to_i32
-    public static int32_t ToInt32(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
+    public static int ToInt32(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt32(context, roundingMode, exact);
     // slow_f128M_to_i64
-    public static int64_t ToInt64(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
+    public static long ToInt64(SlowFloatContext context, Float128 value, RoundingMode roundingMode, bool exact) => new SlowFloat(value).ToInt64(context, roundingMode, exact);
 
     // slow_f128M_to_ui32_r_minMag
-    public static uint32_t ToUInt32RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
+    public static uint ToUInt32RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToUInt32(context, RoundingMode.MinMag, exact);
     // slow_f128M_to_ui64_r_minMag
-    public static uint64_t ToUInt64RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
+    public static ulong ToUInt64RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToUInt64(context, RoundingMode.MinMag, exact);
     // slow_f128M_to_i32_r_minMag
-    public static int32_t ToInt32RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
+    public static int ToInt32RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToInt32(context, RoundingMode.MinMag, exact);
     // slow_f128M_to_i64_r_minMag
-    public static int64_t ToInt64RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
+    public static long ToInt64RoundMinMag(SlowFloatContext context, Float128 value, bool exact) => new SlowFloat(value).ToInt64(context, RoundingMode.MinMag, exact);
 
     #endregion
 
@@ -2150,7 +2128,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXAdd
     public void Add(SlowFloatContext context, SlowFloat y)
     {
-        int_fast32_t expX, expY, expDiff;
+        int expX, expY, expDiff;
         UInt128 sigY;
 
         if (_isNaN)
@@ -2338,7 +2316,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
         for (bitNum = 0; bitNum < 120; ++bitNum)
         {
             sig = ShortShiftRightJam128(sig, 1);
-            if (((uint64_t)_sig & 1) != 0)
+            if (((ulong)_sig & 1) != 0)
                 sig += y._sig;
 
             _sig >>= 1;
@@ -2440,7 +2418,7 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     // floatXRem
     public void Modulus(SlowFloatContext context, SlowFloat y)
     {
-        int_fast32_t expX, expY;
+        int expX, expY;
         UInt128 sigY, negSigY;
         bool lastQuotientBit;
         UInt128 savedSigX;
@@ -2684,54 +2662,54 @@ public partial struct SlowFloat : IEquatable<SlowFloat>
     #region Integer to Float
 
     // slow_ui32_to_f16
-    public static Float16 ToFloat16(SlowFloatContext context, uint32_t a) => new SlowFloat(a).ToFloat16(context);
+    public static Float16 ToFloat16(SlowFloatContext context, uint a) => new SlowFloat(a).ToFloat16(context);
     // slow_ui32_to_f32
-    public static Float32 ToFloat32(SlowFloatContext context, uint32_t a) => new SlowFloat(a).ToFloat32(context);
+    public static Float32 ToFloat32(SlowFloatContext context, uint a) => new SlowFloat(a).ToFloat32(context);
     // slow_ui32_to_f64
-    public static Float64 ToFloat64(SlowFloatContext context, uint32_t a) => new SlowFloat(a).ToFloat64(context);
+    public static Float64 ToFloat64(SlowFloatContext context, uint a) => new SlowFloat(a).ToFloat64(context);
     // slow_ui32_to_extF80M
-    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, uint32_t a) => new SlowFloat(a).ToExtFloat80(context);
+    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, uint a) => new SlowFloat(a).ToExtFloat80(context);
     // slow_ui32_to_f128M
-    public static Float128 ToFloat128(SlowFloatContext context, uint32_t a) => new SlowFloat(a).ToFloat128(context);
+    public static Float128 ToFloat128(SlowFloatContext context, uint a) => new SlowFloat(a).ToFloat128(context);
 
     // slow_ui64_to_f16
-    public static Float16 ToFloat16(SlowFloatContext context, uint64_t a) => new SlowFloat(a).ToFloat16(context);
+    public static Float16 ToFloat16(SlowFloatContext context, ulong a) => new SlowFloat(a).ToFloat16(context);
     // slow_ui64_to_f32
-    public static Float32 ToFloat32(SlowFloatContext context, uint64_t a) => new SlowFloat(a).ToFloat32(context);
+    public static Float32 ToFloat32(SlowFloatContext context, ulong a) => new SlowFloat(a).ToFloat32(context);
     // slow_ui64_to_f64
-    public static Float64 ToFloat64(SlowFloatContext context, uint64_t a) => new SlowFloat(a).ToFloat64(context);
+    public static Float64 ToFloat64(SlowFloatContext context, ulong a) => new SlowFloat(a).ToFloat64(context);
     // slow_ui64_to_extF80M
-    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, uint64_t a) => new SlowFloat(a).ToExtFloat80(context);
+    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, ulong a) => new SlowFloat(a).ToExtFloat80(context);
     // slow_ui64_to_f128M
-    public static Float128 ToFloat128(SlowFloatContext context, uint64_t a) => new SlowFloat(a).ToFloat128(context);
+    public static Float128 ToFloat128(SlowFloatContext context, ulong a) => new SlowFloat(a).ToFloat128(context);
 
     // slow_i32_to_f16
-    public static Float16 ToFloat16(SlowFloatContext context, int32_t a) => new SlowFloat(a).ToFloat16(context);
+    public static Float16 ToFloat16(SlowFloatContext context, int a) => new SlowFloat(a).ToFloat16(context);
     // slow_i32_to_f32
-    public static Float32 ToFloat32(SlowFloatContext context, int32_t a) => new SlowFloat(a).ToFloat32(context);
+    public static Float32 ToFloat32(SlowFloatContext context, int a) => new SlowFloat(a).ToFloat32(context);
     // slow_i32_to_f64
-    public static Float64 ToFloat64(SlowFloatContext context, int32_t a) => new SlowFloat(a).ToFloat64(context);
+    public static Float64 ToFloat64(SlowFloatContext context, int a) => new SlowFloat(a).ToFloat64(context);
     // slow_i32_to_extF80M
-    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, int32_t a) => new SlowFloat(a).ToExtFloat80(context);
+    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, int a) => new SlowFloat(a).ToExtFloat80(context);
     // slow_i32_to_f128M
-    public static Float128 ToFloat128(SlowFloatContext context, int32_t a) => new SlowFloat(a).ToFloat128(context);
+    public static Float128 ToFloat128(SlowFloatContext context, int a) => new SlowFloat(a).ToFloat128(context);
 
     // slow_i64_to_f16
-    public static Float16 ToFloat16(SlowFloatContext context, int64_t a) => new SlowFloat(a).ToFloat16(context);
+    public static Float16 ToFloat16(SlowFloatContext context, long a) => new SlowFloat(a).ToFloat16(context);
     // slow_i64_to_f32
-    public static Float32 ToFloat32(SlowFloatContext context, int64_t a) => new SlowFloat(a).ToFloat32(context);
+    public static Float32 ToFloat32(SlowFloatContext context, long a) => new SlowFloat(a).ToFloat32(context);
     // slow_i64_to_f64
-    public static Float64 ToFloat64(SlowFloatContext context, int64_t a) => new SlowFloat(a).ToFloat64(context);
+    public static Float64 ToFloat64(SlowFloatContext context, long a) => new SlowFloat(a).ToFloat64(context);
     // slow_i64_to_extF80M
-    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, int64_t a) => new SlowFloat(a).ToExtFloat80(context);
+    public static ExtFloat80 ToExtFloat80(SlowFloatContext context, long a) => new SlowFloat(a).ToExtFloat80(context);
     // slow_i64_to_f128M
-    public static Float128 ToFloat128(SlowFloatContext context, int64_t a) => new SlowFloat(a).ToFloat128(context);
+    public static Float128 ToFloat128(SlowFloatContext context, long a) => new SlowFloat(a).ToFloat128(context);
 
     #endregion
 
     public override bool Equals(object? obj) => obj is SlowFloat slowFloat && Equals(slowFloat);
 
-    public override int GetHashCode() => HashCode.Combine(_sig, _exp, _sign, _isZero, _isInf, _isNaN);
+    public override int GetHashCode() => HashCode.Combine(_sig, _exp, _sign, _isZero, _isInf, _isNaN, _isSignaling);
 
     public bool Equals(SlowFloat other) => this == other;
 
@@ -2743,7 +2721,7 @@ internal struct UInt256M : IEquatable<UInt256M>
 {
     public static readonly UInt256M Zero = default;
 
-    internal uint64_t _v0, _v64, _v128, _v192;
+    internal ulong _v0, _v64, _v128, _v192;
 
     // eq256M
     public static bool operator ==(UInt256M x, UInt256M y) => x._v0 == y._v0 && x._v64 == y._v64 && x._v128 == y._v128 && x._v192 == y._v192;
@@ -2783,7 +2761,7 @@ internal struct UInt256M : IEquatable<UInt256M>
     // shiftLeft1256M
     public void ShiftLeft1()
     {
-        uint64_t dword1, dword2;
+        ulong dword1, dword2;
 
         dword1 = _v128;
         _v192 = (_v192 << 1) | (dword1 >> 63);
@@ -2797,7 +2775,7 @@ internal struct UInt256M : IEquatable<UInt256M>
     // shiftRight1256M
     public void ShiftRight1()
     {
-        uint64_t dword1, dword2;
+        ulong dword1, dword2;
 
         dword1 = _v64;
         _v0 = (dword1 << 63) | (_v0 >> 1);
@@ -2821,7 +2799,7 @@ internal struct UInt256M : IEquatable<UInt256M>
     // neg256M
     public void Negate()
     {
-        uint64_t v64, v0, v128;
+        ulong v64, v0, v128;
 
         v64 = _v64;
         v0 = _v0;
@@ -2832,11 +2810,11 @@ internal struct UInt256M : IEquatable<UInt256M>
             if (v0 != 0)
             {
                 _v64 = ~v64;
-                _v0 = (uint64_t)(-(int64_t)v0);
+                _v0 = (ulong)(-(long)v0);
             }
             else
             {
-                _v64 = (uint64_t)(-(int64_t)v64);
+                _v64 = (ulong)(-(long)v64);
             }
         }
         else
@@ -2845,11 +2823,11 @@ internal struct UInt256M : IEquatable<UInt256M>
             if (v128 != 0)
             {
                 _v192 = ~_v192;
-                _v128 = (uint64_t)(-(int64_t)v128);
+                _v128 = (ulong)(-(long)v128);
             }
             else
             {
-                _v192 = (uint64_t)(-(int64_t)_v192);
+                _v192 = (ulong)(-(long)_v192);
             }
         }
     }
@@ -2857,7 +2835,7 @@ internal struct UInt256M : IEquatable<UInt256M>
     // add256M
     public void Add(UInt256M b)
     {
-        uint64_t dwordA, dwordZ;
+        ulong dwordA, dwordZ;
         uint carry1, carry2;
 
         dwordA = _v0;
@@ -2927,7 +2905,7 @@ internal partial struct SlowFloat256
     );
 
     internal UInt256M _sig;
-    internal int_fast32_t _exp;
+    internal int _exp;
     internal bool _sign;
     internal bool _isZero;
     internal bool _isInf;
@@ -2938,7 +2916,7 @@ internal partial struct SlowFloat256
 
     #region Constructors
 
-    internal SlowFloat256(UInt256M sig, int_fast32_t exp, bool sign, bool isZero, bool isInf, bool isNaN, bool isSignaling)
+    internal SlowFloat256(UInt256M sig, int exp, bool sign, bool isZero, bool isInf, bool isNaN, bool isSignaling)
     {
         _sig = sig;
         _exp = exp;
@@ -2975,7 +2953,7 @@ internal partial struct SlowFloat256
 
     public UInt256M Significand => _sig;
 
-    public int_fast32_t Exponent => _exp;
+    public int Exponent => _exp;
 
     public bool Sign => _sign;
 
@@ -2993,7 +2971,7 @@ internal partial struct SlowFloat256
     public Float128 ToFloat128(SlowFloatContext context)
     {
         SlowFloat x;
-        int_fast32_t expZ;
+        int expZ;
         UInt256M sig;
 
         x._isNaN = _isNaN;
@@ -3042,7 +3020,7 @@ internal partial struct SlowFloat256
     // floatX256Add
     public void Add(SlowFloatContext context, SlowFloat256 y)
     {
-        int_fast32_t expX, expY, expDiff;
+        int expX, expY, expDiff;
         UInt256M sigY;
 
         if (_isNaN)
