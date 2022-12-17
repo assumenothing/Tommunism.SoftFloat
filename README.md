@@ -5,4 +5,4 @@ This software was been ported to C# by Thomas Kaiser from the C source code orig
 Original C library this was derived from:
 http://www.jhauser.us/arithmetic/SoftFloat.html
 
-This library requires .NET 6 to use as it requires several advanced C# and .NET features which are only available on this platform.
+This library requires .NET 7 to use as it requires several advanced C# and .NET features which are only available on this platform.
