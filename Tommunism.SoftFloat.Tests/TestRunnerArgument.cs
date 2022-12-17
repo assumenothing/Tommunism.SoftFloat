@@ -217,6 +217,30 @@ internal record struct TestRunnerArgument(UInt128 Value, TestRunnerArgumentKind 
 
     #endregion
 
+    #region Implicit Operators
+
+    public static implicit operator TestRunnerArgument(ExceptionFlags exceptionFlags) => new(exceptionFlags);
+    public static implicit operator TestRunnerArgument(bool value) => new(value);
+    public static implicit operator TestRunnerArgument(byte value) => new(value);
+    public static implicit operator TestRunnerArgument(ushort value) => new(value);
+    public static implicit operator TestRunnerArgument(uint value) => new(value);
+    public static implicit operator TestRunnerArgument(ulong value) => new(value);
+    public static implicit operator TestRunnerArgument(sbyte value) => new(value);
+    public static implicit operator TestRunnerArgument(short value) => new(value);
+    public static implicit operator TestRunnerArgument(int value) => new(value);
+    public static implicit operator TestRunnerArgument(long value) => new(value);
+    public static implicit operator TestRunnerArgument(UInt128 value) => new(value);
+    public static implicit operator TestRunnerArgument(Int128 value) => new(value);
+    public static implicit operator TestRunnerArgument(Float16 value) => new(value);
+    public static implicit operator TestRunnerArgument(Float32 value) => new(value);
+    public static implicit operator TestRunnerArgument(Float64 value) => new(value);
+    public static implicit operator TestRunnerArgument(ExtFloat80 value) => new(value);
+    public static implicit operator TestRunnerArgument(Float128 value) => new(value);
+
+    #endregion
+
+    #region Parsing
+
     // Parse hexadecimal encoded argument (format always used by generator output).
     public static TestRunnerArgument Parse(ReadOnlySpan<char> span)
     {
@@ -369,7 +393,7 @@ internal record struct TestRunnerArgument(UInt128 Value, TestRunnerArgumentKind 
         if (span.Length <= 0)
             goto InvalidFormat;
 
-        value = new TestRunnerArgument(flags);
+        value = flags;
         return true;
 
     InvalidFormat:
@@ -564,6 +588,8 @@ internal record struct TestRunnerArgument(UInt128 Value, TestRunnerArgumentKind 
 
         return (sign < 0, exponent, significand);
     }
+
+    #endregion
 
     public override string ToString()
     {

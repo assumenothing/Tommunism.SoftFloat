@@ -39,32 +39,4 @@ internal record struct TestRunnerResult(TestRunnerArgument Value, ExceptionFlags
     public TestRunnerResult(Float128 value, ExceptionFlags ExceptionFlags) : this(new TestRunnerArgument(value.ToUInt128Bits(), TestRunnerArgumentKind.Bits128), ExceptionFlags) { }
 
     #endregion
-
-    // Replaces or adds the last two arguments in the given input arguments set with the results from this record.
-    [Obsolete("Use TestRunnerArguments.SetResult method instead.")]
-    public void UpdateArguments(ref TestRunnerArguments arguments, bool appendArguments = false)
-    {
-        var count = arguments.Count;
-
-        int resultIndex, exceptionFlagsIndex;
-        if (appendArguments)
-        {
-            if (count > TestRunnerArguments.MaxArgumentCount - 2)
-                throw new ArgumentException("Input arguments has too many arguments assigned to store result.", nameof(arguments));
-
-            resultIndex = count;
-            exceptionFlagsIndex = count + 1;
-        }
-        else
-        {
-            if (count < 2)
-                throw new ArgumentException("Input arguments does not have enough arguments assigned to store result.", nameof(arguments));
-
-            resultIndex = count - 2;
-            exceptionFlagsIndex = count - 1;
-        }
-
-        arguments[resultIndex] = Value;
-        arguments[exceptionFlagsIndex] = new TestRunnerArgument(ExceptionFlags);
-    }
 }

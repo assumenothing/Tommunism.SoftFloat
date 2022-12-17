@@ -82,7 +82,7 @@ internal record struct TestRunnerArguments(
         }
 
         this[resultIndex] = result.Value;
-        this[exceptionFlagsIndex] = new TestRunnerArgument(result.ExceptionFlags);
+        this[exceptionFlagsIndex] = result.ExceptionFlags;
     }
 
     public static bool TryParse(ReadOnlySpan<char> span, out TestRunnerArguments value)
