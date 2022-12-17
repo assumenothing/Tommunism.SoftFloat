@@ -46,53 +46,31 @@ namespace Tommunism.SoftFloat;
 
 using static Primitives;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 partial class Internals
 {
     // signExtF80UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool SignExtF80UI64(uint_fast16_t a64) => (a64 >> 15) != 0;
+    public static bool SignExtF80UI64(uint a64) => (a64 >> 15) != 0;
 
     // expExtF80UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int_fast32_t ExpExtF80UI64(uint_fast16_t a64) => (int_fast32_t)(a64 & 0x7FFF);
+    public static int ExpExtF80UI64(uint a64) => (int)(a64 & 0x7FFF);
 
     // packToExtF80UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint16_t PackToExtF80UI64(bool sign, int_fast32_t exp) =>
-        (uint16_t)((sign ? (1U << 15) : 0U) | (uint_fast32_t)exp);
+    public static ushort PackToExtF80UI64(bool sign, int exp) =>
+        (ushort)((sign ? (1U << 15) : 0U) | (uint)exp);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ExtFloat80 PackToExtF80(bool sign, int_fast32_t exp, uint_fast64_t sig) =>
+    public static ExtFloat80 PackToExtF80(bool sign, int exp, ulong sig) =>
         ExtFloat80.FromBitsUI80(PackToExtF80UI64(sign, exp), sig);
 
     // isNaNExtF80UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNaNExtF80UI(int_fast16_t a64, uint64_t a0) => ((a64 & 0x7FFF) == 0x7FFF) && (a0 & 0x7FFFFFFFFFFFFFFF) != 0;
+    public static bool IsNaNExtF80UI(int a64, ulong a0) => ((a64 & 0x7FFF) == 0x7FFF) && (a0 & 0x7FFFFFFFFFFFFFFF) != 0;
 
     // softfloat_normSubnormalExtF80Sig
-    public static (int_fast32_t exp, uint64_t sig) NormSubnormalExtF80Sig(uint_fast64_t sig)
+    public static (int exp, ulong sig) NormSubnormalExtF80Sig(ulong sig)
     {
         var shiftDist = CountLeadingZeroes64(sig);
         return (
@@ -103,7 +81,7 @@ partial class Internals
 
     // softfloat_roundPackToExtF80
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ExtFloat80 RoundPackToExtF80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    public static ExtFloat80 RoundPackToExtF80(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
     {
         Debug.Assert(roundingPrecision is ExtFloat80RoundingPrecision._32 or ExtFloat80RoundingPrecision._64 or ExtFloat80RoundingPrecision._80, "Unexpected rounding precision.");
         return roundingPrecision switch
@@ -115,9 +93,9 @@ partial class Internals
     }
 
     // Called when rounding precision is 32 or 64.
-    private static ExtFloat80 RoundPackToExtF80Impl32Or64(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, uint_fast64_t roundIncrement, uint_fast64_t roundMask)
+    private static ExtFloat80 RoundPackToExtF80Impl32Or64(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ulong roundIncrement, ulong roundMask)
     {
-        uint_fast64_t roundBits;
+        ulong roundBits;
 
         var roundingMode = context.Rounding;
         var roundNearEven = (roundingMode == RoundingMode.NearEven);
@@ -127,7 +105,7 @@ partial class Internals
         if (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
             roundIncrement = (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? roundMask : 0;
 
-        if (0x7FFD <= (uint32_t)(exp - 1))
+        if (0x7FFD <= (uint)(exp - 1))
         {
             if (exp <= 0)
             {
@@ -199,7 +177,7 @@ partial class Internals
     }
 
     // Called when rounding precision is 80 (or anything except 32 or 64).
-    private static ExtFloat80 RoundPackToExtF80Impl80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra)
+    private static ExtFloat80 RoundPackToExtF80Impl80(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra)
     {
         var roundingMode = context.Rounding;
         var roundNearEven = (roundingMode == RoundingMode.NearEven);
@@ -207,7 +185,7 @@ partial class Internals
             ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
             : (0x8000000000000000 <= sigExtra);
 
-        if (0x7FFD <= (uint32_t)(exp - 1))
+        if (0x7FFD <= (uint)(exp - 1))
         {
             if (exp <= 0)
             {
@@ -284,7 +262,7 @@ partial class Internals
     }
 
     // softfloat_normRoundPackToExtF80
-    public static ExtFloat80 NormRoundPackToExtF80(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig, uint_fast64_t sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    public static ExtFloat80 NormRoundPackToExtF80(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
     {
         if (sig == 0)
         {
@@ -302,10 +280,10 @@ partial class Internals
     }
 
     // softfloat_addMagsExtF80
-    public static ExtFloat80 AddMagsExtF80(SoftFloatContext context, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static ExtFloat80 AddMagsExtF80(SoftFloatContext context, uint uiA64, ulong uiA0, uint uiB64, ulong uiB0, bool signZ)
     {
-        int_fast32_t expA, expB, expDiff, expZ;
-        uint_fast64_t sigA, sigB, sigZ, sigZExtra;
+        int expA, expB, expDiff, expZ;
+        ulong sigA, sigB, sigZ, sigZExtra;
 
         expA = ExpExtF80UI64(uiA64);
         sigA = uiA0;
@@ -389,10 +367,10 @@ partial class Internals
     }
 
     // softfloat_subMagsExtF80
-    public static ExtFloat80 SubMagsExtF80(SoftFloatContext context, uint_fast16_t uiA64, uint_fast64_t uiA0, uint_fast16_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static ExtFloat80 SubMagsExtF80(SoftFloatContext context, uint uiA64, ulong uiA0, uint uiB64, ulong uiB0, bool signZ)
     {
-        int_fast32_t expA, expB, expDiff, expZ;
-        uint_fast64_t sigA, sigB, sigExtra;
+        int expA, expB, expDiff, expZ;
+        ulong sigA, sigB, sigExtra;
         SFUInt128 sig128;
 
         expA = ExpExtF80UI64(uiA64);

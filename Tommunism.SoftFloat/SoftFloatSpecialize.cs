@@ -45,28 +45,6 @@ namespace Tommunism.SoftFloat;
 using static Primitives;
 using static Internals;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 public abstract partial class SoftFloatSpecialize
 {
     #region Default Instance
@@ -207,7 +185,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// The bit pattern for a default generated 16-bit floating-point NaN.
     /// </summary>
-    public abstract uint16_t DefaultNaNFloat16Bits { get; }
+    public abstract ushort DefaultNaNFloat16Bits { get; }
 
     public Float16 DefaultNaNFloat16
     {
@@ -222,7 +200,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 16-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 16-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalingNaNFloat16Bits(uint_fast16_t bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
+    public virtual bool IsSignalingNaNFloat16Bits(uint bits) => (bits & 0x7E00) == 0x7C00 && (bits & 0x01FF) != 0;
 
     // softfloat_f16UIToCommonNaN
     /// <summary>
@@ -230,7 +208,7 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float16BitsToCommonNaN(SoftFloatContext context, uint_fast16_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float16BitsToCommonNaN(SoftFloatContext context, uint bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat16Bits(bits))
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -247,8 +225,8 @@ public abstract partial class SoftFloatSpecialize
     /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 16-bit floating-point NaN, and returns the bit pattern of
     /// this value as an unsigned integer.
     /// </summary>
-    public virtual uint16_t CommonNaNToFloat16Bits(in SoftFloatCommonNaN commonNaN) =>
-            (uint16_t)((commonNaN.Sign ? (1U << 15) : 0) | 0x7E00 | (uint_fast16_t)(commonNaN.Value >> 118));
+    public virtual ushort CommonNaNToFloat16Bits(in SoftFloatCommonNaN commonNaN) =>
+            (ushort)((commonNaN.Sign ? (1U << 15) : 0) | 0x7E00 | (uint)(commonNaN.Value >> 118));
 
     // softfloat_propagateNaNF16UI
     /// <summary>
@@ -256,7 +234,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint16_t PropagateNaNFloat16Bits(SoftFloatContext context, uint_fast16_t bitsA, uint_fast16_t bitsB);
+    public abstract ushort PropagateNaNFloat16Bits(SoftFloatContext context, uint bitsA, uint bitsB);
 
     #endregion
 
@@ -266,7 +244,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// The bit pattern for a default generated 32-bit floating-point NaN.
     /// </summary>
-    public abstract uint32_t DefaultNaNFloat32Bits { get; }
+    public abstract uint DefaultNaNFloat32Bits { get; }
 
     public Float32 DefaultNaNFloat32
     {
@@ -281,7 +259,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 32-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 32-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalingNaNFloat32Bits(uint_fast32_t bits) => (bits & 0x7FC00000) == 0x7F800000 && (bits & 0x003FFFFF) != 0;
+    public virtual bool IsSignalingNaNFloat32Bits(uint bits) => (bits & 0x7FC00000) == 0x7F800000 && (bits & 0x003FFFFF) != 0;
 
     // softfloat_f32UIToCommonNaN
     /// <summary>
@@ -289,7 +267,7 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float32BitsToCommonNaN(SoftFloatContext context, uint_fast32_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float32BitsToCommonNaN(SoftFloatContext context, uint bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat32Bits(bits))
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -306,8 +284,8 @@ public abstract partial class SoftFloatSpecialize
     /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 32-bit floating-point NaN, and returns the bit pattern of
     /// this value as an unsigned integer.
     /// </summary>
-    public virtual uint32_t CommonNaNToFloat32Bits(in SoftFloatCommonNaN commonNaN) =>
-        (commonNaN.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint_fast32_t)(commonNaN.Value >> 105);
+    public virtual uint CommonNaNToFloat32Bits(in SoftFloatCommonNaN commonNaN) =>
+        (commonNaN.Sign ? (1U << 31) : 0U) | 0x7FC00000 | (uint)(commonNaN.Value >> 105);
 
     // softfloat_propagateNaNF32UI
     /// <summary>
@@ -315,7 +293,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint32_t PropagateNaNFloat32Bits(SoftFloatContext context, uint_fast32_t bitsA, uint_fast32_t bitsB);
+    public abstract uint PropagateNaNFloat32Bits(SoftFloatContext context, uint bitsA, uint bitsB);
 
     #endregion
 
@@ -325,7 +303,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// The bit pattern for a default generated 64-bit floating-point NaN.
     /// </summary>
-    public abstract uint64_t DefaultNaNFloat64Bits { get; }
+    public abstract ulong DefaultNaNFloat64Bits { get; }
 
     public Float64 DefaultNaNFloat64
     {
@@ -340,7 +318,7 @@ public abstract partial class SoftFloatSpecialize
     /// <summary>
     /// Returns true when 64-bit unsigned integer <paramref name="bits"/> has the bit pattern of a 64-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalingNaNFloat64Bits(uint_fast64_t bits) =>
+    public virtual bool IsSignalingNaNFloat64Bits(ulong bits) =>
         (bits & 0x7FF8000000000000) == 0x7FF0000000000000 && (bits & 0x0007FFFFFFFFFFFF) != 0;
 
     // softfloat_f64UIToCommonNaN
@@ -349,7 +327,7 @@ public abstract partial class SoftFloatSpecialize
     /// stores the resulting common NaN at the location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the
     /// invalid exception is raised.
     /// </summary>
-    public virtual void Float64BitsToCommonNaN(SoftFloatContext context, uint_fast64_t bits, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float64BitsToCommonNaN(SoftFloatContext context, ulong bits, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat64Bits(bits))
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -366,8 +344,8 @@ public abstract partial class SoftFloatSpecialize
     /// Converts the common NaN pointed to by <paramref name="commonNaN"/> into a 64-bit floating-point NaN, and returns the bit pattern of
     /// this value as an unsigned integer.
     /// </summary>
-    public virtual uint64_t CommonNaNToFloat64Bits(in SoftFloatCommonNaN commonNaN) =>
-        (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (uint_fast64_t)(commonNaN.Value >> 76);
+    public virtual ulong CommonNaNToFloat64Bits(in SoftFloatCommonNaN commonNaN) =>
+        (commonNaN.Sign ? (1UL << 63) : 0) | 0x7FF8000000000000 | (ulong)(commonNaN.Value >> 76);
 
     // softfloat_propagateNaNF64UI
     /// <summary>
@@ -375,7 +353,7 @@ public abstract partial class SoftFloatSpecialize
     /// least one of which is a NaN, returns the bit pattern of the combined NaN result. If either <paramref name="bitsA"/> or
     /// <paramref name="bitsB"/> has the pattern of a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public abstract uint64_t PropagateNaNFloat64Bits(SoftFloatContext context, uint_fast64_t bitsA, uint_fast64_t bitsB);
+    public abstract ulong PropagateNaNFloat64Bits(SoftFloatContext context, ulong bitsA, ulong bitsB);
 
     #endregion
 
@@ -404,7 +382,7 @@ public abstract partial class SoftFloatSpecialize
     /// Returns true when the 80-bit unsigned integer formed from concatenating 16-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of an 80-bit extended floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalingNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) =>
+    public virtual bool IsSignalingNaNExtFloat80Bits(uint bits64, ulong bits0) =>
         (bits64 & 0x7FFF) == 0x7FFF && (bits0 & 0x4000000000000000) == 0 && (bits0 & 0x3FFFFFFFFFFFFFFF) != 0;
 
     // softfloat_extF80UIToCommonNaN
@@ -413,7 +391,7 @@ public abstract partial class SoftFloatSpecialize
     /// of an 80-bit extended floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the
     /// location pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public virtual void ExtFloat80BitsToCommonNaN(SoftFloatContext context, uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
+    public virtual void ExtFloat80BitsToCommonNaN(SoftFloatContext context, uint bits64, ulong bits0, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNExtFloat80Bits(bits64, bits0))
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -432,7 +410,7 @@ public abstract partial class SoftFloatSpecialize
     /// </summary>
     public virtual UInt128 CommonNaNToExtFloat80Bits(in SoftFloatCommonNaN commonNaN) => new(
         upper: (commonNaN.Sign ? (1UL << 15) : 0) | 0x7FFF,
-        lower: 0xC000000000000000 | (uint64_t)(commonNaN.Value >> 65)
+        lower: 0xC000000000000000 | (ulong)(commonNaN.Value >> 65)
     );
 
     // softfloat_propagateNaNExtF80UI
@@ -443,7 +421,7 @@ public abstract partial class SoftFloatSpecialize
     /// values is a NaN, returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN,
     /// the invalid exception is raised.
     /// </summary>
-    public virtual UInt128 PropagateNaNExtFloat80Bits(SoftFloatContext context, uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0)
+    public virtual UInt128 PropagateNaNExtFloat80Bits(SoftFloatContext context, uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0)
     {
         var isSigNaNA = IsSignalingNaNExtFloat80Bits(bitsA64, bitsA0);
         var isSigNaNB = IsSignalingNaNExtFloat80Bits(bitsB64, bitsB0);
@@ -459,14 +437,14 @@ public abstract partial class SoftFloatSpecialize
             {
                 if (!isSigNaNB)
                 {
-                    return IsNaNExtF80UI((int_fast16_t)bitsB64, bitsB0)
+                    return IsNaNExtF80UI((int)bitsB64, bitsB0)
                         ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
                         : new UInt128(upper: bitsA64, lower: uiNonsigA0);
                 }
             }
             else
             {
-                return IsNaNExtF80UI((int_fast16_t)bitsA64, bitsA0)
+                return IsNaNExtF80UI((int)bitsA64, bitsA0)
                     ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
                     : new UInt128(upper: bitsB64, lower: uiNonsigB0);
             }
@@ -507,7 +485,7 @@ public abstract partial class SoftFloatSpecialize
     /// Returns true when the 128-bit unsigned integer formed from concatenating 64-bit <paramref name="bits64"/> and 64-bit
     /// <paramref name="bits0"/> has the bit pattern of a 128-bit floating-point signaling NaN.
     /// </summary>
-    public virtual bool IsSignalingNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) =>
+    public virtual bool IsSignalingNaNFloat128Bits(ulong bits64, ulong bits0) =>
         (bits64 & 0x7FFF800000000000) == 0x7FFF000000000000 && (bits0 != 0 || (bits64 & 0x00007FFFFFFFFFFF) != 0);
 
     // softfloat_f128UIToCommonNaN
@@ -516,7 +494,7 @@ public abstract partial class SoftFloatSpecialize
     /// of an 128-bit floating-point NaN, converts this NaN to the common NaN form, and stores the resulting common NaN at the location
     /// pointed to by <paramref name="commonNaN"/>. If the NaN is a signaling NaN, the invalid exception is raised.
     /// </summary>
-    public virtual void Float128BitsToCommonNaN(SoftFloatContext context, uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN)
+    public virtual void Float128BitsToCommonNaN(SoftFloatContext context, ulong bits64, ulong bits0, out SoftFloatCommonNaN commonNaN)
     {
         if (IsSignalingNaNFloat128Bits(bits64, bits0))
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -549,7 +527,7 @@ public abstract partial class SoftFloatSpecialize
     /// returns the bit pattern of the combined NaN result. If either original floating-point value is a signaling NaN, the invalid
     /// exception is raised.
     /// </summary>
-    public abstract UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0);
+    public abstract UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, ulong bitsA64, ulong bitsA0, ulong bitsB64, ulong bitsB0);
 
     #endregion
 }

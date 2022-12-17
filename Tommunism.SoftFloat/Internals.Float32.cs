@@ -46,57 +46,35 @@ namespace Tommunism.SoftFloat;
 
 using static Primitives;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 partial class Internals
 {
     // signF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool SignF32UI(uint_fast32_t a) => (a >> 31) != 0;
+    public static bool SignF32UI(uint a) => (a >> 31) != 0;
 
     // expF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int_fast16_t ExpF32UI(uint_fast32_t a) => (int_fast16_t)((a >> 23) & 0xFF);
+    public static int ExpF32UI(uint a) => (int)((a >> 23) & 0xFF);
 
     // fracF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint_fast32_t FracF32UI(uint_fast32_t a) => a & 0x007FFFFF;
+    public static uint FracF32UI(uint a) => a & 0x007FFFFF;
 
     // packToF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint32_t PackToF32UI(bool sign, int_fast16_t exp, uint_fast32_t sig) =>
-        (sign ? (1U << 31) : 0U) + ((uint_fast32_t)exp << 23) + sig;
+    public static uint PackToF32UI(bool sign, int exp, uint sig) =>
+        (sign ? (1U << 31) : 0U) + ((uint)exp << 23) + sig;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float32 PackToF32(bool sign, int_fast16_t exp, uint_fast32_t sig) =>
+    public static Float32 PackToF32(bool sign, int exp, uint sig) =>
         Float32.FromBitsUI32(PackToF32UI(sign, exp, sig));
 
     // isNaNF32UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNaNF32UI(uint_fast32_t a) => (~a & 0x7F800000) == 0 && (a & 0x007FFFFF) != 0;
+    public static bool IsNaNF32UI(uint a) => (~a & 0x7F800000) == 0 && (a & 0x007FFFFF) != 0;
 
     // softfloat_normSubnormalF32Sig
-    public static (int_fast16_t exp, uint_fast32_t sig) NormSubnormalF32Sig(uint_fast32_t sig)
+    public static (int exp, uint sig) NormSubnormalF32Sig(uint sig)
     {
         var shiftDist = CountLeadingZeroes32(sig) - 8;
         return (
@@ -106,7 +84,7 @@ partial class Internals
     }
 
     // softfloat_roundPackToF32
-    public static Float32 RoundPackToF32(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast32_t sig)
+    public static Float32 RoundPackToF32(SoftFloatContext context, bool sign, int exp, uint sig)
     {
         var roundingMode = context.Rounding;
         var roundNearEven = roundingMode == RoundingMode.NearEven;
@@ -115,7 +93,7 @@ partial class Internals
             : 0x40U;
         var roundBits = sig & 0x7F;
 
-        if (0xFD <= (uint_fast16_t)exp)
+        if (0xFD <= (uint)exp)
         {
             if (exp < 0)
             {
@@ -153,7 +131,7 @@ partial class Internals
     }
 
     // softfloat_normRoundPackToF32
-    public static Float32 NormRoundPackToF32(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast32_t sig)
+    public static Float32 NormRoundPackToF32(SoftFloatContext context, bool sign, int exp, uint sig)
     {
         var shiftDist = CountLeadingZeroes32(sig) - 1;
         exp -= shiftDist;
@@ -168,10 +146,10 @@ partial class Internals
     }
 
     // softfloat_addMagsF32
-    public static Float32 AddMagsF32(SoftFloatContext context, uint_fast32_t uiA, uint_fast32_t uiB)
+    public static Float32 AddMagsF32(SoftFloatContext context, uint uiA, uint uiB)
     {
-        int_fast16_t expA, expB, expDiff, expZ;
-        uint_fast32_t sigA, sigB, sigZ;
+        int expA, expB, expDiff, expZ;
+        uint sigA, sigB, sigZ;
         bool signZ;
 
         expA = ExpF32UI(uiA);
@@ -247,12 +225,12 @@ partial class Internals
     }
 
     // softfloat_subMagsF32
-    public static Float32 SubMagsF32(SoftFloatContext context, uint_fast32_t uiA, uint_fast32_t uiB)
+    public static Float32 SubMagsF32(SoftFloatContext context, uint uiA, uint uiB)
     {
-        int_fast16_t expA, expB, expDiff, expZ;
-        uint_fast32_t sigA, sigB, sigX, sigY;
-        int_fast32_t sigDiff;
-        int_fast8_t shiftDist;
+        int expA, expB, expDiff, expZ;
+        uint sigA, sigB, sigX, sigY;
+        int sigDiff;
+        int shiftDist;
         bool signZ;
 
         expA = ExpF32UI(uiA);
@@ -272,7 +250,7 @@ partial class Internals
                 return context.DefaultNaNFloat32;
             }
 
-            sigDiff = (int_fast32_t)sigA - (int_fast32_t)sigB;
+            sigDiff = (int)sigA - (int)sigB;
             if (sigDiff == 0)
                 return PackToF32(context.Rounding == RoundingMode.Min, 0, 0);
 
@@ -287,7 +265,7 @@ partial class Internals
             }
 
             Debug.Assert(sigDiff >= 0);
-            shiftDist = CountLeadingZeroes32((uint_fast32_t)sigDiff) - 8;
+            shiftDist = CountLeadingZeroes32((uint)sigDiff) - 8;
             expZ = expA - shiftDist;
             if (expZ < 0)
             {
@@ -295,7 +273,7 @@ partial class Internals
                 expZ = 0;
             }
 
-            return PackToF32(signZ, expZ, (uint_fast32_t)sigDiff << shiftDist);
+            return PackToF32(signZ, expZ, (uint)sigDiff << shiftDist);
         }
         else
         {
@@ -339,15 +317,15 @@ partial class Internals
     }
 
     // softfloat_mulAddF32
-    public static Float32 MulAddF32(SoftFloatContext context, uint_fast32_t uiA, uint_fast32_t uiB, uint_fast32_t uiC, MulAdd op)
+    public static Float32 MulAddF32(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAdd op)
     {
         Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signProd, signZ;
-        int_fast16_t expA, expB, expC, expProd, expZ, expDiff;
-        uint_fast32_t sigA, sigB, sigC, magBits, uiZ, sigZ;
-        uint_fast64_t sigProd, sig64Z, sig64C;
-        int_fast8_t shiftDist;
+        int expA, expB, expC, expProd, expZ, expDiff;
+        uint sigA, sigB, sigC, magBits, uiZ, sigZ;
+        ulong sigProd, sig64Z, sig64C;
+        int shiftDist;
 
         signA = SignF32UI(uiA);
         expA = ExpF32UI(uiA);
@@ -368,7 +346,7 @@ partial class Internals
             if (sigA != 0 || (expB == 0xFF && sigB != 0))
                 return context.PropagateNaNFloat32Bits(uiA, uiB, uiC);
 
-            magBits = (uint_fast32_t)expB | sigB;
+            magBits = (uint)expB | sigB;
             goto infProdArg;
         }
 
@@ -377,7 +355,7 @@ partial class Internals
             if (sigB != 0)
                 return context.PropagateNaNFloat32Bits(uiA, uiB, uiC);
 
-            magBits = (uint_fast32_t)expA | sigA;
+            magBits = (uint)expA | sigA;
             goto infProdArg;
         }
 
@@ -393,7 +371,7 @@ partial class Internals
         {
             if (sigA == 0)
             {
-                if (((uint_fast32_t)expC | sigC) == 0 && signProd != signC)
+                if (((uint)expC | sigC) == 0 && signProd != signC)
                     return PackToF32(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float32.FromBitsUI32(uiC);
@@ -406,7 +384,7 @@ partial class Internals
         {
             if (sigB == 0)
             {
-                if (((uint_fast32_t)expC | sigC) == 0 && signProd != signC)
+                if (((uint)expC | sigC) == 0 && signProd != signC)
                     return PackToF32(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float32.FromBitsUI32(uiC);
@@ -418,7 +396,7 @@ partial class Internals
         expProd = expA + expB - 0x7E;
         sigA = (sigA | 0x00800000) << 7;
         sigB = (sigB | 0x00800000) << 7;
-        sigProd = (uint_fast64_t)sigA * sigB;
+        sigProd = (ulong)sigA * sigB;
 
         if (sigProd < 0x2000000000000000)
         {
@@ -432,7 +410,7 @@ partial class Internals
             if (sigC == 0)
             {
                 expZ = expProd - 1;
-                sigZ = (uint_fast32_t)ShortShiftRightJam64(sigProd, 31);
+                sigZ = (uint)ShortShiftRightJam64(sigProd, 31);
                 return RoundPackToF32(context, signZ, expZ, sigZ);
             }
 
@@ -447,13 +425,13 @@ partial class Internals
             if (expDiff <= 0)
             {
                 expZ = expC;
-                sigZ = (uint_fast32_t)(sigC + ShiftRightJam64(sigProd, 32 - expDiff));
+                sigZ = (uint)(sigC + ShiftRightJam64(sigProd, 32 - expDiff));
             }
             else
             {
                 expZ = expProd;
-                sig64Z = sigProd + ShiftRightJam64((uint_fast64_t)sigC << 32, expDiff);
-                sigZ = (uint_fast32_t)ShortShiftRightJam64(sig64Z, 32);
+                sig64Z = sigProd + ShiftRightJam64((ulong)sigC << 32, expDiff);
+                sigZ = (uint)ShortShiftRightJam64(sig64Z, 32);
             }
 
             if (sigZ < 0x40000000)
@@ -464,7 +442,7 @@ partial class Internals
         }
         else
         {
-            sig64C = (uint_fast64_t)sigC << 32;
+            sig64C = (ulong)sigC << 32;
             if (expDiff < 0)
             {
                 signZ = signC;
@@ -481,7 +459,7 @@ partial class Internals
                 if ((sig64Z & 0x8000000000000000) != 0)
                 {
                     signZ = !signZ;
-                    sig64Z = (uint_fast64_t)(-(int_fast64_t)sig64Z);
+                    sig64Z = (ulong)(-(long)sig64Z);
                 }
             }
             else
@@ -494,8 +472,8 @@ partial class Internals
             expZ -= shiftDist;
             shiftDist -= 32;
             sigZ = (shiftDist < 0)
-                ? (uint_fast32_t)ShortShiftRightJam64(sig64Z, -shiftDist)
-                : (uint_fast32_t)sig64Z << shiftDist;
+                ? (uint)ShortShiftRightJam64(sig64Z, -shiftDist)
+                : (uint)sig64Z << shiftDist;
         }
 
         return RoundPackToF32(context, signZ, expZ, sigZ);

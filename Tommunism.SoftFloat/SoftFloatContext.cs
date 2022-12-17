@@ -44,28 +44,6 @@ namespace Tommunism.SoftFloat;
 
 // TODO: Add a static user-settable factory for creating custom instances when using the static properties?
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 public class SoftFloatContext
 {
     #region Fields
@@ -224,26 +202,26 @@ public class SoftFloatContext
 
     #region Float16 Shortcut Methods
 
-    public Float16 ToFloat16(uint32_t value) => Float16.FromUInt32(this, value);
-    public Float16 ToFloat16(uint64_t value) => Float16.FromUInt64(this, value);
-    public Float16 ToFloat16(int32_t value) => Float16.FromInt32(this, value);
-    public Float16 ToFloat16(int64_t value) => Float16.FromInt64(this, value);
+    public Float16 ToFloat16(uint value) => Float16.FromUInt32(this, value);
+    public Float16 ToFloat16(ulong value) => Float16.FromUInt64(this, value);
+    public Float16 ToFloat16(int value) => Float16.FromInt32(this, value);
+    public Float16 ToFloat16(long value) => Float16.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float16 value, bool exact) => value.ToUInt32(this, Rounding, exact);
-    public uint32_t ToUInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
-    public uint32_t ToUInt32RoundMinMag(Float16 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
+    public uint ToUInt32(Float16 value, bool exact) => value.ToUInt32(this, Rounding, exact);
+    public uint ToUInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
+    public uint ToUInt32RoundMinMag(Float16 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float16 value, bool exact) => value.ToUInt64(this, Rounding, exact);
-    public uint64_t ToUInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
-    public uint64_t ToUInt64RoundMinMag(Float16 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
+    public ulong ToUInt64(Float16 value, bool exact) => value.ToUInt64(this, Rounding, exact);
+    public ulong ToUInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
+    public ulong ToUInt64RoundMinMag(Float16 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float16 value, bool exact) => value.ToInt32(this, Rounding, exact);
-    public int32_t ToInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
-    public int32_t ToInt32RoundMinMag(Float16 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
+    public int ToInt32(Float16 value, bool exact) => value.ToInt32(this, Rounding, exact);
+    public int ToInt32(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
+    public int ToInt32RoundMinMag(Float16 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float16 value, bool exact) => value.ToInt64(this, Rounding, exact);
-    public int64_t ToInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
-    public int64_t ToInt64RoundMinMag(Float16 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
+    public long ToInt64(Float16 value, bool exact) => value.ToInt64(this, Rounding, exact);
+    public long ToInt64(Float16 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
+    public long ToInt64RoundMinMag(Float16 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
     public Float32 ToFloat32(Float16 value) => value.ToFloat32(this);
     public Float64 ToFloat64(Float16 value) => value.ToFloat64(this);
@@ -269,26 +247,26 @@ public class SoftFloatContext
 
     #region Float32 Shortcut Methods
 
-    public Float32 ToFloat32(uint32_t value) => Float32.FromUInt32(this, value);
-    public Float32 ToFloat32(uint64_t value) => Float32.FromUInt64(this, value);
-    public Float32 ToFloat32(int32_t value) => Float32.FromInt32(this, value);
-    public Float32 ToFloat32(int64_t value) => Float32.FromInt64(this, value);
+    public Float32 ToFloat32(uint value) => Float32.FromUInt32(this, value);
+    public Float32 ToFloat32(ulong value) => Float32.FromUInt64(this, value);
+    public Float32 ToFloat32(int value) => Float32.FromInt32(this, value);
+    public Float32 ToFloat32(long value) => Float32.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float32 value, bool exact) => value.ToUInt32(this, Rounding, exact);
-    public uint32_t ToUInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
-    public uint32_t ToUInt32RoundMinMag(Float32 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
+    public uint ToUInt32(Float32 value, bool exact) => value.ToUInt32(this, Rounding, exact);
+    public uint ToUInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
+    public uint ToUInt32RoundMinMag(Float32 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float32 value, bool exact) => value.ToUInt64(this, Rounding, exact);
-    public uint64_t ToUInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
-    public uint64_t ToUInt64RoundMinMag(Float32 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
+    public ulong ToUInt64(Float32 value, bool exact) => value.ToUInt64(this, Rounding, exact);
+    public ulong ToUInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
+    public ulong ToUInt64RoundMinMag(Float32 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float32 value, bool exact) => value.ToInt32(this, Rounding, exact);
-    public int32_t ToInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
-    public int32_t ToInt32RoundMinMag(Float32 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
+    public int ToInt32(Float32 value, bool exact) => value.ToInt32(this, Rounding, exact);
+    public int ToInt32(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
+    public int ToInt32RoundMinMag(Float32 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float32 value, bool exact) => value.ToInt64(this, Rounding, exact);
-    public int64_t ToInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
-    public int64_t ToInt64RoundMinMag(Float32 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
+    public long ToInt64(Float32 value, bool exact) => value.ToInt64(this, Rounding, exact);
+    public long ToInt64(Float32 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
+    public long ToInt64RoundMinMag(Float32 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
     public Float16 ToFloat16(Float32 value) => value.ToFloat16(this);
     public Float64 ToFloat64(Float32 value) => value.ToFloat64(this);
@@ -314,26 +292,26 @@ public class SoftFloatContext
 
     #region Float64 Shortcut Methods
 
-    public Float64 ToFloat64(uint32_t value) => Float64.FromUInt32(this, value);
-    public Float64 ToFloat64(uint64_t value) => Float64.FromUInt64(this, value);
-    public Float64 ToFloat64(int32_t value) => Float64.FromInt32(this, value);
-    public Float64 ToFloat64(int64_t value) => Float64.FromInt64(this, value);
+    public Float64 ToFloat64(uint value) => Float64.FromUInt32(this, value);
+    public Float64 ToFloat64(ulong value) => Float64.FromUInt64(this, value);
+    public Float64 ToFloat64(int value) => Float64.FromInt32(this, value);
+    public Float64 ToFloat64(long value) => Float64.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float64 value, bool exact) => value.ToUInt32(this, Rounding, exact);
-    public uint32_t ToUInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
-    public uint32_t ToUInt32RoundMinMag(Float64 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
+    public uint ToUInt32(Float64 value, bool exact) => value.ToUInt32(this, Rounding, exact);
+    public uint ToUInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
+    public uint ToUInt32RoundMinMag(Float64 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float64 value, bool exact) => value.ToUInt64(this, Rounding, exact);
-    public uint64_t ToUInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
-    public uint64_t ToUInt64RoundMinMag(Float64 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
+    public ulong ToUInt64(Float64 value, bool exact) => value.ToUInt64(this, Rounding, exact);
+    public ulong ToUInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
+    public ulong ToUInt64RoundMinMag(Float64 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float64 value, bool exact) => value.ToInt32(this, Rounding, exact);
-    public int32_t ToInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
-    public int32_t ToInt32RoundMinMag(Float64 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
+    public int ToInt32(Float64 value, bool exact) => value.ToInt32(this, Rounding, exact);
+    public int ToInt32(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
+    public int ToInt32RoundMinMag(Float64 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float64 value, bool exact) => value.ToInt64(this, Rounding, exact);
-    public int64_t ToInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
-    public int64_t ToInt64RoundMinMag(Float64 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
+    public long ToInt64(Float64 value, bool exact) => value.ToInt64(this, Rounding, exact);
+    public long ToInt64(Float64 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
+    public long ToInt64RoundMinMag(Float64 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
     public Float16 ToFloat16(Float64 value) => value.ToFloat16(this);
     public Float32 ToFloat32(Float64 value) => value.ToFloat32(this);
@@ -359,26 +337,26 @@ public class SoftFloatContext
 
     #region ExtFloat80 Shortcut Methods
 
-    public ExtFloat80 ToExtFloat80(uint32_t value) => ExtFloat80.FromUInt32(this, value);
-    public ExtFloat80 ToExtFloat80(uint64_t value) => ExtFloat80.FromUInt64(this, value);
-    public ExtFloat80 ToExtFloat80(int32_t value) => ExtFloat80.FromInt32(this, value);
-    public ExtFloat80 ToExtFloat80(int64_t value) => ExtFloat80.FromInt64(this, value);
+    public ExtFloat80 ToExtFloat80(uint value) => ExtFloat80.FromUInt32(this, value);
+    public ExtFloat80 ToExtFloat80(ulong value) => ExtFloat80.FromUInt64(this, value);
+    public ExtFloat80 ToExtFloat80(int value) => ExtFloat80.FromInt32(this, value);
+    public ExtFloat80 ToExtFloat80(long value) => ExtFloat80.FromInt64(this, value);
 
-    public uint32_t ToUInt32(ExtFloat80 value, bool exact) => value.ToUInt32(this, Rounding, exact);
-    public uint32_t ToUInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
-    public uint32_t ToUInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
+    public uint ToUInt32(ExtFloat80 value, bool exact) => value.ToUInt32(this, Rounding, exact);
+    public uint ToUInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
+    public uint ToUInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(ExtFloat80 value, bool exact) => value.ToUInt64(this, Rounding, exact);
-    public uint64_t ToUInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
-    public uint64_t ToUInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
+    public ulong ToUInt64(ExtFloat80 value, bool exact) => value.ToUInt64(this, Rounding, exact);
+    public ulong ToUInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
+    public ulong ToUInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(ExtFloat80 value, bool exact) => value.ToInt32(this, Rounding, exact);
-    public int32_t ToInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
-    public int32_t ToInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
+    public int ToInt32(ExtFloat80 value, bool exact) => value.ToInt32(this, Rounding, exact);
+    public int ToInt32(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
+    public int ToInt32RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(ExtFloat80 value, bool exact) => value.ToInt64(this, Rounding, exact);
-    public int64_t ToInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
-    public int64_t ToInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
+    public long ToInt64(ExtFloat80 value, bool exact) => value.ToInt64(this, Rounding, exact);
+    public long ToInt64(ExtFloat80 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
+    public long ToInt64RoundMinMag(ExtFloat80 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
     public Float16 ToFloat16(ExtFloat80 value) => value.ToFloat16(this);
     public Float32 ToFloat32(ExtFloat80 value) => value.ToFloat32(this);
@@ -403,26 +381,26 @@ public class SoftFloatContext
 
     #region Float128 Shortcut Methods
 
-    public Float128 ToFloat128(uint32_t value) => Float128.FromUInt32(this, value);
-    public Float128 ToFloat128(uint64_t value) => Float128.FromUInt64(this, value);
-    public Float128 ToFloat128(int32_t value) => Float128.FromInt32(this, value);
-    public Float128 ToFloat128(int64_t value) => Float128.FromInt64(this, value);
+    public Float128 ToFloat128(uint value) => Float128.FromUInt32(this, value);
+    public Float128 ToFloat128(ulong value) => Float128.FromUInt64(this, value);
+    public Float128 ToFloat128(int value) => Float128.FromInt32(this, value);
+    public Float128 ToFloat128(long value) => Float128.FromInt64(this, value);
 
-    public uint32_t ToUInt32(Float128 value, bool exact) => value.ToUInt32(this, Rounding, exact);
-    public uint32_t ToUInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
-    public uint32_t ToUInt32RoundMinMag(Float128 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
+    public uint ToUInt32(Float128 value, bool exact) => value.ToUInt32(this, Rounding, exact);
+    public uint ToUInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt32(this, roundingMode, exact);
+    public uint ToUInt32RoundMinMag(Float128 value, bool exact) => value.ToUInt32RoundMinMag(this, exact);
 
-    public uint64_t ToUInt64(Float128 value, bool exact) => value.ToUInt64(this, Rounding, exact);
-    public uint64_t ToUInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
-    public uint64_t ToUInt64RoundMinMag(Float128 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
+    public ulong ToUInt64(Float128 value, bool exact) => value.ToUInt64(this, Rounding, exact);
+    public ulong ToUInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToUInt64(this, roundingMode, exact);
+    public ulong ToUInt64RoundMinMag(Float128 value, bool exact) => value.ToUInt64RoundMinMag(this, exact);
 
-    public int32_t ToInt32(Float128 value, bool exact) => value.ToInt32(this, Rounding, exact);
-    public int32_t ToInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
-    public int32_t ToInt32RoundMinMag(Float128 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
+    public int ToInt32(Float128 value, bool exact) => value.ToInt32(this, Rounding, exact);
+    public int ToInt32(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt32(this, roundingMode, exact);
+    public int ToInt32RoundMinMag(Float128 value, bool exact) => value.ToInt32RoundMinMag(this, exact);
 
-    public int64_t ToInt64(Float128 value, bool exact) => value.ToInt64(this, Rounding, exact);
-    public int64_t ToInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
-    public int64_t ToInt64RoundMinMag(Float128 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
+    public long ToInt64(Float128 value, bool exact) => value.ToInt64(this, Rounding, exact);
+    public long ToInt64(Float128 value, RoundingMode roundingMode, bool exact) => value.ToInt64(this, roundingMode, exact);
+    public long ToInt64RoundMinMag(Float128 value, bool exact) => value.ToInt64RoundMinMag(this, exact);
 
     public Float16 ToFloat16(Float128 value) => value.ToFloat16(this);
     public Float32 ToFloat32(Float128 value) => value.ToFloat32(this);
@@ -477,17 +455,17 @@ public class SoftFloatContext
 
     #region Float16
 
-    public uint16_t DefaultNaNFloat16Bits => Specialize.DefaultNaNFloat16Bits;
+    public ushort DefaultNaNFloat16Bits => Specialize.DefaultNaNFloat16Bits;
     public Float16 DefaultNaNFloat16 => Specialize.DefaultNaNFloat16;
 
-    public bool IsSignalingNaNFloat16Bits(uint_fast16_t bits) => Specialize.IsSignalingNaNFloat16Bits(bits);
-    public void Float16BitsToCommonNaN(uint_fast16_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float16BitsToCommonNaN(this, bits, out commonNaN);
+    public bool IsSignalingNaNFloat16Bits(uint bits) => Specialize.IsSignalingNaNFloat16Bits(bits);
+    public void Float16BitsToCommonNaN(uint bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float16BitsToCommonNaN(this, bits, out commonNaN);
     public Float16 CommonNaNToFloat16(in SoftFloatCommonNaN commonNaN) => Float16.FromBitsUI16(Specialize.CommonNaNToFloat16Bits(commonNaN));
-    public Float16 PropagateNaNFloat16(uint_fast16_t bitsA, uint_fast16_t bitsB) => Float16.FromBitsUI16(Specialize.PropagateNaNFloat16Bits(this, bitsA, bitsB));
+    public Float16 PropagateNaNFloat16(uint bitsA, uint bitsB) => Float16.FromBitsUI16(Specialize.PropagateNaNFloat16Bits(this, bitsA, bitsB));
 
-    public Float16 PropagateNaNFloat16(uint_fast16_t bitsA, uint_fast16_t bitsB, uint_fast16_t bitsC)
+    public Float16 PropagateNaNFloat16(uint bitsA, uint bitsB, uint bitsC)
     {
-        uint16_t result;
+        ushort result;
         result = Specialize.PropagateNaNFloat16Bits(this, bitsA, bitsB);
         result = Specialize.PropagateNaNFloat16Bits(this, result, bitsC);
         return Float16.FromBitsUI16(result);
@@ -497,17 +475,17 @@ public class SoftFloatContext
 
     #region Float32
 
-    public uint32_t DefaultNaNFloat32Bits => Specialize.DefaultNaNFloat32Bits;
+    public uint DefaultNaNFloat32Bits => Specialize.DefaultNaNFloat32Bits;
     public Float32 DefaultNaNFloat32 => Specialize.DefaultNaNFloat32;
 
-    public bool IsSignalingNaNFloat32Bits(uint_fast32_t bits) => Specialize.IsSignalingNaNFloat32Bits(bits);
-    public void Float32BitsToCommonNaN(uint_fast32_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float32BitsToCommonNaN(this, bits, out commonNaN);
+    public bool IsSignalingNaNFloat32Bits(uint bits) => Specialize.IsSignalingNaNFloat32Bits(bits);
+    public void Float32BitsToCommonNaN(uint bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float32BitsToCommonNaN(this, bits, out commonNaN);
     public Float32 CommonNaNToFloat32(in SoftFloatCommonNaN commonNaN) => Float32.FromBitsUI32(Specialize.CommonNaNToFloat32Bits(in commonNaN));
-    public Float32 PropagateNaNFloat32Bits(uint_fast32_t bitsA, uint_fast32_t bitsB) => Float32.FromBitsUI32(Specialize.PropagateNaNFloat32Bits(this, bitsA, bitsB));
+    public Float32 PropagateNaNFloat32Bits(uint bitsA, uint bitsB) => Float32.FromBitsUI32(Specialize.PropagateNaNFloat32Bits(this, bitsA, bitsB));
 
-    public Float32 PropagateNaNFloat32Bits(uint_fast32_t bitsA, uint_fast32_t bitsB, uint_fast32_t bitsC)
+    public Float32 PropagateNaNFloat32Bits(uint bitsA, uint bitsB, uint bitsC)
     {
-        uint32_t result;
+        uint result;
         result = Specialize.PropagateNaNFloat32Bits(this, bitsA, bitsB);
         result = Specialize.PropagateNaNFloat32Bits(this, result, bitsC);
         return Float32.FromBitsUI32(result);
@@ -517,17 +495,17 @@ public class SoftFloatContext
 
     #region Float64
 
-    public uint64_t DefaultNaNFloat64Bits => Specialize.DefaultNaNFloat64Bits;
+    public ulong DefaultNaNFloat64Bits => Specialize.DefaultNaNFloat64Bits;
     public Float64 DefaultNaNFloat64 => Specialize.DefaultNaNFloat64;
 
-    public bool IsSignalingNaNFloat64Bits(uint_fast64_t bits) => Specialize.IsSignalingNaNFloat64Bits(bits);
-    public void Float64BitsToCommonNaN(uint_fast64_t bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float64BitsToCommonNaN(this, bits, out commonNaN);
+    public bool IsSignalingNaNFloat64Bits(ulong bits) => Specialize.IsSignalingNaNFloat64Bits(bits);
+    public void Float64BitsToCommonNaN(ulong bits, out SoftFloatCommonNaN commonNaN) => Specialize.Float64BitsToCommonNaN(this, bits, out commonNaN);
     public Float64 CommonNaNToFloat64(in SoftFloatCommonNaN commonNaN) => Float64.FromBitsUI64(Specialize.CommonNaNToFloat64Bits(in commonNaN));
-    public Float64 PropagateNaNFloat64Bits(uint_fast64_t bitsA, uint_fast64_t bitsB) => Float64.FromBitsUI64(Specialize.PropagateNaNFloat64Bits(this, bitsA, bitsB));
+    public Float64 PropagateNaNFloat64Bits(ulong bitsA, ulong bitsB) => Float64.FromBitsUI64(Specialize.PropagateNaNFloat64Bits(this, bitsA, bitsB));
 
-    public Float64 PropagateNaNFloat64Bits(uint_fast64_t bitsA, uint_fast64_t bitsB, uint_fast64_t bitsC)
+    public Float64 PropagateNaNFloat64Bits(ulong bitsA, ulong bitsB, ulong bitsC)
     {
-        uint64_t result;
+        ulong result;
         result = Specialize.PropagateNaNFloat64Bits(this, bitsA, bitsB);
         result = Specialize.PropagateNaNFloat64Bits(this, result, bitsC);
         return Float64.FromBitsUI64(result);
@@ -540,16 +518,16 @@ public class SoftFloatContext
     public UInt128 DefaultNaNExtFloat80Bits => Specialize.DefaultNaNExtFloat80Bits;
     public ExtFloat80 DefaultNaNExtFloat80 => Specialize.DefaultNaNExtFloat80;
 
-    public bool IsSignalingNaNExtFloat80Bits(uint_fast16_t bits64, uint_fast64_t bits0) => Specialize.IsSignalingNaNExtFloat80Bits(bits64, bits0);
-    public void ExtFloat80BitsToCommonNaN(uint_fast16_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN) => Specialize.ExtFloat80BitsToCommonNaN(this, bits64, bits0, out commonNaN);
+    public bool IsSignalingNaNExtFloat80Bits(uint bits64, ulong bits0) => Specialize.IsSignalingNaNExtFloat80Bits(bits64, bits0);
+    public void ExtFloat80BitsToCommonNaN(uint bits64, ulong bits0, out SoftFloatCommonNaN commonNaN) => Specialize.ExtFloat80BitsToCommonNaN(this, bits64, bits0, out commonNaN);
     public ExtFloat80 CommonNaNToExtFloat80(in SoftFloatCommonNaN commonNaN) => ExtFloat80.FromBitsUI128(Specialize.CommonNaNToExtFloat80Bits(in commonNaN));
-    public ExtFloat80 PropagateNaNExtFloat80Bits(uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0) => ExtFloat80.FromBitsUI128(Specialize.PropagateNaNExtFloat80Bits(this, bitsA64, bitsA0, bitsB64, bitsB0));
+    public ExtFloat80 PropagateNaNExtFloat80Bits(uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0) => ExtFloat80.FromBitsUI128(Specialize.PropagateNaNExtFloat80Bits(this, bitsA64, bitsA0, bitsB64, bitsB0));
 
-    public ExtFloat80 PropagateNaNExtFloat80Bits(uint_fast16_t bitsA64, uint_fast64_t bitsA0, uint_fast16_t bitsB64, uint_fast64_t bitsB0, uint_fast16_t bitsC64, uint_fast64_t bitsC0)
+    public ExtFloat80 PropagateNaNExtFloat80Bits(uint bitsA64, ulong bitsA0, uint bitsB64, ulong bitsB0, uint bitsC64, ulong bitsC0)
     {
         UInt128 result;
         result = Specialize.PropagateNaNExtFloat80Bits(this, bitsA64, bitsA0, bitsB64, bitsB0);
-        result = Specialize.PropagateNaNExtFloat80Bits(this, (uint_fast16_t)result.GetUpperUI64(), result.GetLowerUI64(), bitsC64, bitsC0);
+        result = Specialize.PropagateNaNExtFloat80Bits(this, (uint)result.GetUpperUI64(), result.GetLowerUI64(), bitsC64, bitsC0);
         return ExtFloat80.FromBitsUI128(result);
     }
 
@@ -560,12 +538,12 @@ public class SoftFloatContext
     public UInt128 DefaultNaNFloat128Bits => Specialize.DefaultNaNFloat128Bits;
     public Float128 DefaultNaNFloat128 => Specialize.DefaultNaNFloat128;
 
-    public bool IsSignalingNaNFloat128Bits(uint_fast64_t bits64, uint_fast64_t bits0) => Specialize.IsSignalingNaNFloat128Bits(bits64, bits0);
-    public void Float128BitsToCommonNaN(uint_fast64_t bits64, uint_fast64_t bits0, out SoftFloatCommonNaN commonNaN) => Specialize.Float128BitsToCommonNaN(this, bits64, bits0, out commonNaN);
+    public bool IsSignalingNaNFloat128Bits(ulong bits64, ulong bits0) => Specialize.IsSignalingNaNFloat128Bits(bits64, bits0);
+    public void Float128BitsToCommonNaN(ulong bits64, ulong bits0, out SoftFloatCommonNaN commonNaN) => Specialize.Float128BitsToCommonNaN(this, bits64, bits0, out commonNaN);
     public Float128 CommonNaNToFloat128(in SoftFloatCommonNaN commonNaN) => Float128.FromBitsUI128(Specialize.CommonNaNToFloat128Bits(in commonNaN));
-    public Float128 PropagateNaNFloat128Bits(uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0) => Float128.FromBitsUI128(Specialize.PropagateNaNFloat128Bits(this, bitsA64, bitsA0, bitsB64, bitsB0));
+    public Float128 PropagateNaNFloat128Bits(ulong bitsA64, ulong bitsA0, ulong bitsB64, ulong bitsB0) => Float128.FromBitsUI128(Specialize.PropagateNaNFloat128Bits(this, bitsA64, bitsA0, bitsB64, bitsB0));
 
-    public Float128 PropagateNaNFloat128Bits(uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0, uint_fast64_t bitsC64, uint_fast64_t bitsC0)
+    public Float128 PropagateNaNFloat128Bits(ulong bitsA64, ulong bitsA0, ulong bitsB64, ulong bitsB0, ulong bitsC64, ulong bitsC0)
     {
         UInt128 result;
         result = Specialize.PropagateNaNFloat128Bits(this, bitsA64, bitsA0, bitsB64, bitsB0);

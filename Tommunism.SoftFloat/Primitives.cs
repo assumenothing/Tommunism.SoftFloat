@@ -45,28 +45,6 @@ using System.Runtime.CompilerServices;
 
 namespace Tommunism.SoftFloat;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 internal static class Primitives
 {
     #region Big/Little Endian Index Helpers
@@ -173,7 +151,7 @@ internal static class Primitives
     /// is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountLeadingZeroes16(uint_fast16_t a)
+    public static int CountLeadingZeroes16(uint a)
     {
         Debug.Assert((a & ~0xFFFFU) == 0);
         return BitOperations.LeadingZeroCount(a) - 16;

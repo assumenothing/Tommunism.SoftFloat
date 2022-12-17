@@ -46,49 +46,27 @@ namespace Tommunism.SoftFloat;
 
 using static Primitives;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 partial class Internals
 {
     // signF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool SignF128UI64(uint64_t a64) => (a64 >> 63) != 0;
+    public static bool SignF128UI64(ulong a64) => (a64 >> 63) != 0;
 
     // expF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int_fast32_t ExpF128UI64(uint64_t a64) => (int_fast32_t)(a64 >> 48) & 0x7FFF;
+    public static int ExpF128UI64(ulong a64) => (int)(a64 >> 48) & 0x7FFF;
 
     // fracF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint_fast64_t FracF128UI64(uint64_t a64) => a64 & 0x0000FFFFFFFFFFFF;
+    public static ulong FracF128UI64(ulong a64) => a64 & 0x0000FFFFFFFFFFFF;
 
     // packToF128UI64
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint64_t PackToF128UI64(bool sign, int_fast32_t exp, uint_fast64_t sig64) =>
-        (sign ? (1UL << 63) : 0UL) + ((uint64_t)exp << 48) + sig64;
+    public static ulong PackToF128UI64(bool sign, int exp, ulong sig64) =>
+        (sign ? (1UL << 63) : 0UL) + ((ulong)exp << 48) + sig64;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 PackToF128(bool sign, int_fast32_t exp, uint_fast64_t sig64, uint_fast64_t sig0) =>
+    public static Float128 PackToF128(bool sign, int exp, ulong sig64, ulong sig0) =>
         Float128.FromBitsUI128(v64: PackToF128UI64(sign, exp, sig64), v0: sig0);
 
     // isNaNF128UI
@@ -96,10 +74,10 @@ partial class Internals
     public static bool IsNaNF128UI(ulong a64, ulong a0) => (~a64 & 0x7FFF000000000000) == 0 && (a0 != 0 || (a64 & 0x0000FFFFFFFFFFFF) != 0);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int_fast32_t exp, SFUInt128 sig) NormSubnormalF128Sig(SFUInt128 sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
+    public static (int exp, SFUInt128 sig) NormSubnormalF128Sig(SFUInt128 sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
 
     // softfloat_normSubnormalF128Sig
-    public static (int_fast32_t exp, SFUInt128 sig) NormSubnormalF128Sig(uint_fast64_t sig64, uint_fast64_t sig0)
+    public static (int exp, SFUInt128 sig) NormSubnormalF128Sig(ulong sig64, ulong sig0)
     {
         int shiftDist;
         if (sig64 == 0)
@@ -129,11 +107,11 @@ partial class Internals
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, SFUInt128 sig, uint_fast64_t sigExtra) =>
+    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int exp, SFUInt128 sig, ulong sigExtra) =>
         RoundPackToF128(context, sign, exp, sig.V64, sig.V00, sigExtra);
 
     // softfloat_roundPackToF128
-    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig64, uint_fast64_t sig0, uint_fast64_t sigExtra)
+    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int exp, ulong sig64, ulong sig0, ulong sigExtra)
     {
         var roundingMode = context.Rounding;
         var roundNearEven = roundingMode == RoundingMode.NearEven;
@@ -141,7 +119,7 @@ partial class Internals
             ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
             : (0x8000000000000000 <= sigExtra);
 
-        if (0x7FFD <= (uint32_t)exp)
+        if (0x7FFD <= (uint)exp)
         {
             if (exp < 0)
             {
@@ -187,13 +165,13 @@ partial class Internals
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, SFUInt128 sig) =>
+    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int exp, SFUInt128 sig) =>
         NormRoundPackToF128(context, sign, exp, sig.V64, sig.V00);
 
     // softfloat_normRoundPackToF128
-    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int_fast32_t exp, uint_fast64_t sig64, uint_fast64_t sig0)
+    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int exp, ulong sig64, ulong sig0)
     {
-        uint_fast64_t sigExtra;
+        ulong sigExtra;
 
         if (sig64 == 0)
         {
@@ -209,7 +187,7 @@ partial class Internals
             if (shiftDist != 0)
                 (sig64, sig0) = ShortShiftLeft128(sig64, sig0, shiftDist);
 
-            if ((uint32_t)exp < 0x7FFD)
+            if ((uint)exp < 0x7FFD)
                 return PackToF128(sign, (sig64 | sig0) != 0 ? exp : 0, sig64, sig0);
 
             sigExtra = 0;
@@ -223,11 +201,11 @@ partial class Internals
     }
 
     // softfloat_addMagsF128
-    public static Float128 AddMagsF128(SoftFloatContext context, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static Float128 AddMagsF128(SoftFloatContext context, ulong uiA64, ulong uiA0, ulong uiB64, ulong uiB0, bool signZ)
     {
-        int_fast32_t expA, expB, expDiff, expZ;
+        int expA, expB, expDiff, expZ;
         SFUInt128 sigA, sigB, sigZ;
-        uint_fast64_t sigZExtra;
+        ulong sigZExtra;
 
         expA = ExpF128UI64(uiA64);
         sigA = new SFUInt128(v64: FracF128UI64(uiA64), v0: uiA0);
@@ -318,9 +296,9 @@ partial class Internals
     }
 
     // softfloat_subMagsF128
-    public static Float128 SubMagsF128(SoftFloatContext context, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, bool signZ)
+    public static Float128 SubMagsF128(SoftFloatContext context, ulong uiA64, ulong uiA0, ulong uiB64, ulong uiB0, bool signZ)
     {
-        int_fast32_t expA, expB, expDiff, expZ;
+        int expA, expB, expDiff, expZ;
         SFUInt128 sigA, sigB, sigZ;
 
         expA = ExpF128UI64(uiA64);
@@ -425,14 +403,14 @@ partial class Internals
     }
 
     // softfloat_mulAddF128
-    public static Float128 MulAddF128(SoftFloatContext context, uint_fast64_t uiA64, uint_fast64_t uiA0, uint_fast64_t uiB64, uint_fast64_t uiB0, uint_fast64_t uiC64, uint_fast64_t uiC0, MulAdd op)
+    public static Float128 MulAddF128(SoftFloatContext context, ulong uiA64, ulong uiA0, ulong uiB64, ulong uiB0, ulong uiC64, ulong uiC0, MulAdd op)
     {
         Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signZ;
-        int_fast32_t expA, expB, expC, expZ, shiftDist, expDiff;
+        int expA, expB, expC, expZ, shiftDist, expDiff;
         SFUInt128 sigA, sigB, sigC, uiZ, sigZ, x128;
-        uint_fast64_t magBits, sigZExtra, sig256Z0;
+        ulong magBits, sigZExtra, sig256Z0;
         SFUInt256 sig256Z, sig256C;
 
         Unsafe.SkipInit(out sig256C); // workaround weird spaghetti code logic
@@ -456,7 +434,7 @@ partial class Internals
             if (!sigA.IsZero || (expB == 0x7FFF && !sigB.IsZero))
                 return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0, uiC64, uiC0);
 
-            magBits = (uint_fast32_t)expB | sigB.V64 | sigB.V00;
+            magBits = (uint)expB | sigB.V64 | sigB.V00;
             goto infProdArg;
         }
 
@@ -465,7 +443,7 @@ partial class Internals
             if (!sigB.IsZero)
                 return context.PropagateNaNFloat128Bits(uiA64, uiA0, uiB64, uiB0, uiC64, uiC0);
 
-            magBits = (uint_fast32_t)expA | sigA.V64 | sigA.V00;
+            magBits = (uint)expA | sigA.V64 | sigA.V00;
             goto infProdArg;
         }
 
@@ -484,7 +462,7 @@ partial class Internals
         {
             if (sigA.IsZero)
             {
-                if (((uint_fast32_t)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
+                if (((uint)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
                     return PackToF128(context.Rounding == RoundingMode.Min, 0, 0, 0);
 
                 return Float128.FromBitsUI128(v64: uiC64, v0: uiC0);
@@ -497,7 +475,7 @@ partial class Internals
         {
             if (sigB.IsZero)
             {
-                if (((uint_fast32_t)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
+                if (((uint)expC | sigC.V64 | sigC.V00) == 0 && signZ != signC)
                     return PackToF128(context.Rounding == RoundingMode.Min, 0, 0, 0);
 
                 return Float128.FromBitsUI128(v64: uiC64, v0: uiC0);

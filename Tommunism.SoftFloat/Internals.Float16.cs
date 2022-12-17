@@ -46,57 +46,35 @@ namespace Tommunism.SoftFloat;
 
 using static Primitives;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 partial class Internals
 {
     // signF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool SignF16UI(uint_fast16_t a) => ((a >> 15) & 1) != 0;
+    public static bool SignF16UI(uint a) => ((a >> 15) & 1) != 0;
 
     // expF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int_fast8_t ExpF16UI(uint_fast16_t a) => (int_fast8_t)((a >> 10) & 0x1F);
+    public static int ExpF16UI(uint a) => (int)((a >> 10) & 0x1F);
 
     // fracF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint_fast16_t FracF16UI(uint_fast16_t a) => a & 0x03FF;
+    public static uint FracF16UI(uint a) => a & 0x03FF;
 
     // packToF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint16_t PackToF16UI(bool sign, int_fast8_t exp, uint_fast16_t sig) =>
-        (uint16_t)((sign ? (1U << 15) : 0U) + (uint16_t)((uint_fast16_t)exp << 10) + sig);
+    public static ushort PackToF16UI(bool sign, int exp, uint sig) =>
+        (ushort)((sign ? (1U << 15) : 0U) + (ushort)((uint)exp << 10) + sig);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float16 PackToF16(bool sign, int_fast8_t exp, uint_fast16_t sig) =>
+    public static Float16 PackToF16(bool sign, int exp, uint sig) =>
         Float16.FromBitsUI16(PackToF16UI(sign, exp, sig));
 
     // isNaNF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNaNF16UI(uint_fast16_t a) => (~a & 0x7C00) == 0 && (a & 0x03FF) != 0;
+    public static bool IsNaNF16UI(uint a) => (~a & 0x7C00) == 0 && (a & 0x03FF) != 0;
 
     // softfloat_normSubnormalF16Sig
-    public static (int_fast8_t exp, uint_fast16_t sig) NormSubnormalF16Sig(uint_fast16_t sig)
+    public static (int exp, uint sig) NormSubnormalF16Sig(uint sig)
     {
         var shiftDist = CountLeadingZeroes16(sig) - 5;
         return (
@@ -106,7 +84,7 @@ partial class Internals
     }
 
     // softfloat_roundPackToF16
-    public static Float16 RoundPackToF16(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast16_t sig)
+    public static Float16 RoundPackToF16(SoftFloatContext context, bool sign, int exp, uint sig)
     {
         var roundingMode = context.Rounding;
         var roundNearEven = roundingMode == RoundingMode.NearEven;
@@ -115,7 +93,7 @@ partial class Internals
             : 0x8U;
         var roundBits = sig & 0xF;
 
-        if (0x1D <= (uint_fast16_t)exp)
+        if (0x1D <= (uint)exp)
         {
             if (exp < 0)
             {
@@ -153,7 +131,7 @@ partial class Internals
     }
 
     // softfloat_normRoundPackToF16
-    public static Float16 NormRoundPackToF16(SoftFloatContext context, bool sign, int_fast16_t exp, uint_fast16_t sig)
+    public static Float16 NormRoundPackToF16(SoftFloatContext context, bool sign, int exp, uint sig)
     {
         var shiftDist = CountLeadingZeroes16(sig) - 1;
         exp -= shiftDist;
@@ -168,11 +146,11 @@ partial class Internals
     }
 
     // softfloat_addMagsF16
-    public static Float16 AddMagsF16(SoftFloatContext context, uint_fast16_t uiA, uint_fast16_t uiB)
+    public static Float16 AddMagsF16(SoftFloatContext context, uint uiA, uint uiB)
     {
-        int_fast8_t expA, expB, expDiff, expZ, shiftDist;
-        uint_fast16_t sigA, sigB, sigZ, uiZ, sigX, sigY;
-        uint_fast32_t sig32Z;
+        int expA, expB, expDiff, expZ, shiftDist;
+        uint sigA, sigB, sigZ, uiZ, sigX, sigY;
+        uint sig32Z;
         bool signZ;
 
         expA = ExpF16UI(uiA);
@@ -218,7 +196,7 @@ partial class Internals
                 if (expDiff <= -13)
                 {
                     uiZ = PackToF16UI(signZ, expB, sigB);
-                    if (((uint_fast8_t)expA | sigA) != 0)
+                    if (((uint)expA | sigA) != 0)
                         goto addEpsilon;
 
                     return Float16.FromBitsUI16((ushort)uiZ);
@@ -242,7 +220,7 @@ partial class Internals
 
                 if (13 <= expDiff)
                 {
-                    if (((uint_fast8_t)expB | sigB) != 0)
+                    if (((uint)expB | sigB) != 0)
                         goto addEpsilon;
 
                     return Float16.FromBitsUI16((ushort)uiZ);
@@ -299,11 +277,11 @@ partial class Internals
     }
 
     // softfloat_subMagsF16
-    public static Float16 SubMagsF16(SoftFloatContext context, uint_fast16_t uiA, uint_fast16_t uiB)
+    public static Float16 SubMagsF16(SoftFloatContext context, uint uiA, uint uiB)
     {
-        int_fast8_t expA, expB, expDiff, expZ, shiftDist;
-        uint_fast16_t sigA, sigB, uiZ, sigZ, sigX, sigY;
-        int_fast16_t sigDiff;
+        int expA, expB, expDiff, expZ, shiftDist;
+        uint sigA, sigB, uiZ, sigZ, sigX, sigY;
+        int sigDiff;
         bool signZ;
 
         expA = ExpF16UI(uiA);
@@ -323,7 +301,7 @@ partial class Internals
                 return context.DefaultNaNFloat16;
             }
 
-            sigDiff = (int_fast16_t)sigA - (int_fast16_t)sigB;
+            sigDiff = (int)sigA - (int)sigB;
             if (sigDiff == 0)
                 return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
@@ -338,7 +316,7 @@ partial class Internals
             }
 
             Debug.Assert(sigDiff >= 0);
-            shiftDist = CountLeadingZeroes16((uint_fast16_t)sigDiff) - 5;
+            shiftDist = CountLeadingZeroes16((uint)sigDiff) - 5;
             expZ = expA - shiftDist;
             if (expZ < 0)
             {
@@ -346,7 +324,7 @@ partial class Internals
                 expZ = 0;
             }
 
-            return PackToF16(signZ, expZ, (uint_fast16_t)sigDiff << shiftDist);
+            return PackToF16(signZ, expZ, (uint)sigDiff << shiftDist);
         }
         else
         {
@@ -365,7 +343,7 @@ partial class Internals
                 if (expDiff <= -13)
                 {
                     uiZ = PackToF16UI(signZ, expB, sigB);
-                    if (((uint_fast16_t)expA | sigA) != 0)
+                    if (((uint)expA | sigA) != 0)
                         goto subEpsilon;
 
                     return Float16.FromBitsUI16((ushort)uiZ);
@@ -389,7 +367,7 @@ partial class Internals
 
                 if (13 <= expDiff)
                 {
-                    if (((uint_fast16_t)expB | sigB) != 0)
+                    if (((uint)expB | sigB) != 0)
                         goto subEpsilon;
 
                     return Float16.FromBitsUI16((ushort)uiZ);
@@ -400,7 +378,7 @@ partial class Internals
                 sigY = sigB + (expB != 0 ? 0x0400 : sigB);
             }
 
-            uint_fast32_t sig32Z = (sigX << expDiff) - sigY;
+            uint sig32Z = (sigX << expDiff) - sigY;
             shiftDist = CountLeadingZeroes32(sig32Z) - 1;
             sig32Z <<= shiftDist;
             expZ -= shiftDist;
@@ -440,14 +418,14 @@ partial class Internals
     }
 
     // softfloat_mulAddF16
-    public static Float16 MulAddF16(SoftFloatContext context, uint_fast16_t uiA, uint_fast16_t uiB, uint_fast16_t uiC, MulAdd op)
+    public static Float16 MulAddF16(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAdd op)
     {
         Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signProd, signZ;
-        int_fast8_t expA, expB, expC, expProd, expZ, expDiff, shiftDist;
-        uint_fast16_t sigA, sigB, sigC, magBits, uiZ, sigZ;
-        uint_fast32_t sigProd, sig32Z, sig32C;
+        int expA, expB, expC, expProd, expZ, expDiff, shiftDist;
+        uint sigA, sigB, sigC, magBits, uiZ, sigZ;
+        uint sigProd, sig32Z, sig32C;
 
         signA = SignF16UI(uiA);
         expA = ExpF16UI(uiA);
@@ -468,7 +446,7 @@ partial class Internals
             if (sigA != 0 || (expB == 0x1F && sigB != 0))
                 return context.PropagateNaNFloat16(uiA, uiB, uiC);
 
-            magBits = (uint_fast16_t)expB | sigB;
+            magBits = (uint)expB | sigB;
             goto infProdArg;
         }
 
@@ -477,7 +455,7 @@ partial class Internals
             if (sigB != 0)
                 return context.PropagateNaNFloat16(uiA, uiB, uiC);
 
-            magBits = (uint_fast16_t)expA | sigA;
+            magBits = (uint)expA | sigA;
             goto infProdArg;
         }
 
@@ -493,7 +471,7 @@ partial class Internals
         {
             if (sigA == 0)
             {
-                if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
+                if (((uint)expC | sigC) == 0 && signProd != signC)
                     return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float16.FromBitsUI16((ushort)uiC);
@@ -506,7 +484,7 @@ partial class Internals
         {
             if (sigB == 0)
             {
-                if (((uint_fast16_t)expC | sigC) == 0 && signProd != signC)
+                if (((uint)expC | sigC) == 0 && signProd != signC)
                     return PackToF16(context.Rounding == RoundingMode.Min, 0, 0);
 
                 return Float16.FromBitsUI16((ushort)uiC);
@@ -581,7 +559,7 @@ partial class Internals
                 if ((sig32Z & 0x80000000) != 0)
                 {
                     signZ = !signZ;
-                    sig32Z = (uint_fast32_t)(-(int_fast32_t)sig32Z);
+                    sig32Z = (uint)(-(int)sig32Z);
                 }
             }
             else

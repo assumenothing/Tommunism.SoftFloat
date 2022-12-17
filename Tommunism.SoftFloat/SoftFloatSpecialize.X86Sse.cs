@@ -2,30 +2,7 @@
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
 using static Internals;
-
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
 
 partial class SoftFloatSpecialize
 {
@@ -79,28 +56,28 @@ partial class SoftFloatSpecialize
 
         #region Float16
 
-        public override uint16_t DefaultNaNFloat16Bits => 0xFE00;
+        public override ushort DefaultNaNFloat16Bits => 0xFE00;
 
-        public override uint16_t PropagateNaNFloat16Bits(SoftFloatContext context, uint_fast16_t bitsA, uint_fast16_t bitsB)
+        public override ushort PropagateNaNFloat16Bits(SoftFloatContext context, uint bitsA, uint bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat16Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat16Bits(bitsB))
             {
                 context.RaiseFlags(ExceptionFlags.Invalid);
                 if (isSigNaNA)
-                    return (uint16_t)(bitsA | 0x0200);
+                    return (ushort)(bitsA | 0x0200);
             }
 
-            return (uint16_t)((IsNaNF16UI(bitsA) ? bitsA : bitsB) | 0x0200);
+            return (ushort)((IsNaNF16UI(bitsA) ? bitsA : bitsB) | 0x0200);
         }
 
         #endregion
 
         #region Float32
 
-        public override uint32_t DefaultNaNFloat32Bits => 0xFFC00000;
+        public override uint DefaultNaNFloat32Bits => 0xFFC00000;
 
-        public override uint32_t PropagateNaNFloat32Bits(SoftFloatContext context, uint_fast32_t bitsA, uint_fast32_t bitsB)
+        public override uint PropagateNaNFloat32Bits(SoftFloatContext context, uint bitsA, uint bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat32Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat32Bits(bitsB))
@@ -117,9 +94,9 @@ partial class SoftFloatSpecialize
 
         #region Float64
 
-        public override uint64_t DefaultNaNFloat64Bits => 0xFFF8000000000000;
+        public override ulong DefaultNaNFloat64Bits => 0xFFF8000000000000;
 
-        public override uint64_t PropagateNaNFloat64Bits(SoftFloatContext context, uint_fast64_t bitsA, uint_fast64_t bitsB)
+        public override ulong PropagateNaNFloat64Bits(SoftFloatContext context, ulong bitsA, ulong bitsB)
         {
             var isSigNaNA = IsSignalingNaNFloat64Bits(bitsA);
             if (isSigNaNA || IsSignalingNaNFloat64Bits(bitsB))
@@ -144,7 +121,7 @@ partial class SoftFloatSpecialize
 
         public override UInt128 DefaultNaNFloat128Bits => new(upper: 0xFFFF800000000000, lower: 0x0000000000000000);
 
-        public override UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, uint_fast64_t bitsA64, uint_fast64_t bitsA0, uint_fast64_t bitsB64, uint_fast64_t bitsB0)
+        public override UInt128 PropagateNaNFloat128Bits(SoftFloatContext context, ulong bitsA64, ulong bitsA0, ulong bitsB64, ulong bitsB0)
         {
             var isSigNaNA = IsSignalingNaNFloat128Bits(bitsA64, bitsA0);
             if (isSigNaNA || IsSignalingNaNFloat128Bits(bitsB64, bitsB0))

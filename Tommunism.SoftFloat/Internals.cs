@@ -44,37 +44,15 @@ namespace Tommunism.SoftFloat;
 
 using static Primitives;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 internal static partial class Internals
 {
     #region Rounding
 
     // softfloat_roundToUI32
-    public static uint_fast32_t RoundToUI32(SoftFloatContext context, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
+    public static uint RoundToUI32(SoftFloatContext context, bool sign, ulong sig, RoundingMode roundingMode, bool exact)
     {
-        uint_fast16_t roundIncrement, roundBits;
-        uint_fast32_t z;
+        uint roundIncrement, roundBits;
+        uint z;
 
         roundIncrement = 0x800U;
         if (roundingMode is not RoundingMode.NearMaxMag and not RoundingMode.NearEven)
@@ -95,14 +73,14 @@ internal static partial class Internals
             }
         }
 
-        roundBits = (uint_fast32_t)sig & 0xFFF;
+        roundBits = (uint)sig & 0xFFF;
         sig += roundIncrement;
         if ((sig & 0xFFFFF00000000000) != 0)
             goto invalid;
 
-        z = (uint_fast32_t)(sig >> 12);
+        z = (uint)(sig >> 12);
         if (roundBits == 0x800 && roundingMode == RoundingMode.NearEven)
-            z &= ~(uint_fast32_t)1;
+            z &= ~(uint)1;
 
         if (sign && z != 0)
             goto invalid;
@@ -124,7 +102,7 @@ internal static partial class Internals
     }
 
     // softfloat_roundToUI64
-    public static ulong RoundToUI64(SoftFloatContext context, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
+    public static ulong RoundToUI64(SoftFloatContext context, bool sign, ulong sig, ulong sigExtra, RoundingMode roundingMode, bool exact)
     {
         if (roundingMode is RoundingMode.NearMaxMag or RoundingMode.NearEven)
         {
@@ -135,7 +113,7 @@ internal static partial class Internals
                     goto invalid;
 
                 if (roundingMode == RoundingMode.NearEven && sigExtra == 0x8000000000000000)
-                    sig &= ~(uint_fast64_t)1;
+                    sig &= ~(ulong)1;
             }
         }
         else
@@ -157,7 +135,7 @@ internal static partial class Internals
                         goto invalid;
 
                     if (roundingMode == RoundingMode.NearEven && sigExtra == 0x8000000000000000)
-                        sig &= ~(uint_fast64_t)1;
+                        sig &= ~(ulong)1;
                 }
             }
         }
@@ -182,11 +160,11 @@ internal static partial class Internals
     }
 
     // softfloat_roundToI32
-    public static int_fast32_t RoundToI32(SoftFloatContext context, bool sign, uint_fast64_t sig, RoundingMode roundingMode, bool exact)
+    public static int RoundToI32(SoftFloatContext context, bool sign, ulong sig, RoundingMode roundingMode, bool exact)
     {
-        uint_fast16_t roundIncrement, roundBits;
-        uint_fast32_t sig32;
-        int_fast32_t z;
+        uint roundIncrement, roundBits;
+        uint sig32;
+        int z;
 
         roundIncrement = 0x800;
         if (roundingMode is not RoundingMode.NearMaxMag and not RoundingMode.NearEven)
@@ -196,16 +174,16 @@ internal static partial class Internals
                 roundIncrement = 0xFFF;
         }
 
-        roundBits = (uint_fast16_t)sig & 0xFFF;
+        roundBits = (uint)sig & 0xFFF;
         sig += roundIncrement;
         if ((sig & 0xFFFFF00000000000) != 0)
             goto invalid;
 
-        sig32 = (uint_fast32_t)(sig >> 12);
+        sig32 = (uint)(sig >> 12);
         if (roundBits == 0x800 && roundingMode == RoundingMode.NearEven)
             sig32 &= ~1U;
 
-        z = sign ? -(int_fast32_t)sig32 : (int_fast32_t)sig32;
+        z = sign ? -(int)sig32 : (int)sig32;
         if (z != 0 && ((z < 0) ^ sign))
             goto invalid;
 
@@ -226,9 +204,9 @@ internal static partial class Internals
     }
 
     // softfloat_roundToI64
-    public static int_fast64_t RoundToI64(SoftFloatContext context, bool sign, uint_fast64_t sig, uint_fast64_t sigExtra, RoundingMode roundingMode, bool exact)
+    public static long RoundToI64(SoftFloatContext context, bool sign, ulong sig, ulong sigExtra, RoundingMode roundingMode, bool exact)
     {
-        int_fast64_t z;
+        long z;
 
         if (roundingMode is RoundingMode.NearMaxMag or RoundingMode.NearEven)
         {
@@ -255,7 +233,7 @@ internal static partial class Internals
             }
         }
 
-        z = sign ? -(int_fast64_t)sig : (int_fast64_t)sig;
+        z = sign ? -(long)sig : (long)sig;
         if (z != 0 && ((z < 0) ^ sign))
             goto invalid;
 

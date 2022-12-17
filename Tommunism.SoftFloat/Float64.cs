@@ -47,28 +47,6 @@ namespace Tommunism.SoftFloat;
 using static Primitives;
 using static Internals;
 
-// Improve Visual Studio's readability a little bit by "redefining" the standard integer types to C99 stdint types.
-
-using int8_t = SByte;
-using int16_t = Int16;
-using int32_t = Int32;
-using int64_t = Int64;
-
-using uint8_t = Byte;
-using uint16_t = UInt16;
-using uint32_t = UInt32;
-using uint64_t = UInt64;
-
-// C# only has 32-bit & 64-bit integer operators by default, so just make these "fast" types 32 or 64 bits.
-using int_fast8_t = Int32;
-using int_fast16_t = Int32;
-using int_fast32_t = Int32;
-using int_fast64_t = Int64;
-using uint_fast8_t = UInt32;
-using uint_fast16_t = UInt32;
-using uint_fast32_t = UInt32;
-using uint_fast64_t = UInt64;
-
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong))]
 public readonly struct Float64
 {
@@ -110,17 +88,17 @@ public readonly struct Float64
 
     // ui32_to_f64
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float64 FromUInt32(SoftFloatContext context, uint32_t a)
+    public static Float64 FromUInt32(SoftFloatContext context, uint a)
     {
         if (a == 0)
             return FromBitsUI64(0);
 
         var shiftDist = CountLeadingZeroes32(a) + 21;
-        return PackToF64(false, 0x432 - shiftDist, (uint_fast64_t)a << shiftDist);
+        return PackToF64(false, 0x432 - shiftDist, (ulong)a << shiftDist);
     }
 
     // ui64_to_f64
-    public static Float64 FromUInt64(SoftFloatContext context, uint64_t a)
+    public static Float64 FromUInt64(SoftFloatContext context, ulong a)
     {
         if (a == 0)
             return FromBitsUI64(0);
@@ -132,25 +110,25 @@ public readonly struct Float64
 
     // i32_to_f64
     [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "API consistency and possible future use.")]
-    public static Float64 FromInt32(SoftFloatContext context, int32_t a)
+    public static Float64 FromInt32(SoftFloatContext context, int a)
     {
         if (a == 0)
             return FromBitsUI64(0);
 
         var sign = a < 0;
-        var absA = (uint_fast32_t)(sign ? -a : a);
+        var absA = (uint)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes32(absA) + 21;
-        return PackToF64(sign, 0x432 - shiftDist, (uint_fast64_t)absA << shiftDist);
+        return PackToF64(sign, 0x432 - shiftDist, (ulong)absA << shiftDist);
     }
 
     // i64_to_f64
-    public static Float64 FromInt64(SoftFloatContext context, int64_t a)
+    public static Float64 FromInt64(SoftFloatContext context, long a)
     {
         var sign = a < 0;
         if ((a & 0x7FFFFFFFFFFFFFFF) == 0)
             return FromBitsUI64(sign ? PackToF64UI(true, 0x43E, 0UL) : 0UL);
 
-        var absA = (uint_fast64_t)(sign ? -a : a);
+        var absA = (ulong)(sign ? -a : a);
         return NormRoundPackToF64(context, sign, 0x43C, absA);
     }
 
@@ -158,19 +136,19 @@ public readonly struct Float64
 
     #region Floating-point-to-integer Conversions
 
-    public uint32_t ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.Rounding, exact);
+    public uint ToUInt32(SoftFloatContext context, bool exact) => ToUInt32(context, context.Rounding, exact);
 
-    public uint64_t ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.Rounding, exact);
+    public ulong ToUInt64(SoftFloatContext context, bool exact) => ToUInt64(context, context.Rounding, exact);
 
-    public int32_t ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.Rounding, exact);
+    public int ToInt32(SoftFloatContext context, bool exact) => ToInt32(context, context.Rounding, exact);
 
-    public int64_t ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.Rounding, exact);
+    public long ToInt64(SoftFloatContext context, bool exact) => ToInt64(context, context.Rounding, exact);
 
     // f64_to_ui32
-    public uint32_t ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
+    public uint ToUInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
+        ulong sig;
+        int exp, shiftDist;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -206,10 +184,10 @@ public readonly struct Float64
     }
 
     // f64_to_ui64
-    public uint64_t ToUInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
+    public ulong ToUInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
+        ulong sig;
+        int exp, shiftDist;
         UInt64Extra sigExtra;
         bool sign;
 
@@ -243,10 +221,10 @@ public readonly struct Float64
     }
 
     // f64_to_i32
-    public int32_t ToInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
+    public int ToInt32(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
+        ulong sig;
+        int exp, shiftDist;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -282,10 +260,10 @@ public readonly struct Float64
     }
 
     // f64_to_i64
-    public int64_t ToInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
+    public long ToInt64(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
+        ulong sig;
+        int exp, shiftDist;
         UInt64Extra sigExtra;
         bool sign;
 
@@ -319,11 +297,11 @@ public readonly struct Float64
     }
 
     // f64_to_ui32_r_minMag
-    public uint32_t ToUInt32RoundMinMag(SoftFloatContext context, bool exact)
+    public uint ToUInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
-        uint_fast32_t z;
+        ulong sig;
+        int exp, shiftDist;
+        uint z;
         bool sign;
 
         exp = ExpF64UI(_v);
@@ -332,7 +310,7 @@ public readonly struct Float64
         shiftDist = 0x433 - exp;
         if (53 <= shiftDist)
         {
-            if (exact && ((uint_fast16_t)exp | sig) != 0)
+            if (exact && ((uint)exp | sig) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
 
             return 0;
@@ -348,18 +326,18 @@ public readonly struct Float64
         }
 
         sig |= 0x0010000000000000;
-        z = (uint_fast32_t)(sig >> shiftDist);
-        if (exact && ((uint_fast64_t)z << shiftDist) != sig)
+        z = (uint)(sig >> shiftDist);
+        if (exact && ((ulong)z << shiftDist) != sig)
             context.ExceptionFlags |= ExceptionFlags.Inexact;
 
         return z;
     }
 
     // f64_to_ui64_r_minMag
-    public uint64_t ToUInt64RoundMinMag(SoftFloatContext context, bool exact)
+    public ulong ToUInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
-        uint_fast64_t sig, z;
-        int_fast16_t exp, shiftDist;
+        ulong sig, z;
+        int exp, shiftDist;
         bool sign;
 
         exp = ExpF64UI(_v);
@@ -368,7 +346,7 @@ public readonly struct Float64
         shiftDist = 0x433 - exp;
         if (53 <= shiftDist)
         {
-            if (exact && ((uint_fast16_t)exp | sig) != 0)
+            if (exact && ((uint)exp | sig) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
 
             return 0;
@@ -399,7 +377,7 @@ public readonly struct Float64
         {
             sig |= 0x0010000000000000;
             z = sig >> shiftDist;
-            if (exact && (uint64_t)(sig << (-shiftDist)) != 0)
+            if (exact && (ulong)(sig << (-shiftDist)) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
@@ -407,11 +385,11 @@ public readonly struct Float64
     }
 
     // f64_to_i32_r_minMag
-    public int32_t ToInt32RoundMinMag(SoftFloatContext context, bool exact)
+    public int ToInt32RoundMinMag(SoftFloatContext context, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist;
-        int_fast32_t absZ;
+        ulong sig;
+        int exp, shiftDist;
+        int absZ;
         bool sign;
 
         exp = ExpF64UI(_v);
@@ -420,7 +398,7 @@ public readonly struct Float64
         shiftDist = 0x433 - exp;
         if (53 <= shiftDist)
         {
-            if (exact && ((uint_fast16_t)exp | sig) != 0)
+            if (exact && ((uint)exp | sig) != 0)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
 
             return 0;
@@ -444,18 +422,18 @@ public readonly struct Float64
         }
 
         sig |= 0x0010000000000000;
-        absZ = (int_fast32_t)(sig >> shiftDist);
-        if (exact && ((uint_fast64_t)(uint_fast32_t)absZ << shiftDist) != sig)
+        absZ = (int)(sig >> shiftDist);
+        if (exact && ((ulong)(uint)absZ << shiftDist) != sig)
             context.ExceptionFlags |= ExceptionFlags.Inexact;
 
         return sign ? -absZ : absZ;
     }
 
     // f64_to_i64_r_minMag
-    public int64_t ToInt64RoundMinMag(SoftFloatContext context, bool exact)
+    public long ToInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
-        uint_fast64_t sig;
-        int_fast16_t exp, shiftDist, absZ;
+        ulong sig;
+        int exp, shiftDist, absZ;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -477,21 +455,21 @@ public readonly struct Float64
             }
 
             sig |= 0x0010000000000000;
-            absZ = (int_fast16_t)(sig << (-shiftDist));
+            absZ = (int)(sig << (-shiftDist));
         }
         else
         {
             if (53 <= shiftDist)
             {
-                if (exact && ((uint_fast16_t)exp | sig) != 0)
+                if (exact && ((uint)exp | sig) != 0)
                     context.ExceptionFlags |= ExceptionFlags.Inexact;
 
                 return 0;
             }
 
             sig |= 0x0010000000000000;
-            absZ = (int_fast16_t)(sig >> shiftDist);
-            if (exact && ((uint_fast64_t)absZ << shiftDist) != sig)
+            absZ = (int)(sig >> shiftDist);
+            if (exact && ((ulong)absZ << shiftDist) != sig)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
@@ -505,9 +483,9 @@ public readonly struct Float64
     // f64_to_f16
     public Float16 ToFloat16(SoftFloatContext context)
     {
-        uint_fast64_t frac;
-        int_fast16_t exp;
-        uint_fast16_t frac16;
+        ulong frac;
+        int exp;
+        uint frac16;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -525,8 +503,8 @@ public readonly struct Float64
             return PackToF16(sign, 0x1F, 0);
         }
 
-        frac16 = (uint_fast16_t)ShortShiftRightJam64(frac, 38);
-        if (((uint_fast16_t)exp | frac16) == 0)
+        frac16 = (uint)ShortShiftRightJam64(frac, 38);
+        if (((uint)exp | frac16) == 0)
             return PackToF16(sign, 0, 0);
 
         return RoundPackToF16(context, sign, exp - 0x3F1, frac16 | 0x4000);
@@ -535,9 +513,9 @@ public readonly struct Float64
     // f64_to_f32
     public Float32 ToFloat32(SoftFloatContext context)
     {
-        uint_fast64_t frac;
-        int_fast16_t exp;
-        uint_fast32_t frac32;
+        ulong frac;
+        int exp;
+        uint frac32;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -555,8 +533,8 @@ public readonly struct Float64
             return PackToF32(sign, 0xFF, 0);
         }
 
-        frac32 = (uint_fast32_t)ShortShiftRightJam64(frac, 22);
-        if (((uint_fast16_t)exp | frac32) == 0)
+        frac32 = (uint)ShortShiftRightJam64(frac, 22);
+        if (((uint)exp | frac32) == 0)
             return PackToF32(sign, 0, 0);
 
         return RoundPackToF32(context, sign, exp - 0x381, frac32 | 0x40000000);
@@ -565,8 +543,8 @@ public readonly struct Float64
     // f64_to_extF80
     public ExtFloat80 ToExtFloat80(SoftFloatContext context)
     {
-        uint_fast64_t frac;
-        int_fast16_t exp;
+        ulong frac;
+        int exp;
         bool sign;
 
         sign = SignF64UI(_v);
@@ -598,8 +576,8 @@ public readonly struct Float64
     // f64_to_f128
     public Float128 ToFloat128(SoftFloatContext context)
     {
-        uint_fast64_t frac;
-        int_fast16_t exp;
+        ulong frac;
+        int exp;
         SFUInt128 frac128;
         bool sign;
 
@@ -640,8 +618,8 @@ public readonly struct Float64
     // f64_roundToInt
     public Float64 RoundToInt(SoftFloatContext context, RoundingMode roundingMode, bool exact)
     {
-        uint_fast64_t uiZ, lastBitMask, roundBitsMask;
-        int_fast16_t exp;
+        ulong uiZ, lastBitMask, roundBitsMask;
+        int exp;
 
         exp = ExpF64UI(_v);
         if (exp <= 0x3FE)
@@ -702,7 +680,7 @@ public readonly struct Float64
         }
 
         uiZ = _v;
-        lastBitMask = (uint_fast64_t)1 << (0x433 - exp);
+        lastBitMask = (ulong)1 << (0x433 - exp);
         roundBitsMask = lastBitMask - 1;
         if (roundingMode == RoundingMode.NearMaxMag)
         {
@@ -757,8 +735,8 @@ public readonly struct Float64
     // f64_mul
     public static Float64 Multiply(SoftFloatContext context, Float64 a, Float64 b)
     {
-        uint_fast64_t uiA, sigA, uiB, sigB, magBits, sigZ;
-        int_fast16_t expA, expB, expZ;
+        ulong uiA, sigA, uiB, sigB, magBits, sigZ;
+        int expA, expB, expZ;
         bool signA, signB, signZ;
         SFUInt128 sig128Z;
 
@@ -777,7 +755,7 @@ public readonly struct Float64
             if (sigA != 0 || (expB == 0x7FF && sigB != 0))
                 return context.PropagateNaNFloat64Bits(uiA, uiB);
 
-            magBits = (uint_fast16_t)expB | sigB;
+            magBits = (uint)expB | sigB;
             if (magBits == 0)
             {
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -794,7 +772,7 @@ public readonly struct Float64
             if (sigB != 0)
                 return context.PropagateNaNFloat64Bits(uiA, uiB);
 
-            magBits = (uint_fast16_t)expA | sigA;
+            magBits = (uint)expA | sigA;
             if (magBits == 0)
             {
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -844,9 +822,9 @@ public readonly struct Float64
     // f64_div
     public static Float64 Divide(SoftFloatContext context, Float64 a, Float64 b)
     {
-        uint_fast64_t uiA, sigA, uiB, sigB, rem, sigZ;
-        int_fast16_t expA, expB, expZ;
-        uint32_t recip32, sig32Z, doubleTerm, q;
+        ulong uiA, sigA, uiB, sigB, rem, sigZ;
+        int expA, expB, expZ;
+        uint recip32, sig32Z, doubleTerm, q;
         bool signA, signB, signZ;
 
         uiA = a._v;
@@ -888,7 +866,7 @@ public readonly struct Float64
         {
             if (sigB == 0)
             {
-                if (((uint_fast16_t)expA | sigA) == 0)
+                if (((uint)expA | sigA) == 0)
                 {
                     context.RaiseFlags(ExceptionFlags.Invalid);
                     return context.DefaultNaNFloat64;
@@ -923,21 +901,21 @@ public readonly struct Float64
         }
 
         sigB <<= 11;
-        recip32 = ApproxRecip32_1((uint32_t)(sigB >> 32)) - 2;
-        sig32Z = (uint32_t)(((uint32_t)(sigA >> 32) * (uint_fast64_t)recip32) >> 32);
+        recip32 = ApproxRecip32_1((uint)(sigB >> 32)) - 2;
+        sig32Z = (uint)(((uint)(sigA >> 32) * (ulong)recip32) >> 32);
         doubleTerm = sig32Z << 1;
-        rem = ((sigA - (uint_fast64_t)doubleTerm * (uint32_t)(sigB >> 32)) << 28)
-            - (uint_fast64_t)doubleTerm * ((uint32_t)sigB >> 4);
-        q = (uint32_t)((((uint32_t)(rem >> 32) * (uint_fast64_t)recip32) >> 32) + 4);
-        sigZ = ((uint_fast64_t)sig32Z << 32) + ((uint_fast64_t)q << 4);
+        rem = ((sigA - (ulong)doubleTerm * (uint)(sigB >> 32)) << 28)
+            - (ulong)doubleTerm * ((uint)sigB >> 4);
+        q = (uint)((((uint)(rem >> 32) * (ulong)recip32) >> 32) + 4);
+        sigZ = ((ulong)sig32Z << 32) + ((ulong)q << 4);
 
         if ((sigZ & 0x1FF) < (4 << 4))
         {
             q &= ~7U;
-            sigZ &= ~(uint_fast64_t)0x7F;
+            sigZ &= ~(ulong)0x7F;
             doubleTerm = q << 1;
-            rem = ((rem - (uint_fast64_t)doubleTerm * (uint32_t)(sigB >> 32)) << 28)
-                - (uint_fast64_t)doubleTerm * ((uint32_t)sigB >> 4);
+            rem = ((rem - (ulong)doubleTerm * (uint)(sigB >> 32)) << 28)
+                - (ulong)doubleTerm * ((uint)sigB >> 4);
             if ((rem & 0x8000000000000000) != 0)
                 sigZ -= 1 << 7;
             else if (rem != 0)
@@ -950,10 +928,10 @@ public readonly struct Float64
     // f64_rem
     public static Float64 Modulus(SoftFloatContext context, Float64 a, Float64 b)
     {
-        uint_fast64_t uiA, sigA, uiB, sigB, q64;
-        int_fast16_t expA, expB, expDiff;
-        uint64_t rem, altRem, meanRem;
-        uint32_t q, recip32;
+        ulong uiA, sigA, uiB, sigB, q64;
+        int expA, expB, expDiff;
+        ulong rem, altRem, meanRem;
+        uint q, recip32;
         bool signA, signRem;
 
         uiA = a._v;
@@ -1027,7 +1005,7 @@ public readonly struct Float64
         }
         else
         {
-            recip32 = ApproxRecip32_1((uint32_t)(sigB >> 21));
+            recip32 = ApproxRecip32_1((uint)(sigB >> 21));
 
             // Changing the shift of 'rem' here requires also changing the initial subtraction from 'expDiff'.
             rem <<= 9;
@@ -1038,13 +1016,13 @@ public readonly struct Float64
             sigB <<= 9;
             while (true)
             {
-                q64 = (uint32_t)(rem >> 32) * (uint_fast64_t)recip32;
+                q64 = (uint)(rem >> 32) * (ulong)recip32;
                 if (expDiff < 0)
                     break;
 
-                q = (uint32_t)((q64 + 0x80000000) >> 32);
+                q = (uint)((q64 + 0x80000000) >> 32);
                 rem <<= 29;
-                rem -= q * (uint64_t)sigB;
+                rem -= q * (ulong)sigB;
                 if ((rem & 0x8000000000000000) != 0)
                     rem += sigB;
 
@@ -1052,8 +1030,8 @@ public readonly struct Float64
             }
 
             // ('expDiff' cannot be less than -29 here.)
-            q = (uint32_t)(q64 >> 32) >> (~expDiff & 31);
-            rem = (rem << (expDiff + 30)) - q * (uint64_t)sigB;
+            q = (uint)(q64 >> 32) >> (~expDiff & 31);
+            rem = (rem << (expDiff + 30)) - q * (ulong)sigB;
             if ((rem & 0x8000000000000000) != 0)
             {
                 altRem = rem + sigB;
@@ -1078,7 +1056,7 @@ public readonly struct Float64
         if ((rem & 0x8000000000000000) != 0)
         {
             signRem = !signRem;
-            rem = (uint64_t)(-(int64_t)rem);
+            rem = (ulong)(-(long)rem);
         }
 
         return NormRoundPackToF64(context, signRem, expB, rem);
@@ -1087,9 +1065,9 @@ public readonly struct Float64
     // f64_sqrt
     public Float64 SquareRoot(SoftFloatContext context)
     {
-        uint_fast64_t uiA, sigA, rem, sigZ, shiftedSigZ;
-        int_fast16_t expA, expZ;
-        uint32_t sig32A, recipSqrt32, sig32Z, q;
+        ulong uiA, sigA, rem, sigZ, shiftedSigZ;
+        int expA, expZ;
+        uint sig32A, recipSqrt32, sig32Z, q;
         bool signA;
 
         uiA = _v;
@@ -1111,7 +1089,7 @@ public readonly struct Float64
 
         if (signA)
         {
-            if (((uint_fast16_t)expA | sigA) == 0)
+            if (((uint)expA | sigA) == 0)
                 return this;
 
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -1131,9 +1109,9 @@ public readonly struct Float64
         expZ = ((expA - 0x3FF) >> 1) + 0x3FE;
         expA &= 1;
         sigA |= 0x0010000000000000;
-        sig32A = (uint32_t)(sigA >> 21);
-        recipSqrt32 = ApproxRecipSqrt32_1((uint32_t)expA, sig32A);
-        sig32Z = (uint32_t)(((uint_fast64_t)sig32A * recipSqrt32) >> 32);
+        sig32A = (uint)(sigA >> 21);
+        recipSqrt32 = ApproxRecipSqrt32_1((uint)expA, sig32A);
+        sig32Z = (uint)(((ulong)sig32A * recipSqrt32) >> 32);
         if (expA != 0)
         {
             sigA <<= 8;
@@ -1144,13 +1122,13 @@ public readonly struct Float64
             sigA <<= 9;
         }
 
-        rem = sigA - (uint_fast64_t)sig32Z * sig32Z;
-        q = (uint32_t)(((uint32_t)(rem >> 2) * (uint_fast64_t)recipSqrt32) >> 32);
-        sigZ = ((uint_fast64_t)sig32Z << 32 | 1 << 5) + ((uint_fast64_t)q << 3);
+        rem = sigA - (ulong)sig32Z * sig32Z;
+        q = (uint)(((uint)(rem >> 2) * (ulong)recipSqrt32) >> 32);
+        sigZ = ((ulong)sig32Z << 32 | 1 << 5) + ((ulong)q << 3);
 
         if ((sigZ & 0x1FF) < 0x22)
         {
-            sigZ &= ~(uint_fast64_t)0x3F;
+            sigZ &= ~(ulong)0x3F;
             shiftedSigZ = sigZ >> 6;
             rem = (sigA << 52) - shiftedSigZ * shiftedSigZ;
             if ((rem & 0x8000000000000000) != 0)
@@ -1169,7 +1147,7 @@ public readonly struct Float64
     // f64_eq (signaling=false) & f64_eq_signaling (signaling=true)
     public static bool CompareEqual(SoftFloatContext context, Float64 a, Float64 b, bool signaling)
     {
-        uint_fast64_t uiA, uiB;
+        ulong uiA, uiB;
 
         uiA = a._v;
         uiB = b._v;
@@ -1188,7 +1166,7 @@ public readonly struct Float64
     // f64_le (signaling=true) & f64_le_quiet (signaling=false)
     public static bool CompareLessThanOrEqual(SoftFloatContext context, Float64 a, Float64 b, bool signaling)
     {
-        uint_fast64_t uiA, uiB;
+        ulong uiA, uiB;
         bool signA, signB;
 
         uiA = a._v;
@@ -1213,7 +1191,7 @@ public readonly struct Float64
     // f64_lt (signaling=true) & f64_lt_quiet (signaling=false)
     public static bool CompareLessThan(SoftFloatContext context, Float64 a, Float64 b, bool signaling)
     {
-        uint_fast64_t uiA, uiB;
+        ulong uiA, uiB;
         bool signA, signB;
 
         uiA = a._v;
