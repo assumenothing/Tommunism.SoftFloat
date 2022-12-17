@@ -418,9 +418,9 @@ partial class Internals
     }
 
     // softfloat_mulAddF16
-    public static Float16 MulAddF16(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAdd op)
+    public static Float16 MulAddF16(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAddOperation op)
     {
-        Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
+        Debug.Assert(op is MulAddOperation.None or MulAddOperation.SubtractC or MulAddOperation.SubtractProduct, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signProd, signZ;
         int expA, expB, expC, expProd, expZ, expDiff, shiftDist;
@@ -435,11 +435,11 @@ partial class Internals
         expB = ExpF16UI(uiB);
         sigB = FracF16UI(uiB);
 
-        signC = SignF16UI(uiC) ^ (op == MulAdd.SubC);
+        signC = SignF16UI(uiC) ^ (op == MulAddOperation.SubtractC);
         expC = ExpF16UI(uiC);
         sigC = FracF16UI(uiC);
 
-        signProd = signA ^ signB ^ (op == MulAdd.SubProd);
+        signProd = signA ^ signB ^ (op == MulAddOperation.SubtractProduct);
 
         if (expA == 0x1F)
         {

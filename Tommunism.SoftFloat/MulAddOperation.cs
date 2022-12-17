@@ -40,9 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Tommunism.SoftFloat;
 
-internal enum MulAdd
+internal enum MulAddOperation
 {
     None = 0,
-    SubC = 1,
-    SubProd = 2
+    SubtractC = 1,
+    SubtractProduct = 2
 }

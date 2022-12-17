@@ -810,7 +810,7 @@ public readonly struct Float16
 
     // f16_mulAdd
     public static Float16 MultiplyAndAdd(SoftFloatContext context, Float16 a, Float16 b, Float16 c) =>
-        MulAddF16(context, a._v, b._v, c._v, MulAdd.None);
+        MulAddF16(context, a._v, b._v, c._v, MulAddOperation.None);
 
     // f16_div
     public static Float16 Divide(SoftFloatContext context, Float16 a, Float16 b)

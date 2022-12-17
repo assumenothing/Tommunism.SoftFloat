@@ -805,7 +805,7 @@ public readonly struct Float32
 
     // f32_mulAdd
     public static Float32 MultiplyAndAdd(SoftFloatContext context, Float32 a, Float32 b, Float32 c) =>
-        MulAddF32(context, a._v, b._v, c._v, MulAdd.None);
+        MulAddF32(context, a._v, b._v, c._v, MulAddOperation.None);
 
     // f32_div
     public static Float32 Divide(SoftFloatContext context, Float32 a, Float32 b)

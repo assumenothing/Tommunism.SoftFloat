@@ -817,7 +817,7 @@ public readonly struct Float64
 
     // f64_mulAdd
     public static Float64 MultiplyAndAdd(SoftFloatContext context, Float64 a, Float64 b, Float64 c) =>
-        MulAddF64(context, a._v, b._v, c._v, MulAdd.None);
+        MulAddF64(context, a._v, b._v, c._v, MulAddOperation.None);
 
     // f64_div
     public static Float64 Divide(SoftFloatContext context, Float64 a, Float64 b)

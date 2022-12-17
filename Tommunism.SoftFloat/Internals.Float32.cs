@@ -317,9 +317,9 @@ partial class Internals
     }
 
     // softfloat_mulAddF32
-    public static Float32 MulAddF32(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAdd op)
+    public static Float32 MulAddF32(SoftFloatContext context, uint uiA, uint uiB, uint uiC, MulAddOperation op)
     {
-        Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
+        Debug.Assert(op is MulAddOperation.None or MulAddOperation.SubtractC or MulAddOperation.SubtractProduct, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signProd, signZ;
         int expA, expB, expC, expProd, expZ, expDiff;
@@ -335,11 +335,11 @@ partial class Internals
         expB = ExpF32UI(uiB);
         sigB = FracF32UI(uiB);
 
-        signC = SignF32UI(uiC) ^ (op == MulAdd.SubC);
+        signC = SignF32UI(uiC) ^ (op == MulAddOperation.SubtractC);
         expC = ExpF32UI(uiC);
         sigC = FracF32UI(uiC);
 
-        signProd = signA ^ signB ^ (op == MulAdd.SubProd);
+        signProd = signA ^ signB ^ (op == MulAddOperation.SubtractProduct);
 
         if (expA == 0xFF)
         {

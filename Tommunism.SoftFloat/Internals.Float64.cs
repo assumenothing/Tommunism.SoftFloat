@@ -295,9 +295,9 @@ partial class Internals
     }
 
     // softfloat_mulAddF64
-    public static Float64 MulAddF64(SoftFloatContext context, ulong uiA, ulong uiB, ulong uiC, MulAdd op)
+    public static Float64 MulAddF64(SoftFloatContext context, ulong uiA, ulong uiB, ulong uiC, MulAddOperation op)
     {
-        Debug.Assert(op is MulAdd.None or MulAdd.SubC or MulAdd.SubProd, "Invalid MulAdd operation.");
+        Debug.Assert(op is MulAddOperation.None or MulAddOperation.SubtractC or MulAddOperation.SubtractProduct, "Invalid MulAdd operation.");
 
         bool signA, signB, signC, signZ;
         int expA, expB, expC, expZ, expDiff;
@@ -313,11 +313,11 @@ partial class Internals
         expB = ExpF64UI(uiB);
         sigB = FracF64UI(uiB);
 
-        signC = SignF64UI(uiC) ^ (op == MulAdd.SubC);
+        signC = SignF64UI(uiC) ^ (op == MulAddOperation.SubtractC);
         expC = ExpF64UI(uiC);
         sigC = FracF64UI(uiC);
 
-        signZ = signA ^ signB ^ (op == MulAdd.SubProd);
+        signZ = signA ^ signB ^ (op == MulAddOperation.SubtractProduct);
 
         if (expA == 0x7FF)
         {

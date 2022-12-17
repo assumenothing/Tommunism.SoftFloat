@@ -941,7 +941,7 @@ public readonly struct Float128
 
     // f128_mulAdd
     public static Float128 MultiplyAndAdd(SoftFloatContext context, Float128 a, Float128 b, Float128 c) =>
-        MulAddF128(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAdd.None);
+        MulAddF128(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAddOperation.None);
 
     // f128_div
     public static Float128 Divide(SoftFloatContext context, Float128 a, Float128 b)
