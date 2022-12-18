@@ -104,7 +104,7 @@ internal abstract class GenerateCasesBase : IEnumerable<TestRunnerArguments>
     /// <remarks>
     /// Useful for updating/invalidating a cached value to use for <see cref="TotalCount"/>.
     /// </remarks>
-    protected virtual void OnLevelChanged() { }
+    protected virtual void OnLevelChanged() => _totalCountCached = null;
 
     protected virtual long CalculateTotalCases() => 0;
 
