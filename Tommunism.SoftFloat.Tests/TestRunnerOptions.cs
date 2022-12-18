@@ -24,7 +24,7 @@ internal sealed class TestRunnerOptions
     /// <remarks>
     /// Uses the <c>-n &lt;num&gt;</c> or <c>-forever</c> generator arguments.
     /// </remarks>
-    public int? GeneratorCount { get; set; } = null;
+    public long? GeneratorCount { get; set; } = null;
 
     /// <summary>
     /// Indicate that no more than the given number of errors should be reported for a single test run. If zero (or less than zero), then any number of errors can be reported. If null, then the default number of errors is used.

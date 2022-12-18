@@ -183,7 +183,7 @@ internal static class Program
     // This is a map of all normal functions to equivalent generator types (and required number of operands). Using these should result in
     // much faster test generation, because the results do not need to be computed. Note that integer types always have an operand count of
     // one, but the generator does not allow the count to be specified as an argument (and thus the value is always zero).
-    public static readonly Dictionary<string, (string, int)> GeneratorTypes = new()
+    public static readonly Dictionary<string, (string TypeName, int ArgCount)> GeneratorTypes = new()
     {
         { "ui32_to_f16",            ("ui32", 0) },
         { "ui32_to_f32",            ("ui32", 0) },
@@ -489,7 +489,7 @@ internal static class Program
                         return 1;
                     }
 
-                    if (!int.TryParse(args[i], NumberStyles.Integer, null, out var countValue))
+                    if (!long.TryParse(args[i], NumberStyles.Integer, null, out var countValue))
                     {
                         Console.Error.WriteLine($"ERROR: Could not parse {"test count"} value: {args[i]}");
                         return 1;
