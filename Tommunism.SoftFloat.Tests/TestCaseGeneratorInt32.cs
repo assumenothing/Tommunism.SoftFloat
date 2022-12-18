@@ -43,7 +43,10 @@ using Tommunism.RandomNumbers;
 
 namespace Tommunism.SoftFloat.Tests;
 
-internal static class GenerateCasesUInt32
+/// <summary>
+/// Container type for generating signed 32-bit integer test cases.
+/// </summary>
+internal static class TestCaseGeneratorInt32
 {
     #region Fields
 
@@ -214,11 +217,44 @@ internal static class GenerateCasesUInt32
         0x0000000F
     };
 
+    private static readonly uint[] PInfWeightOffsets = new uint[NumPInfWeightMasks]
+    {
+        0x00000000,
+        0xC0000000,
+        0xE0000000,
+        0xF0000000,
+        0xF8000000,
+        0xFC000000,
+        0xFE000000,
+        0xFF000000,
+        0xFF800000,
+        0xFFC00000,
+        0xFFE00000,
+        0xFFF00000,
+        0xFFF80000,
+        0xFFFC0000,
+        0xFFFE0000,
+        0xFFFF0000,
+        0xFFFF8000,
+        0xFFFFC000,
+        0xFFFFE000,
+        0xFFFFF000,
+        0xFFFFF800,
+        0xFFFFFC00,
+        0xFFFFFE00,
+        0xFFFFFF00,
+        0xFFFFFF80,
+        0xFFFFFFC0,
+        0xFFFFFFE0,
+        0xFFFFFFF0,
+        0xFFFFFFF8
+    };
+
     #endregion
 
     #region Constructors
 
-    static GenerateCasesUInt32()
+    static TestCaseGeneratorInt32()
     {
         // Generate binary search indexes for P1.
         var remaining = NumP1;
@@ -238,13 +274,19 @@ internal static class GenerateCasesUInt32
 
     #region Methods
 
-    private static uint NextP1(int index)
+    public static TestCaseGenerator Create(int argumentCount, int level = 1) => argumentCount switch
+    {
+        0 or 1 => new Args1(level),
+        _ => throw new NotImplementedException()
+    };
+
+    private static int NextP1(int index)
     {
         Debug.Assert(index is >= 0 and < NumP1);
-        return P1[index];
+        return (int)P1[index];
     }
 
-    private static uint NextP2(int index)
+    private static int NextP2(int index)
     {
         Debug.Assert(index is >= 0 and < NumP2);
 
@@ -256,29 +298,32 @@ internal static class GenerateCasesUInt32
         Debug.Assert(term1Num is >= 0 and < NumP1);
         Debug.Assert(term2Num >= term1Num && term2Num < NumP1);
 
-        return P1[term1Num] + P1[term2Num];
+        return (int)(P1[term1Num] + P1[term2Num]);
     }
 
-    private static uint RandomP3(ref ThreefryRandom rng) =>
-        P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)];
+    private static int RandomP3(ref ThreefryRandom rng) =>
+        (int)(P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)]);
 
-    private static uint RandomPInf(ref ThreefryRandom rng)
+    private static int RandomPInf(ref ThreefryRandom rng)
     {
         int weightMaskNum = rng.NextInt32(NumPInfWeightMasks);
-        return rng.NextUInt32() & PInfWeightMasks[weightMaskNum];
+        return (int)((rng.NextUInt32() & PInfWeightMasks[weightMaskNum]) + PInfWeightOffsets[weightMaskNum]);
     }
 
     #endregion
 
     #region Nested Types
 
-    internal class A : GenerateCasesBase
+    /// <summary>
+    /// Generates single argument signed 32-bit integer test cases.
+    /// </summary>
+    public class Args1 : TestCaseGenerator
     {
         #region Constructors
 
-        public A() { }
+        public Args1() { }
 
-        public A(int level) : base(level) { }
+        public Args1(int level) : base(level) { }
 
         #endregion
 
@@ -299,7 +344,7 @@ internal static class GenerateCasesUInt32
             long subCaseIndex;
             var rng = new ThreefryRandom(index, Program.ThreefrySeed4x64, stackalloc ulong[ThreefryRandom.ResultsSize]);
 
-            uint ui32_a;
+            int i32_a;
 
             switch (Level)
             {
@@ -310,17 +355,17 @@ internal static class GenerateCasesUInt32
                     {
                         case 0:
                         {
-                            ui32_a = RandomP3(ref rng);
+                            i32_a = RandomP3(ref rng);
                             break;
                         }
                         case 1:
                         {
-                            ui32_a = RandomPInf(ref rng);
+                            i32_a = RandomPInf(ref rng);
                             break;
                         }
                         case 2:
                         {
-                            ui32_a = NextP1((int)(subCaseIndex % NumP1));
+                            i32_a = NextP1((int)(subCaseIndex % NumP1));
                             break;
                         }
                         default:
@@ -340,12 +385,12 @@ internal static class GenerateCasesUInt32
                     {
                         case 0:
                         {
-                            ui32_a = RandomP3(ref rng);
+                            i32_a = RandomP3(ref rng);
                             break;
                         }
                         case 2:
                         {
-                            ui32_a = RandomPInf(ref rng);
+                            i32_a = RandomPInf(ref rng);
                             break;
                         }
                         case 3:
@@ -356,7 +401,7 @@ internal static class GenerateCasesUInt32
                             if ((int)subCase != 1)
                                 subCaseIndex |= 1;
 
-                            ui32_a = NextP2((int)(subCaseIndex % NumP2));
+                            i32_a = NextP2((int)(subCaseIndex % NumP2));
                             break;
                         }
                         default:
@@ -374,7 +419,7 @@ internal static class GenerateCasesUInt32
                 }
             }
 
-            return new TestRunnerArguments(ui32_a);
+            return new TestRunnerArguments(i32_a);
         }
 
         protected override long CalculateTotalCases() => Level switch

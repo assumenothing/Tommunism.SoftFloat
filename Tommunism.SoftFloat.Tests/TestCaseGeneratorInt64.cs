@@ -43,7 +43,10 @@ using Tommunism.RandomNumbers;
 
 namespace Tommunism.SoftFloat.Tests;
 
-internal static class GenerateCasesUInt64
+/// <summary>
+/// Container type for generating signed 64-bit integer test cases.
+/// </summary>
+internal static class TestCaseGeneratorInt64
 {
     #region Fields
 
@@ -374,11 +377,76 @@ internal static class GenerateCasesUInt64
         0x000000000000000F
     };
 
+    private static readonly ulong[] PInfWeightOffsets = new ulong[NumPInfWeightMasks]
+    {
+        0x0000000000000000,
+        0xC000000000000000,
+        0xE000000000000000,
+        0xF000000000000000,
+        0xF800000000000000,
+        0xFC00000000000000,
+        0xFE00000000000000,
+        0xFF00000000000000,
+        0xFF80000000000000,
+        0xFFC0000000000000,
+        0xFFE0000000000000,
+        0xFFF0000000000000,
+        0xFFF8000000000000,
+        0xFFFC000000000000,
+        0xFFFE000000000000,
+        0xFFFF000000000000,
+        0xFFFF800000000000,
+        0xFFFFC00000000000,
+        0xFFFFE00000000000,
+        0xFFFFF00000000000,
+        0xFFFFF80000000000,
+        0xFFFFFC0000000000,
+        0xFFFFFE0000000000,
+        0xFFFFFF0000000000,
+        0xFFFFFF8000000000,
+        0xFFFFFFC000000000,
+        0xFFFFFFE000000000,
+        0xFFFFFFF000000000,
+        0xFFFFFFF800000000,
+        0xFFFFFFFC00000000,
+        0xFFFFFFFE00000000,
+        0xFFFFFFFF00000000,
+        0xFFFFFFFF80000000,
+        0xFFFFFFFFC0000000,
+        0xFFFFFFFFE0000000,
+        0xFFFFFFFFF0000000,
+        0xFFFFFFFFF8000000,
+        0xFFFFFFFFFC000000,
+        0xFFFFFFFFFE000000,
+        0xFFFFFFFFFF000000,
+        0xFFFFFFFFFF800000,
+        0xFFFFFFFFFFC00000,
+        0xFFFFFFFFFFE00000,
+        0xFFFFFFFFFFF00000,
+        0xFFFFFFFFFFF80000,
+        0xFFFFFFFFFFFC0000,
+        0xFFFFFFFFFFFE0000,
+        0xFFFFFFFFFFFF0000,
+        0xFFFFFFFFFFFF8000,
+        0xFFFFFFFFFFFFC000,
+        0xFFFFFFFFFFFFE000,
+        0xFFFFFFFFFFFFF000,
+        0xFFFFFFFFFFFFF800,
+        0xFFFFFFFFFFFFFC00,
+        0xFFFFFFFFFFFFFE00,
+        0xFFFFFFFFFFFFFF00,
+        0xFFFFFFFFFFFFFF80,
+        0xFFFFFFFFFFFFFFC0,
+        0xFFFFFFFFFFFFFFE0,
+        0xFFFFFFFFFFFFFFF0,
+        0xFFFFFFFFFFFFFFF8
+    };
+
     #endregion
 
     #region Constructors
 
-    static GenerateCasesUInt64()
+    static TestCaseGeneratorInt64()
     {
         // Generate binary search indexes for P1.
         var remaining = NumP1;
@@ -398,13 +466,19 @@ internal static class GenerateCasesUInt64
 
     #region Methods
 
-    private static ulong NextP1(int index)
+    public static TestCaseGenerator Create(int argumentCount, int level = 1) => argumentCount switch
+    {
+        0 or 1 => new Args1(level),
+        _ => throw new NotImplementedException()
+    };
+
+    private static long NextP1(int index)
     {
         Debug.Assert(index is >= 0 and < NumP1);
-        return P1[index];
+        return (long)P1[index];
     }
 
-    private static ulong NextP2(int index)
+    private static long NextP2(int index)
     {
         Debug.Assert(index is >= 0 and < NumP2);
 
@@ -416,29 +490,32 @@ internal static class GenerateCasesUInt64
         Debug.Assert(term1Num is >= 0 and < NumP1);
         Debug.Assert(term2Num >= term1Num && term2Num < NumP1);
 
-        return P1[term1Num] + P1[term2Num];
+        return (long)(P1[term1Num] + P1[term2Num]);
     }
 
-    private static ulong RandomP3(ref ThreefryRandom rng) =>
-        P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)];
+    private static long RandomP3(ref ThreefryRandom rng) =>
+        (long)(P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)] + P1[rng.NextInt32(NumP1)]);
 
-    private static ulong RandomPInf(ref ThreefryRandom rng)
+    private static long RandomPInf(ref ThreefryRandom rng)
     {
         int weightMaskNum = rng.NextInt32(NumPInfWeightMasks);
-        return rng.NextUInt64() & PInfWeightMasks[weightMaskNum];
+        return (long)((rng.NextUInt64() & PInfWeightMasks[weightMaskNum]) + PInfWeightOffsets[weightMaskNum]);
     }
 
     #endregion
 
     #region Nested Types
 
-    internal class A : GenerateCasesBase
+    /// <summary>
+    /// Generates single argument signed 64-bit integer test cases.
+    /// </summary>
+    public class Args1 : TestCaseGenerator
     {
         #region Constructors
 
-        public A() { }
+        public Args1() { }
 
-        public A(int level) : base(level) { }
+        public Args1(int level) : base(level) { }
 
         #endregion
 
@@ -459,7 +536,7 @@ internal static class GenerateCasesUInt64
             long subCaseIndex;
             var rng = new ThreefryRandom(index, Program.ThreefrySeed4x64, stackalloc ulong[ThreefryRandom.ResultsSize]);
 
-            ulong ui64_a;
+            long i64_a;
 
             switch (Level)
             {
@@ -470,17 +547,17 @@ internal static class GenerateCasesUInt64
                     {
                         case 0:
                         {
-                            ui64_a = RandomP3(ref rng);
+                            i64_a = RandomP3(ref rng);
                             break;
                         }
                         case 1:
                         {
-                            ui64_a = RandomPInf(ref rng);
+                            i64_a = RandomPInf(ref rng);
                             break;
                         }
                         case 2:
                         {
-                            ui64_a = NextP1((int)(subCaseIndex % NumP1));
+                            i64_a = NextP1((int)(subCaseIndex % NumP1));
                             break;
                         }
                         default:
@@ -500,12 +577,12 @@ internal static class GenerateCasesUInt64
                     {
                         case 0:
                         {
-                            ui64_a = RandomP3(ref rng);
+                            i64_a = RandomP3(ref rng);
                             break;
                         }
                         case 2:
                         {
-                            ui64_a = RandomPInf(ref rng);
+                            i64_a = RandomPInf(ref rng);
                             break;
                         }
                         case 3:
@@ -516,7 +593,7 @@ internal static class GenerateCasesUInt64
                             if ((int)subCase != 1)
                                 subCaseIndex |= 1;
 
-                            ui64_a = NextP2((int)(subCaseIndex % NumP2));
+                            i64_a = NextP2((int)(subCaseIndex % NumP2));
                             break;
                         }
                         default:
@@ -534,7 +611,7 @@ internal static class GenerateCasesUInt64
                 }
             }
 
-            return new TestRunnerArguments(ui64_a);
+            return new TestRunnerArguments(i64_a);
         }
 
         protected override long CalculateTotalCases() => Level switch

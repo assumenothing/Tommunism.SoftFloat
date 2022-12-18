@@ -43,7 +43,10 @@ using Tommunism.RandomNumbers;
 
 namespace Tommunism.SoftFloat.Tests;
 
-internal static class GenerateCasesExtFloat80
+/// <summary>
+/// Container type for generating extended double-precision 80-bit floating-point test cases.
+/// </summary>
+internal static class TestCaseGeneratorExtFloat80
 {
     #region Fields
 
@@ -466,6 +469,14 @@ internal static class GenerateCasesExtFloat80
 
     #region Methods
 
+    public static TestCaseGenerator Create(int argumentCount, int level = 1) => argumentCount switch
+    {
+        1 => new Args1(level),
+        2 => new Args2(level),
+        3 => new Args3(level),
+        _ => throw new NotImplementedException()
+    };
+
     private static ExtFloat80 NextQInP1(int index)
     {
         Debug.Assert(index is >= 0 and < NumQInP1);
@@ -597,13 +608,16 @@ internal static class GenerateCasesExtFloat80
 
     #region Nested Types
 
-    internal class A : GenerateCasesBase
+    /// <summary>
+    /// Generates single argument extended double-precision 80-bit floating-point test cases.
+    /// </summary>
+    public class Args1 : TestCaseGenerator
     {
         #region Constructors
 
-        public A() { }
+        public Args1() { }
 
-        public A(int level) : base(level) { }
+        public Args1(int level) : base(level) { }
 
         #endregion
 
@@ -697,13 +711,16 @@ internal static class GenerateCasesExtFloat80
         #endregion
     }
 
-    internal class AB : GenerateCasesBase
+    /// <summary>
+    /// Generates double argument extended double-precision 80-bit floating-point test cases.
+    /// </summary>
+    public class Args2 : TestCaseGenerator
     {
         #region Constructors
 
-        public AB() { }
+        public Args2() { }
 
-        public AB(int level) : base(level) { }
+        public Args2(int level) : base(level) { }
 
         #endregion
 
@@ -826,13 +843,16 @@ internal static class GenerateCasesExtFloat80
         #endregion
     }
 
-    internal class ABC : GenerateCasesBase
+    /// <summary>
+    /// Generates triple argument extended double-precision 80-bit floating-point test cases.
+    /// </summary>
+    public class Args3 : TestCaseGenerator
     {
         #region Constructors
 
-        public ABC() { }
+        public Args3() { }
 
-        public ABC(int level) : base(level) { }
+        public Args3(int level) : base(level) { }
 
         #endregion
 

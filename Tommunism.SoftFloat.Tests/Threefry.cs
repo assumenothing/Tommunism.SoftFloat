@@ -98,7 +98,7 @@ internal static class Threefry
             }
         }
 
-        // Run the test a few times to get a reasonable good distribution of timings.
+        // Run the test a few times to get a reasonably good distribution of timings.
         for (var i = 0; i < 10; i++)
         {
             if (i != 0) Console.WriteLine();
@@ -114,7 +114,7 @@ internal static class Threefry
 #endif
 }
 
-// From my quick benchmarks, it looks like 4x32 and 4x64 are basically tied for first and second place, 2x32 is in third (barely), and 4x32
+// From my quick benchmarks, it looks like 4x64 and 2x64 are basically tied for first and second place, 2x32 is in third (barely), and 4x32
 // is fourth (by a fairly large margin).
 
 #if false
