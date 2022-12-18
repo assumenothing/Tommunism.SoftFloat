@@ -1417,7 +1417,7 @@ internal ref struct ThreefryRandom
         Debug.Assert(_results.Length == ResultsSize, "Results buffer is invalid. Did you accidentally create a default instance of this type or use the parameterless constructor?");
 
         // Consume all results first before moving on to the next random results.
-        int resultIndex = (int)((uint)_counter & 3);
+        nuint resultIndex = (nuint)_counter & 3;
         if (resultIndex == 0)
         {
             // Fill the random results up with more random data.
@@ -1431,7 +1431,7 @@ internal ref struct ThreefryRandom
         }
 
         //ulong result = _results[resultIndex]; // possibly some slowdown due to bounds checking
-        ulong result = Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_results), (nuint)resultIndex << 3);
+        ulong result = Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_results), resultIndex << 3);
         _counter++;
         return result;
     }
@@ -1521,7 +1521,7 @@ internal ref struct ThreefryRandom
         {
             // Narrow down to the smallest range [0, 2^bits] that contains maxValue.
             // Then repeatedly generate a value in that outer range until we get one within the inner range.
-            int bits = Log2Ceiling((uint)maxValue);
+            int bits = Log2Ceiling((ulong)maxValue);
             while (true)
             {
                 ulong result = NextUInt64Core() >> (sizeof(ulong) * 8 - bits);
