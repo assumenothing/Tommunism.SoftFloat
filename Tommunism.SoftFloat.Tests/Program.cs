@@ -20,6 +20,7 @@ internal static class Program
     public const uint EFF_R = FunctionInfoFlags.EFF_ROUNDINGMODE;
     public const uint EFF_T = FunctionInfoFlags.EFF_TININESSMODE;
     public const uint EFF_T_REDP = FunctionInfoFlags.EFF_TININESSMODE_REDUCEDPREC; // only used by ExtFloat80
+    public const uint SOFTFLOAT = FunctionInfoFlags.SOFTFLOAT;
 
     // This table was copied from functionInfos.c in TestFloat-3e.
     public static readonly Dictionary<string, FunctionInfoFlags> FunctionInfos = new()
@@ -45,23 +46,23 @@ internal static class Program
         { "i64_to_extF80",  ARG_1         },
         { "i64_to_f128",    ARG_1         },
 
-        { "f16_to_ui32", ARG_1 | ARG_R | ARG_E },
-        { "f16_to_ui64", ARG_1 | ARG_R | ARG_E },
-        { "f16_to_i32",  ARG_1 | ARG_R | ARG_E },
-        { "f16_to_i64",  ARG_1 | ARG_R | ARG_E },
-        //{ "f16_to_ui32_r_minMag", ARG_1 | ARG_E },
-        //{ "f16_to_ui64_r_minMag", ARG_1 | ARG_E },
-        //{ "f16_to_i32_r_minMag",  ARG_1 | ARG_E },
-        //{ "f16_to_i64_r_minMag",  ARG_1 | ARG_E },
-        { "f16_to_f32",    ARG_1 },
-        { "f16_to_f64",    ARG_1 },
-        { "f16_to_extF80", ARG_1 },
-        { "f16_to_f128",   ARG_1 },
-        { "f16_roundToInt", ARG_1 | ARG_R | ARG_E },
+        { "f16_to_ui32",      ARG_1 | ARG_R | ARG_E },
+        { "f16_to_ui64",      ARG_1 | ARG_R | ARG_E },
+        { "f16_to_i32",       ARG_1 | ARG_R | ARG_E },
+        { "f16_to_i64",       ARG_1 | ARG_R | ARG_E },
+        { "f16_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f16_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f16_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f16_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f16_to_f32",       ARG_1 },
+        { "f16_to_f64",       ARG_1 },
+        { "f16_to_extF80",    ARG_1 },
+        { "f16_to_f128",      ARG_1 },
+        { "f16_roundToInt",   ARG_1 | ARG_R | ARG_E },
         { "f16_add",          ARG_2 | EFF_R         },
         { "f16_sub",          ARG_2 | EFF_R         },
         { "f16_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f16_mulAdd",               EFF_R | EFF_T },
+        { "f16_mulAdd",       ARG_3 | EFF_R | EFF_T },
         { "f16_div",          ARG_2 | EFF_R         },
         { "f16_rem",          ARG_2                 },
         { "f16_sqrt",         ARG_1 | EFF_R         },
@@ -72,23 +73,23 @@ internal static class Program
         { "f16_le_quiet",     ARG_2                 },
         { "f16_lt_quiet",     ARG_2                 },
 
-        { "f32_to_ui32", ARG_1 | ARG_R | ARG_E },
-        { "f32_to_ui64", ARG_1 | ARG_R | ARG_E },
-        { "f32_to_i32",  ARG_1 | ARG_R | ARG_E },
-        { "f32_to_i64",  ARG_1 | ARG_R | ARG_E },
-        //{ "f32_to_ui32_r_minMag", ARG_1 | ARG_E },
-        //{ "f32_to_ui64_r_minMag", ARG_1 | ARG_E },
-        //{ "f32_to_i32_r_minMag",  ARG_1 | ARG_E },
-        //{ "f32_to_i64_r_minMag",  ARG_1 | ARG_E },
-        { "f32_to_f16", ARG_1 | EFF_R | EFF_T },
-        { "f32_to_f64",    ARG_1 },
-        { "f32_to_extF80", ARG_1 },
-        { "f32_to_f128",   ARG_1 },
-        { "f32_roundToInt", ARG_1 | ARG_R | ARG_E },
+        { "f32_to_ui32",      ARG_1 | ARG_R | ARG_E },
+        { "f32_to_ui64",      ARG_1 | ARG_R | ARG_E },
+        { "f32_to_i32",       ARG_1 | ARG_R | ARG_E },
+        { "f32_to_i64",       ARG_1 | ARG_R | ARG_E },
+        { "f32_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f32_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f32_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f32_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f32_to_f16",       ARG_1 | EFF_R | EFF_T },
+        { "f32_to_f64",       ARG_1 },
+        { "f32_to_extF80",    ARG_1 },
+        { "f32_to_f128",      ARG_1 },
+        { "f32_roundToInt",   ARG_1 | ARG_R | ARG_E },
         { "f32_add",          ARG_2 | EFF_R         },
         { "f32_sub",          ARG_2 | EFF_R         },
         { "f32_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f32_mulAdd",               EFF_R | EFF_T },
+        { "f32_mulAdd",       ARG_3 | EFF_R | EFF_T },
         { "f32_div",          ARG_2 | EFF_R         },
         { "f32_rem",          ARG_2                 },
         { "f32_sqrt",         ARG_1 | EFF_R         },
@@ -99,23 +100,23 @@ internal static class Program
         { "f32_le_quiet",     ARG_2                 },
         { "f32_lt_quiet",     ARG_2                 },
 
-        { "f64_to_ui32", ARG_1 | ARG_R | ARG_E },
-        { "f64_to_ui64", ARG_1 | ARG_R | ARG_E },
-        { "f64_to_i32",  ARG_1 | ARG_R | ARG_E },
-        { "f64_to_i64",  ARG_1 | ARG_R | ARG_E },
-        //{ "f64_to_ui32_r_minMag", ARG_1 | ARG_E },
-        //{ "f64_to_ui64_r_minMag", ARG_1 | ARG_E },
-        //{ "f64_to_i32_r_minMag",  ARG_1 | ARG_E },
-        //{ "f64_to_i64_r_minMag",  ARG_1 | ARG_E },
-        { "f64_to_f16", ARG_1 | EFF_R | EFF_T },
-        { "f64_to_f32", ARG_1 | EFF_R | EFF_T },
-        { "f64_to_extF80", ARG_1 },
-        { "f64_to_f128",   ARG_1 },
-        { "f64_roundToInt", ARG_1 | ARG_R | ARG_E },
+        { "f64_to_ui32",      ARG_1 | ARG_R | ARG_E },
+        { "f64_to_ui64",      ARG_1 | ARG_R | ARG_E },
+        { "f64_to_i32",       ARG_1 | ARG_R | ARG_E },
+        { "f64_to_i64",       ARG_1 | ARG_R | ARG_E },
+        { "f64_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f64_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f64_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f64_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f64_to_f16",       ARG_1 | EFF_R | EFF_T },
+        { "f64_to_f32",       ARG_1 | EFF_R | EFF_T },
+        { "f64_to_extF80",    ARG_1 },
+        { "f64_to_f128",      ARG_1 },
+        { "f64_roundToInt",   ARG_1 | ARG_R | ARG_E },
         { "f64_add",          ARG_2 | EFF_R         },
         { "f64_sub",          ARG_2 | EFF_R         },
         { "f64_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f64_mulAdd",               EFF_R | EFF_T },
+        { "f64_mulAdd",       ARG_3 | EFF_R | EFF_T },
         { "f64_div",          ARG_2 | EFF_R         },
         { "f64_rem",          ARG_2                 },
         { "f64_sqrt",         ARG_1 | EFF_R         },
@@ -126,19 +127,19 @@ internal static class Program
         { "f64_le_quiet",     ARG_2                 },
         { "f64_lt_quiet",     ARG_2                 },
 
-        { "extF80_to_ui32", ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_ui64", ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_i32",  ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_i64",  ARG_1 | ARG_R | ARG_E },
-        //{ "extF80_to_ui32_r_minMag", ARG_1 | ARG_E },
-        //{ "extF80_to_ui64_r_minMag", ARG_1 | ARG_E },
-        //{ "extF80_to_i32_r_minMag",  ARG_1 | ARG_E },
-        //{ "extF80_to_i64_r_minMag",  ARG_1 | ARG_E },
-        { "extF80_to_f16", ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f32", ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f64", ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f128", ARG_1 },
-        { "extF80_roundToInt", ARG_1 | ARG_R | ARG_E },
+        { "extF80_to_ui32",      ARG_1 | ARG_R | ARG_E },
+        { "extF80_to_ui64",      ARG_1 | ARG_R | ARG_E },
+        { "extF80_to_i32",       ARG_1 | ARG_R | ARG_E },
+        { "extF80_to_i64",       ARG_1 | ARG_R | ARG_E },
+        { "extF80_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "extF80_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "extF80_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "extF80_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "extF80_to_f16",       ARG_1 | EFF_R | EFF_T },
+        { "extF80_to_f32",       ARG_1 | EFF_R | EFF_T },
+        { "extF80_to_f64",       ARG_1 | EFF_R | EFF_T },
+        { "extF80_to_f128",      ARG_1 },
+        { "extF80_roundToInt",   ARG_1 | ARG_R | ARG_E },
         { "extF80_add",          ARG_2 | EFF_P | EFF_R         | EFF_T_REDP },
         { "extF80_sub",          ARG_2 | EFF_P | EFF_R         | EFF_T_REDP },
         { "extF80_mul",          ARG_2 | EFF_P | EFF_R | EFF_T | EFF_T_REDP },
@@ -152,23 +153,23 @@ internal static class Program
         { "extF80_le_quiet",     ARG_2                                      },
         { "extF80_lt_quiet",     ARG_2                                      },
 
-        { "f128_to_ui32", ARG_1 | ARG_R | ARG_E },
-        { "f128_to_ui64", ARG_1 | ARG_R | ARG_E },
-        { "f128_to_i32",  ARG_1 | ARG_R | ARG_E },
-        { "f128_to_i64",  ARG_1 | ARG_R | ARG_E },
-        //{ "f128_to_ui32_r_minMag", ARG_1 | ARG_E },
-        //{ "f128_to_ui64_r_minMag", ARG_1 | ARG_E },
-        //{ "f128_to_i32_r_minMag",  ARG_1 | ARG_E },
-        //{ "f128_to_i64_r_minMag",  ARG_1 | ARG_E },
-        { "f128_to_f16",    ARG_1 | EFF_R | EFF_T },
-        { "f128_to_f32",    ARG_1 | EFF_R | EFF_T },
-        { "f128_to_f64",    ARG_1 | EFF_R | EFF_T },
-        { "f128_to_extF80", ARG_1 | EFF_R | EFF_T },
-        { "f128_roundToInt", ARG_1 | ARG_R | ARG_E },
+        { "f128_to_ui32",      ARG_1 | ARG_R | ARG_E },
+        { "f128_to_ui64",      ARG_1 | ARG_R | ARG_E },
+        { "f128_to_i32",       ARG_1 | ARG_R | ARG_E },
+        { "f128_to_i64",       ARG_1 | ARG_R | ARG_E },
+        { "f128_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f128_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
+        { "f128_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f128_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
+        { "f128_to_f16",       ARG_1 | EFF_R | EFF_T },
+        { "f128_to_f32",       ARG_1 | EFF_R | EFF_T },
+        { "f128_to_f64",       ARG_1 | EFF_R | EFF_T },
+        { "f128_to_extF80",    ARG_1 | EFF_R | EFF_T },
+        { "f128_roundToInt",   ARG_1 | ARG_R | ARG_E },
         { "f128_add",          ARG_2 | EFF_R         },
         { "f128_sub",          ARG_2 | EFF_R         },
         { "f128_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f128_mulAdd",               EFF_R | EFF_T },
+        { "f128_mulAdd",       ARG_3 | EFF_R | EFF_T },
         { "f128_div",          ARG_2 | EFF_R         },
         { "f128_rem",          ARG_2                 },
         { "f128_sqrt",         ARG_1 | EFF_R         },
@@ -210,6 +211,10 @@ internal static class Program
         { "f16_to_ui64",            ("f16", 1) },
         { "f16_to_i32",             ("f16", 1) },
         { "f16_to_i64",             ("f16", 1) },
+        { "f16_to_ui32_r_minMag",   ("f16", 1) },
+        { "f16_to_ui64_r_minMag",   ("f16", 1) },
+        { "f16_to_i32_r_minMag",    ("f16", 1) },
+        { "f16_to_i64_r_minMag",    ("f16", 1) },
         { "f16_to_f32",             ("f16", 1) },
         { "f16_to_f64",             ("f16", 1) },
         { "f16_to_extF80",          ("f16", 1) },
@@ -233,6 +238,10 @@ internal static class Program
         { "f32_to_ui64",            ("f32", 1) },
         { "f32_to_i32",             ("f32", 1) },
         { "f32_to_i64",             ("f32", 1) },
+        { "f32_to_ui32_r_minMag",   ("f32", 1) },
+        { "f32_to_ui64_r_minMag",   ("f32", 1) },
+        { "f32_to_i32_r_minMag",    ("f32", 1) },
+        { "f32_to_i64_r_minMag",    ("f32", 1) },
         { "f32_to_f16",             ("f32", 1) },
         { "f32_to_f64",             ("f32", 1) },
         { "f32_to_extF80",          ("f32", 1) },
@@ -256,6 +265,10 @@ internal static class Program
         { "f64_to_ui64",            ("f64", 1) },
         { "f64_to_i32",             ("f64", 1) },
         { "f64_to_i64",             ("f64", 1) },
+        { "f64_to_ui32_r_minMag",   ("f64", 1) },
+        { "f64_to_ui64_r_minMag",   ("f64", 1) },
+        { "f64_to_i32_r_minMag",    ("f64", 1) },
+        { "f64_to_i64_r_minMag",    ("f64", 1) },
         { "f64_to_f16",             ("f64", 1) },
         { "f64_to_f32",             ("f64", 1) },
         { "f64_to_extF80",          ("f64", 1) },
@@ -279,6 +292,10 @@ internal static class Program
         { "extF80_to_ui64",         ("extF80", 1) },
         { "extF80_to_i32",          ("extF80", 1) },
         { "extF80_to_i64",          ("extF80", 1) },
+        { "extF80_to_ui32_r_minMag",("extF80", 1) },
+        { "extF80_to_ui64_r_minMag",("extF80", 1) },
+        { "extF80_to_i32_r_minMag", ("extF80", 1) },
+        { "extF80_to_i64_r_minMag", ("extF80", 1) },
         { "extF80_to_f16",          ("extF80", 1) },
         { "extF80_to_f32",          ("extF80", 1) },
         { "extF80_to_f64",          ("extF80", 1) },
@@ -301,6 +318,10 @@ internal static class Program
         { "f128_to_ui64",           ("f128", 1) },
         { "f128_to_i32",            ("f128", 1) },
         { "f128_to_i64",            ("f128", 1) },
+        { "f128_to_ui32_r_minMag",  ("f128", 1) },
+        { "f128_to_ui64_r_minMag",  ("f128", 1) },
+        { "f128_to_i32_r_minMag",   ("f128", 1) },
+        { "f128_to_i64_r_minMag",   ("f128", 1) },
         { "f128_to_f16",            ("f128", 1) },
         { "f128_to_f32",            ("f128", 1) },
         { "f128_to_f64",            ("f128", 1) },
@@ -735,28 +756,22 @@ internal static class Program
                 if (arg.IsEmpty)
                 {
                     // All functions.
-                    TestFunctions.UnionWith(FunctionInfos.Keys);
+                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("1"))
                 {
                     // Only functions with a single argument.
-                    foreach (var func in FunctionInfos)
-                        if (func.Value.ArgumentCount == 1)
-                            TestFunctions.Add(func.Key);
+                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 1).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("2"))
                 {
                     // Only functions with two arguments.
-                    foreach (var func in FunctionInfos)
-                        if (func.Value.ArgumentCount == 2)
-                            TestFunctions.Add(func.Key);
+                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 2).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("3"))
                 {
                     // Only functions with three arguments.
-                    foreach (var func in FunctionInfos)
-                        if (func.Value.ArgumentCount == 3)
-                            TestFunctions.Add(func.Key);
+                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 3).Select(x => x.Key));
                 }
                 else
                 {

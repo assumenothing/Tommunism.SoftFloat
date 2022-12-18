@@ -13,9 +13,11 @@ internal readonly struct FunctionInfoFlags : IEquatable<FunctionInfoFlags>
     public const uint EFF_ROUNDINGMODE = 1 << 5;
     public const uint EFF_TININESSMODE = 1 << 6;
     public const uint EFF_TININESSMODE_REDUCEDPREC = 1 << 7;
+    public const uint SOFTFLOAT = 1 << 8; // extension, for testing SoftFloat-specific functions (not supported by "testfloat_gen")
 
     public const uint ALL_FLAGS = ARG_UNARY | ARG_BINARY | ARG_ROUNDINGMODE | ARG_EXACT |
-        EFF_ROUNDINGPRECISION | EFF_ROUNDINGMODE | EFF_TININESSMODE | EFF_TININESSMODE_REDUCEDPREC;
+        EFF_ROUNDINGPRECISION | EFF_ROUNDINGMODE | EFF_TININESSMODE | EFF_TININESSMODE_REDUCEDPREC |
+        SOFTFLOAT;
 
     private readonly uint _flags;
 
@@ -50,6 +52,8 @@ internal readonly struct FunctionInfoFlags : IEquatable<FunctionInfoFlags>
     public bool AffectedByTininessMode => (_flags & EFF_TININESSMODE) != 0;
 
     public bool AffectedByTininessWithReducedPrecision => (_flags & EFF_TININESSMODE_REDUCEDPREC) != 0;
+
+    public bool TestSoftFloatOnly => (_flags & SOFTFLOAT) != 0;
 
     #endregion
 
@@ -97,6 +101,9 @@ internal readonly struct FunctionInfoFlags : IEquatable<FunctionInfoFlags>
 
         if ((_flags & EFF_TININESSMODE_REDUCEDPREC) != 0)
             builder.Append(" | EFF_TININESSMODE_REDUCEDPREC");
+
+        if ((_flags & SOFTFLOAT) != 0)
+            builder.Append(" | SOFTFLOAT");
 
         // Anything other bits are considered "unimplemented" or "invalid". (This should be extremely rare and ideally never occur, so the
         // performance penalty of string interpolation shouldn't matter much.)
