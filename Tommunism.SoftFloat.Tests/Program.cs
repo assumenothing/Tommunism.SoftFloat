@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 
 namespace Tommunism.SoftFloat.Tests;
@@ -341,6 +342,11 @@ internal static class Program
     /// </summary>
     public static TestRunnerOptions Options { get; private set; } = new();
 
+    public static uint GeneratorSeed => Options.GeneratorSeed ?? 1;
+
+    private static readonly ulong[] _threefrySeed4x64 = new ulong[4];
+    public static ReadOnlySpan<ulong> ThreefrySeed4x64 => _threefrySeed4x64;
+
     // NOTE: These must be function names (see FunctionInfos), not types (as there is no way to test them directly).
     // Using a hash set to avoid duplicate tests being run.
     public static HashSet<string> TestFunctions { get; private set; } = new();
@@ -388,6 +394,13 @@ internal static class Program
 
         testRunner2.MaxTestThreads = MaxTestThreads;
         testRunner2.MaxTestsPerProcess = MaxTestsPerThread;
+
+        // Generate the seed (key) to use for Threefry4x64 calls. This is derived from the options seed value.
+        // Try to get a good random bit distribution by using Random.NextBytes over the entire seed array's bytes.
+        {
+            var rng = new Random((int)GeneratorSeed);
+            rng.NextBytes(MemoryMarshal.AsBytes(_threefrySeed4x64.AsSpan()));
+        }
 
         // Let's run some actual tests.
         var failureCount = 0;
