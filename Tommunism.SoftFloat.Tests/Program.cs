@@ -6,9 +6,13 @@ namespace Tommunism.SoftFloat.Tests;
 
 internal static class Program
 {
-    public static string GeneratorCommandPath { get; private set; } = "testfloat_gen";
+    // If this is empty, then use the builtin case generator (if used then fast verification not possible).
+    // The builtin generator is theoretically faster, due to being able to generate test cases in parallel.
+    public static string GeneratorCommandPath { get; private set; } = ""; // or use the possibly slower serial "testfloat_gen" application
 
     public static string VerifierCommandPath { get; private set; } = "testfloat_ver";
+
+    public static bool UseBuiltinGenerator => string.IsNullOrEmpty(GeneratorCommandPath);
 
     // NOTE: If ARG_1 or ARG_2 bits are not set, then three operands is implied (e.g., *_mulAdd are three operand functions).
     public const uint ARG_1 = FunctionInfoFlags.ARG_UNARY;
@@ -374,10 +378,10 @@ internal static class Program
 
     // NOTE: The higher this value is, the longer it will take to start verifying (as the generator has to generate this many tests before
     // starting executing tests and verification).
-    public static int MaxTestsPerThread { get; private set; } = 1_000_000;
+    public static int? MaxTestsPerThread { get; private set; } = null;
 
     // NOTE: If zero, then the max number of threads is the number of cores/threads on the CPU.
-    public static int MaxTestThreads { get; private set; } = 0;
+    public static int? MaxTestThreads { get; private set; } = null;
 
     // If true, then TestRunner (synchronous) will be used; otherwise, TestRunner2 (asynchronous) will be used. There may be some
     // variations between how they run, but it should be "okay".
@@ -403,7 +407,8 @@ internal static class Program
         // This technically depends on how TestFloat (and the associated SoftFloat library) was compiled. If running on an ARM processor,
         // then use the VFPv2 implementation by default. Otherwise, use the 8086-SSE implementation on 64-bit processors and the 8086
         // implementation on 32-bit processors by default (unfortunately there is no easy way of knowing what the verifier process is
-        // using--that is why there is an argument to change it).
+        // using--that is why there is an argument to change it). This theoretically shouldn't matter if "-checkNaNs", "-checkInvInts", or
+        // "-checkAll" arguments/options are not specified.
         SoftFloatSpecialize.Default = ArmBase.IsSupported
             ? SoftFloatSpecialize.ArmVfp2.Instance
             : Environment.Is64BitOperatingSystem ? SoftFloatSpecialize.X86Sse.Instance : SoftFloatSpecialize.X86.Instance;
@@ -413,11 +418,12 @@ internal static class Program
         if (argParserResult != 0)
             return argParserResult;
 
-        testRunner2.MaxTestThreads = MaxTestThreads;
-        testRunner2.MaxTestsPerProcess = MaxTestsPerThread;
+        testRunner2.MaxTestThreads = MaxTestThreads ?? 0;
+        testRunner2.MaxTestsPerProcess = MaxTestsPerThread ?? (UseBuiltinGenerator && Options.GeneratorLevel != 2 ? 200_000 : 1_000_000);
 
-        // Generate the seed (key) to use for Threefry4x64 calls. This is derived from the options seed value.
-        // Try to get a good random bit distribution by using Random.NextBytes over the entire seed array's bytes.
+        // Generate the seed (key) to use for Threefry4x64 calls (if the builtin generator is going to be used). This is derived from the
+        // options seed value. Try to get a good random bit distribution by using Random.NextBytes over the entire seed array's bytes.
+        if (UseBuiltinGenerator)
         {
             var rng = new Random((int)GeneratorSeed);
             rng.NextBytes(MemoryMarshal.AsBytes(_threefrySeed4x64.AsSpan()));

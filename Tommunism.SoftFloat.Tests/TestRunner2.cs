@@ -33,7 +33,7 @@ internal class TestRunner2
     public int MaxTestThreads { get; set; } = 0;
 
     // Used to split generated tests between multiple execution/verifier threads.
-    public int MaxTestsPerProcess { get; set; } = 1_000_000; // increasing this adds significant memory costs, but should reduce the number of tasks/processes which have to be spawned
+    public int MaxTestsPerProcess { get; set; } = Program.UseBuiltinGenerator ? 100_000 : 1_000_000; // increasing this adds significant memory costs, but should reduce the number of tasks/processes which have to be spawned
 
     public TestRunnerOptions Options
     {
@@ -59,8 +59,15 @@ internal class TestRunner2
 
     public Task<bool> RunAsync() => RunAsync(CancellationToken.None);
 
+    public Task<bool> RunAsync(CancellationToken cancellationToken)
+    {
+        return Program.UseBuiltinGenerator
+            ? RunGeneratorBuiltinAsync(cancellationToken)
+            : RunGeneratorProcessAsync(cancellationToken);
+    }
+
     // TODO: Add support for cancellation? May not be complete...
-    public async Task<bool> RunAsync(CancellationToken cancellationToken)
+    private async Task<bool> RunGeneratorProcessAsync(CancellationToken cancellationToken)
     {
         var options = Options;
         var testFunction = TestFunction;
@@ -247,6 +254,150 @@ internal class TestRunner2
 
                 // Run test and get result.
                 var testData = testsSpan[i];
+                var result = testHandler(state, testData);
+                testData.SetResult(result, state.AppendResultsToArguments);
+
+                // Add test results to verifier queue.
+                verifier.AddResult(testData);
+            }
+
+            // Stop the verifier process and return the result.
+            var verifierResult = verifier.Stop();
+            return verifierResult;
+        }
+        finally
+        {
+            var verifierProcess = verifier.Process;
+            if (verifierProcess != null)
+            {
+                if (!verifierProcess.HasExited)
+                    verifierProcess.Kill();
+                verifierProcess.Dispose();
+            }
+        }
+    }
+
+    private async Task<bool> RunGeneratorBuiltinAsync(CancellationToken cancellationToken)
+    {
+        var options = Options;
+        var testFunction = TestFunction;
+        var generatorTypeName = GeneratorTypeOrFunction;
+        var generatorTypeOperandCount = generatorTypeName != null ? GeneratorTypeOperandCount : 0;
+        var testHandler = TestHandler;
+
+        if (testHandler == null)
+            throw new InvalidOperationException("Test handler is not defined.");
+
+        // Try to get the generator type name from the TestFunction or GeneratorTypeOrFunction properties.
+        if (generatorTypeName == null)
+        {
+            if (!Program.GeneratorTypes.TryGetValue(testFunction, out var generatorType))
+                throw new InvalidOperationException("Test function is either not implemented or has no known generator type.");
+
+            generatorTypeName = generatorType.TypeName;
+            generatorTypeOperandCount = generatorType.ArgCount;
+        }
+        else if (Program.GeneratorTypes.TryGetValue(generatorTypeName, out var generatorType))
+        {
+            // For whatever reason, the user wants to generate arguments for a function that is possibly different from the verifier's test function.
+            generatorTypeName = generatorType.TypeName;
+            generatorTypeOperandCount = generatorType.ArgCount;
+        }
+
+        // Create the test case generator and get the total number of test cases.
+        var generator = TestCaseGenerator.FromTypeName(generatorTypeName, generatorTypeOperandCount, options.GeneratorLevel ?? 1);
+        var testCases = generator.TotalCount;
+        Debug.Assert(testCases >= 0, "Test case generator wants a negative number of test cases.");
+
+        // Did the user specify a custom number of test cases?
+        // NOTE: TestFloat does not allow less than the default number of cases, but this generator will allow any number of tests.
+        // TODO: This implementation currently does not support specifying an infinite number of tests.
+        if (options.GeneratorCount.HasValue)
+        {
+            testCases = options.GeneratorCount.Value;
+            if (testCases <= 0)
+                throw new NotImplementedException("A finite number of test cases must be defined.");
+        }
+
+        // We always need to append the results to the arguments with the builtin test case generator.
+        var state = new TestRunnerState(this, options, testFunction, testHandler, AppendResultsToArguments: true);
+
+        // Use a partitioner to figure out the distribution of tests for multithreaded testing.
+        // Use the MaxTestsPerProcess property to determine the size of each partitioner range.
+        var partitioner = Partitioner.Create(0, testCases, MaxTestsPerProcess);
+
+        // Asynchronously run the test cases.
+        var testProcessFailures = 0;
+        await Parallel.ForEachAsync(partitioner.GetDynamicPartitions(), cancellationToken,
+            (range, cancellationToken) =>
+            {
+#if DEBUG
+                try
+#endif
+                {
+                    // NOTE: Task.CurrentId is always undefined inside the parallel foreach context, use the range instead.
+                    Trace.TraceInformation($"[{range}] Started new test run/verify task.");
+                    var stopwatch = Stopwatch.StartNew();
+
+                    var result = RunTestsCore(state, generator, range, cancellationToken);
+                    if (result != 0)
+                        Interlocked.Increment(ref testProcessFailures);
+
+                    stopwatch.Stop();
+                    Trace.TraceInformation($"[{range}] Task finished in {stopwatch.Elapsed.TotalSeconds:f3} seconds with result {result} ({(result == 0 ? "PASS" : "FAIL")}).");
+                }
+#if DEBUG
+                catch (Exception ex)
+                {
+                    // Make it a little bit easier to debug when something goes wrong?
+                    if (Debugger.IsAttached)
+                        Debugger.Break();
+
+                    throw;
+                }
+#endif
+
+                return ValueTask.CompletedTask;
+            });
+
+        TotalTestCount += testCases;
+        return testProcessFailures == 0;
+    }
+
+    private int RunTestsCore(TestRunnerState state, TestCaseGenerator generator, Tuple<long, long> range, CancellationToken cancellationToken)
+    {
+        Debug.Assert(range.Item1 <= range.Item2, "Test range is invalid.");
+        if (range.Item1 == range.Item2)
+            return 0;
+
+        var testHandler = TestHandler;
+        Debug.Assert(testHandler != null);
+
+        // Make a copy of the state. This is because thread-specific contexts are required.
+        state = new TestRunnerState(this, state.Options, state.TestFunction, state.TestFunctionHandler, state.AppendResultsToArguments);
+
+        // Create the verifier instance.
+        var verifier = new TestVerifier()
+        {
+            Options = state.Options,
+            TestFunction = state.TestFunction,
+            ResultsWriter = Console.Out // TODO: add property for choosing/generating the output streams
+        };
+
+        // Start the verifier process.
+        verifier.Start();
+        try
+        {
+            // Run tests against verifier.
+            for (var i = range.Item1; i < range.Item2; i++)
+            {
+                // TODO: Only check for this every few tests to reduce overhead?
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Generate the test data.
+                var testData = generator.GenerateTestCase(i);
+
+                // Run test and get result.
                 var result = testHandler(state, testData);
                 testData.SetResult(result, state.AppendResultsToArguments);
 
