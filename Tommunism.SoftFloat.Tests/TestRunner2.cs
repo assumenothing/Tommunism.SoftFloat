@@ -291,13 +291,13 @@ internal class TestRunner2
         // Try to get the generator type name from the TestFunction or GeneratorTypeOrFunction properties.
         if (generatorTypeName == null)
         {
-            if (!Program.GeneratorTypes.TryGetValue(testFunction, out var generatorType))
+            if (!FunctionInfo.GeneratorTypes.TryGetValue(testFunction, out var generatorType))
                 throw new InvalidOperationException("Test function is either not implemented or has no known generator type.");
 
             generatorTypeName = generatorType.TypeName;
             generatorTypeOperandCount = generatorType.ArgCount;
         }
-        else if (Program.GeneratorTypes.TryGetValue(generatorTypeName, out var generatorType))
+        else if (FunctionInfo.GeneratorTypes.TryGetValue(generatorTypeName, out var generatorType))
         {
             // For whatever reason, the user wants to generate arguments for a function that is possibly different from the verifier's test function.
             generatorTypeName = generatorType.TypeName;
@@ -347,7 +347,7 @@ internal class TestRunner2
                     Trace.TraceInformation($"[{range}] Task finished in {stopwatch.Elapsed.TotalSeconds:f3} seconds with result {result} ({(result == 0 ? "PASS" : "FAIL")}).");
                 }
 #if DEBUG
-                catch (Exception ex)
+                catch
                 {
                     // Make it a little bit easier to debug when something goes wrong?
                     if (Debugger.IsAttached)

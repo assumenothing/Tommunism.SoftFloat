@@ -14,338 +14,6 @@ internal static class Program
 
     public static bool UseBuiltinGenerator => string.IsNullOrEmpty(GeneratorCommandPath);
 
-    // NOTE: If ARG_1 or ARG_2 bits are not set, then three operands is implied (e.g., *_mulAdd are three operand functions).
-    public const uint ARG_1 = FunctionInfoFlags.ARG_UNARY;
-    public const uint ARG_2 = FunctionInfoFlags.ARG_BINARY;
-    public const uint ARG_3 = FunctionInfoFlags.ARG_TERNARY;
-    public const uint ARG_R = FunctionInfoFlags.ARG_ROUNDINGMODE;
-    public const uint ARG_E = FunctionInfoFlags.ARG_EXACT;
-    public const uint EFF_P = FunctionInfoFlags.EFF_ROUNDINGPRECISION; // only used by ExtFloat80
-    public const uint EFF_R = FunctionInfoFlags.EFF_ROUNDINGMODE;
-    public const uint EFF_T = FunctionInfoFlags.EFF_TININESSMODE;
-    public const uint EFF_T_REDP = FunctionInfoFlags.EFF_TININESSMODE_REDUCEDPREC; // only used by ExtFloat80
-    public const uint SOFTFLOAT = FunctionInfoFlags.SOFTFLOAT;
-
-    // This table was copied from functionInfos.c in TestFloat-3e.
-    public static readonly Dictionary<string, FunctionInfoFlags> FunctionInfos = new()
-    {
-        { "ui32_to_f16",    ARG_1 | EFF_R },
-        { "ui32_to_f32",    ARG_1 | EFF_R },
-        { "ui32_to_f64",    ARG_1         },
-        { "ui32_to_extF80", ARG_1         },
-        { "ui32_to_f128",   ARG_1         },
-        { "ui64_to_f16",    ARG_1 | EFF_R },
-        { "ui64_to_f32",    ARG_1 | EFF_R },
-        { "ui64_to_f64",    ARG_1 | EFF_R },
-        { "ui64_to_extF80", ARG_1         },
-        { "ui64_to_f128",   ARG_1         },
-        { "i32_to_f16",     ARG_1 | EFF_R },
-        { "i32_to_f32",     ARG_1 | EFF_R },
-        { "i32_to_f64",     ARG_1         },
-        { "i32_to_extF80",  ARG_1         },
-        { "i32_to_f128",    ARG_1         },
-        { "i64_to_f16",     ARG_1 | EFF_R },
-        { "i64_to_f32",     ARG_1 | EFF_R },
-        { "i64_to_f64",     ARG_1 | EFF_R },
-        { "i64_to_extF80",  ARG_1         },
-        { "i64_to_f128",    ARG_1         },
-
-        { "f16_to_ui32",      ARG_1 | ARG_R | ARG_E },
-        { "f16_to_ui64",      ARG_1 | ARG_R | ARG_E },
-        { "f16_to_i32",       ARG_1 | ARG_R | ARG_E },
-        { "f16_to_i64",       ARG_1 | ARG_R | ARG_E },
-        { "f16_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f16_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f16_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f16_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f16_to_f32",       ARG_1 },
-        { "f16_to_f64",       ARG_1 },
-        { "f16_to_extF80",    ARG_1 },
-        { "f16_to_f128",      ARG_1 },
-        { "f16_roundToInt",   ARG_1 | ARG_R | ARG_E },
-        { "f16_add",          ARG_2 | EFF_R         },
-        { "f16_sub",          ARG_2 | EFF_R         },
-        { "f16_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f16_mulAdd",       ARG_3 | EFF_R | EFF_T },
-        { "f16_div",          ARG_2 | EFF_R         },
-        { "f16_rem",          ARG_2                 },
-        { "f16_sqrt",         ARG_1 | EFF_R         },
-        { "f16_eq",           ARG_2                 },
-        { "f16_le",           ARG_2                 },
-        { "f16_lt",           ARG_2                 },
-        { "f16_eq_signaling", ARG_2                 },
-        { "f16_le_quiet",     ARG_2                 },
-        { "f16_lt_quiet",     ARG_2                 },
-
-        { "f32_to_ui32",      ARG_1 | ARG_R | ARG_E },
-        { "f32_to_ui64",      ARG_1 | ARG_R | ARG_E },
-        { "f32_to_i32",       ARG_1 | ARG_R | ARG_E },
-        { "f32_to_i64",       ARG_1 | ARG_R | ARG_E },
-        { "f32_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f32_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f32_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f32_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f32_to_f16",       ARG_1 | EFF_R | EFF_T },
-        { "f32_to_f64",       ARG_1 },
-        { "f32_to_extF80",    ARG_1 },
-        { "f32_to_f128",      ARG_1 },
-        { "f32_roundToInt",   ARG_1 | ARG_R | ARG_E },
-        { "f32_add",          ARG_2 | EFF_R         },
-        { "f32_sub",          ARG_2 | EFF_R         },
-        { "f32_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f32_mulAdd",       ARG_3 | EFF_R | EFF_T },
-        { "f32_div",          ARG_2 | EFF_R         },
-        { "f32_rem",          ARG_2                 },
-        { "f32_sqrt",         ARG_1 | EFF_R         },
-        { "f32_eq",           ARG_2                 },
-        { "f32_le",           ARG_2                 },
-        { "f32_lt",           ARG_2                 },
-        { "f32_eq_signaling", ARG_2                 },
-        { "f32_le_quiet",     ARG_2                 },
-        { "f32_lt_quiet",     ARG_2                 },
-
-        { "f64_to_ui32",      ARG_1 | ARG_R | ARG_E },
-        { "f64_to_ui64",      ARG_1 | ARG_R | ARG_E },
-        { "f64_to_i32",       ARG_1 | ARG_R | ARG_E },
-        { "f64_to_i64",       ARG_1 | ARG_R | ARG_E },
-        { "f64_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f64_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f64_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f64_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f64_to_f16",       ARG_1 | EFF_R | EFF_T },
-        { "f64_to_f32",       ARG_1 | EFF_R | EFF_T },
-        { "f64_to_extF80",    ARG_1 },
-        { "f64_to_f128",      ARG_1 },
-        { "f64_roundToInt",   ARG_1 | ARG_R | ARG_E },
-        { "f64_add",          ARG_2 | EFF_R         },
-        { "f64_sub",          ARG_2 | EFF_R         },
-        { "f64_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f64_mulAdd",       ARG_3 | EFF_R | EFF_T },
-        { "f64_div",          ARG_2 | EFF_R         },
-        { "f64_rem",          ARG_2                 },
-        { "f64_sqrt",         ARG_1 | EFF_R         },
-        { "f64_eq",           ARG_2                 },
-        { "f64_le",           ARG_2                 },
-        { "f64_lt",           ARG_2                 },
-        { "f64_eq_signaling", ARG_2                 },
-        { "f64_le_quiet",     ARG_2                 },
-        { "f64_lt_quiet",     ARG_2                 },
-
-        { "extF80_to_ui32",      ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_ui64",      ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_i32",       ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_i64",       ARG_1 | ARG_R | ARG_E },
-        { "extF80_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "extF80_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "extF80_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "extF80_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "extF80_to_f16",       ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f32",       ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f64",       ARG_1 | EFF_R | EFF_T },
-        { "extF80_to_f128",      ARG_1 },
-        { "extF80_roundToInt",   ARG_1 | ARG_R | ARG_E },
-        { "extF80_add",          ARG_2 | EFF_P | EFF_R         | EFF_T_REDP },
-        { "extF80_sub",          ARG_2 | EFF_P | EFF_R         | EFF_T_REDP },
-        { "extF80_mul",          ARG_2 | EFF_P | EFF_R | EFF_T | EFF_T_REDP },
-        { "extF80_div",          ARG_2 | EFF_P | EFF_R         | EFF_T_REDP },
-        { "extF80_rem",          ARG_2                                      },
-        { "extF80_sqrt",         ARG_1 | EFF_P | EFF_R                      },
-        { "extF80_eq",           ARG_2                                      },
-        { "extF80_le",           ARG_2                                      },
-        { "extF80_lt",           ARG_2                                      },
-        { "extF80_eq_signaling", ARG_2                                      },
-        { "extF80_le_quiet",     ARG_2                                      },
-        { "extF80_lt_quiet",     ARG_2                                      },
-
-        { "f128_to_ui32",      ARG_1 | ARG_R | ARG_E },
-        { "f128_to_ui64",      ARG_1 | ARG_R | ARG_E },
-        { "f128_to_i32",       ARG_1 | ARG_R | ARG_E },
-        { "f128_to_i64",       ARG_1 | ARG_R | ARG_E },
-        { "f128_to_ui32_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f128_to_ui64_r_minMag", ARG_1 | ARG_E | SOFTFLOAT },
-        { "f128_to_i32_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f128_to_i64_r_minMag",  ARG_1 | ARG_E | SOFTFLOAT },
-        { "f128_to_f16",       ARG_1 | EFF_R | EFF_T },
-        { "f128_to_f32",       ARG_1 | EFF_R | EFF_T },
-        { "f128_to_f64",       ARG_1 | EFF_R | EFF_T },
-        { "f128_to_extF80",    ARG_1 | EFF_R | EFF_T },
-        { "f128_roundToInt",   ARG_1 | ARG_R | ARG_E },
-        { "f128_add",          ARG_2 | EFF_R         },
-        { "f128_sub",          ARG_2 | EFF_R         },
-        { "f128_mul",          ARG_2 | EFF_R | EFF_T },
-        { "f128_mulAdd",       ARG_3 | EFF_R | EFF_T },
-        { "f128_div",          ARG_2 | EFF_R         },
-        { "f128_rem",          ARG_2                 },
-        { "f128_sqrt",         ARG_1 | EFF_R         },
-        { "f128_eq",           ARG_2                 },
-        { "f128_le",           ARG_2                 },
-        { "f128_lt",           ARG_2                 },
-        { "f128_eq_signaling", ARG_2                 },
-        { "f128_le_quiet",     ARG_2                 },
-        { "f128_lt_quiet",     ARG_2                 },
-    };
-
-    // This is a map of all normal functions to equivalent generator types (and required number of operands). Using these should result in
-    // much faster test generation, because the results do not need to be computed. Note that integer types always have an operand count of
-    // one, but the generator does not allow the count to be specified as an argument (and thus the value is always zero).
-    public static readonly Dictionary<string, (string TypeName, int ArgCount)> GeneratorTypes = new()
-    {
-        { "ui32_to_f16",            ("ui32", 0) },
-        { "ui32_to_f32",            ("ui32", 0) },
-        { "ui32_to_f64",            ("ui32", 0) },
-        { "ui32_to_extF80",         ("ui32", 0) },
-        { "ui32_to_f128",           ("ui32", 0) },
-        { "ui64_to_f16",            ("ui64", 0) },
-        { "ui64_to_f32",            ("ui64", 0) },
-        { "ui64_to_f64",            ("ui64", 0) },
-        { "ui64_to_extF80",         ("ui64", 0) },
-        { "ui64_to_f128",           ("ui64", 0) },
-        { "i32_to_f16",             ("i32", 0) },
-        { "i32_to_f32",             ("i32", 0) },
-        { "i32_to_f64",             ("i32", 0) },
-        { "i32_to_extF80",          ("i32", 0) },
-        { "i32_to_f128",            ("i32", 0) },
-        { "i64_to_f16",             ("i64", 0) },
-        { "i64_to_f32",             ("i64", 0) },
-        { "i64_to_f64",             ("i64", 0) },
-        { "i64_to_extF80",          ("i64", 0) },
-        { "i64_to_f128",            ("i64", 0) },
-
-        { "f16_to_ui32",            ("f16", 1) },
-        { "f16_to_ui64",            ("f16", 1) },
-        { "f16_to_i32",             ("f16", 1) },
-        { "f16_to_i64",             ("f16", 1) },
-        { "f16_to_ui32_r_minMag",   ("f16", 1) },
-        { "f16_to_ui64_r_minMag",   ("f16", 1) },
-        { "f16_to_i32_r_minMag",    ("f16", 1) },
-        { "f16_to_i64_r_minMag",    ("f16", 1) },
-        { "f16_to_f32",             ("f16", 1) },
-        { "f16_to_f64",             ("f16", 1) },
-        { "f16_to_extF80",          ("f16", 1) },
-        { "f16_to_f128",            ("f16", 1) },
-        { "f16_roundToInt",         ("f16", 1) },
-        { "f16_add",                ("f16", 2) },
-        { "f16_sub",                ("f16", 2) },
-        { "f16_mul",                ("f16", 2) },
-        { "f16_mulAdd",             ("f16", 3) },
-        { "f16_div",                ("f16", 2) },
-        { "f16_rem",                ("f16", 2) },
-        { "f16_sqrt",               ("f16", 1) },
-        { "f16_eq",                 ("f16", 2) },
-        { "f16_le",                 ("f16", 2) },
-        { "f16_lt",                 ("f16", 2) },
-        { "f16_eq_signaling",       ("f16", 2) },
-        { "f16_le_quiet",           ("f16", 2) },
-        { "f16_lt_quiet",           ("f16", 2) },
-
-        { "f32_to_ui32",            ("f32", 1) },
-        { "f32_to_ui64",            ("f32", 1) },
-        { "f32_to_i32",             ("f32", 1) },
-        { "f32_to_i64",             ("f32", 1) },
-        { "f32_to_ui32_r_minMag",   ("f32", 1) },
-        { "f32_to_ui64_r_minMag",   ("f32", 1) },
-        { "f32_to_i32_r_minMag",    ("f32", 1) },
-        { "f32_to_i64_r_minMag",    ("f32", 1) },
-        { "f32_to_f16",             ("f32", 1) },
-        { "f32_to_f64",             ("f32", 1) },
-        { "f32_to_extF80",          ("f32", 1) },
-        { "f32_to_f128",            ("f32", 1) },
-        { "f32_roundToInt",         ("f32", 1) },
-        { "f32_add",                ("f32", 2) },
-        { "f32_sub",                ("f32", 2) },
-        { "f32_mul",                ("f32", 2) },
-        { "f32_mulAdd",             ("f32", 3) },
-        { "f32_div",                ("f32", 2) },
-        { "f32_rem",                ("f32", 2) },
-        { "f32_sqrt",               ("f32", 1) },
-        { "f32_eq",                 ("f32", 2) },
-        { "f32_le",                 ("f32", 2) },
-        { "f32_lt",                 ("f32", 2) },
-        { "f32_eq_signaling",       ("f32", 2) },
-        { "f32_le_quiet",           ("f32", 2) },
-        { "f32_lt_quiet",           ("f32", 2) },
-
-        { "f64_to_ui32",            ("f64", 1) },
-        { "f64_to_ui64",            ("f64", 1) },
-        { "f64_to_i32",             ("f64", 1) },
-        { "f64_to_i64",             ("f64", 1) },
-        { "f64_to_ui32_r_minMag",   ("f64", 1) },
-        { "f64_to_ui64_r_minMag",   ("f64", 1) },
-        { "f64_to_i32_r_minMag",    ("f64", 1) },
-        { "f64_to_i64_r_minMag",    ("f64", 1) },
-        { "f64_to_f16",             ("f64", 1) },
-        { "f64_to_f32",             ("f64", 1) },
-        { "f64_to_extF80",          ("f64", 1) },
-        { "f64_to_f128",            ("f64", 1) },
-        { "f64_roundToInt",         ("f64", 1) },
-        { "f64_add",                ("f64", 2) },
-        { "f64_sub",                ("f64", 2) },
-        { "f64_mul",                ("f64", 2) },
-        { "f64_mulAdd",             ("f64", 3) },
-        { "f64_div",                ("f64", 2) },
-        { "f64_rem",                ("f64", 2) },
-        { "f64_sqrt",               ("f64", 1) },
-        { "f64_eq",                 ("f64", 2) },
-        { "f64_le",                 ("f64", 2) },
-        { "f64_lt",                 ("f64", 2) },
-        { "f64_eq_signaling",       ("f64", 2) },
-        { "f64_le_quiet",           ("f64", 2) },
-        { "f64_lt_quiet",           ("f64", 2) },
-
-        { "extF80_to_ui32",         ("extF80", 1) },
-        { "extF80_to_ui64",         ("extF80", 1) },
-        { "extF80_to_i32",          ("extF80", 1) },
-        { "extF80_to_i64",          ("extF80", 1) },
-        { "extF80_to_ui32_r_minMag",("extF80", 1) },
-        { "extF80_to_ui64_r_minMag",("extF80", 1) },
-        { "extF80_to_i32_r_minMag", ("extF80", 1) },
-        { "extF80_to_i64_r_minMag", ("extF80", 1) },
-        { "extF80_to_f16",          ("extF80", 1) },
-        { "extF80_to_f32",          ("extF80", 1) },
-        { "extF80_to_f64",          ("extF80", 1) },
-        { "extF80_to_f128",         ("extF80", 1) },
-        { "extF80_roundToInt",      ("extF80", 1) },
-        { "extF80_add",             ("extF80", 2) },
-        { "extF80_sub",             ("extF80", 2) },
-        { "extF80_mul",             ("extF80", 2) },
-        { "extF80_div",             ("extF80", 2) },
-        { "extF80_rem",             ("extF80", 2) },
-        { "extF80_sqrt",            ("extF80", 1) },
-        { "extF80_eq",              ("extF80", 2) },
-        { "extF80_le",              ("extF80", 2) },
-        { "extF80_lt",              ("extF80", 2) },
-        { "extF80_eq_signaling",    ("extF80", 2) },
-        { "extF80_le_quiet",        ("extF80", 2) },
-        { "extF80_lt_quiet",        ("extF80", 2) },
-
-        { "f128_to_ui32",           ("f128", 1) },
-        { "f128_to_ui64",           ("f128", 1) },
-        { "f128_to_i32",            ("f128", 1) },
-        { "f128_to_i64",            ("f128", 1) },
-        { "f128_to_ui32_r_minMag",  ("f128", 1) },
-        { "f128_to_ui64_r_minMag",  ("f128", 1) },
-        { "f128_to_i32_r_minMag",   ("f128", 1) },
-        { "f128_to_i64_r_minMag",   ("f128", 1) },
-        { "f128_to_f16",            ("f128", 1) },
-        { "f128_to_f32",            ("f128", 1) },
-        { "f128_to_f64",            ("f128", 1) },
-        { "f128_to_extF80",         ("f128", 1) },
-        { "f128_roundToInt",        ("f128", 1) },
-        { "f128_add",               ("f128", 2) },
-        { "f128_sub",               ("f128", 2) },
-        { "f128_mul",               ("f128", 2) },
-        { "f128_mulAdd",            ("f128", 3) },
-        { "f128_div",               ("f128", 2) },
-        { "f128_rem",               ("f128", 2) },
-        { "f128_sqrt",              ("f128", 1) },
-        { "f128_eq",                ("f128", 2) },
-        { "f128_le",                ("f128", 2) },
-        { "f128_lt",                ("f128", 2) },
-        { "f128_eq_signaling",      ("f128", 2) },
-        { "f128_le_quiet",          ("f128", 2) },
-        { "f128_lt_quiet",          ("f128", 2) },
-    };
-
     // Enumeration/option combination helper properties (lazy initialized).
 
     private static ExtFloat80RoundingPrecision[]? _extFloat80RoundingPrecisions;
@@ -756,35 +424,80 @@ internal static class Program
                     return 1;
                 }
             }
-            else if (arg.StartsWith("all"))
+            else if (arg.StartsWith("all", StringComparison.OrdinalIgnoreCase))
             {
                 arg = arg["all".Length..];
                 if (arg.IsEmpty)
                 {
                     // All functions.
-                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("1"))
                 {
                     // Only functions with a single argument.
-                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 1).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 1).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("2"))
                 {
                     // Only functions with two arguments.
-                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 2).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 2).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("3"))
                 {
                     // Only functions with three arguments.
-                    TestFunctions.UnionWith(FunctionInfos.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 3).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 3).Select(x => x.Key));
+                }
+                else if (arg.Equals("_ui32", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the UInt32 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsUInt32).Select(x => x.Key));
+                }
+                else if (arg.Equals("_ui64", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the UInt64 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsUInt64).Select(x => x.Key));
+                }
+                else if (arg.Equals("_i32", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Int32 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsInt32).Select(x => x.Key));
+                }
+                else if (arg.Equals("_i64", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Int64 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsInt64).Select(x => x.Key));
+                }
+                else if (arg.Equals("_f16", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Float16 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat16).Select(x => x.Key));
+                }
+                else if (arg.Equals("_f32", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Float32 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat32).Select(x => x.Key));
+                }
+                else if (arg.Equals("_f64", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Float64 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat64).Select(x => x.Key));
+                }
+                else if (arg.Equals("_extF80", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Float16 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsExtFloat80).Select(x => x.Key));
+                }
+                else if (arg.Equals("_f128", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only functions which are related to the Float64 type.
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat128).Select(x => x.Key));
                 }
                 else
                 {
                     goto UnknownArgument;
                 }
             }
-            else if (FunctionInfos.ContainsKey(args[i]))
+            else if (FunctionInfo.Functions.ContainsKey(args[i]))
             {
                 // Add specific test function.
                 TestFunctions.Add(args[i]);
@@ -816,7 +529,7 @@ internal static class Program
         string functionName, ExtFloat80RoundingPrecision? roundingPrecision = null, RoundingMode? rounding = null, bool? exact = null, TininessMode? detectTininess = null)
     {
         // Get function attributes.
-        var functionAttributes = FunctionInfos[functionName];
+        var functionAttributes = FunctionInfo.Functions[functionName];
 
         // Check for configuration overrides.
         var hasExplicitRoundingPrecision = roundingPrecision.HasValue;
@@ -921,7 +634,7 @@ internal static class Program
         // Optimize the generator by generating the input operands only (skip calculating the result--it is ignored in this program and the
         // verifier will calculate it anyways). This seems to have a fairly noticable impact on heavier operations with LOTS of generated
         // test cases).
-        (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = GeneratorTypes[functionName];
+        (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = FunctionInfo.GeneratorTypes[functionName];
 
         // Enumerate all useful test configurations for given function.
         var failureCount = 0;

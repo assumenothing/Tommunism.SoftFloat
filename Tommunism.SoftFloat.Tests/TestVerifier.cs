@@ -46,7 +46,7 @@ internal class TestVerifier
         if (_process != null)
             throw new InvalidOperationException("Verifier process is already running.");
 
-        Debug.Assert(Program.FunctionInfos.ContainsKey(TestFunction), "Test function not found in hard coded functions.");
+        Debug.Assert(FunctionInfo.Functions.ContainsKey(TestFunction), "Test function not found in hard coded functions.");
 
         // Use an internal flag in case the DebugWriter property changes. This is used for automatic STDERR event handling.
         _writeDebug = DebugWriter != null;

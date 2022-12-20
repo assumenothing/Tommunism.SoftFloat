@@ -111,7 +111,7 @@ internal abstract class TestCaseGenerator : IEnumerable<TestRunnerArguments>
     /// Unlike TestFloat, this does not calculate the results of the function.
     /// </remarks>
     public static TestCaseGenerator FromFunctionName(string functionName, int level = 1) =>
-        Program.GeneratorTypes.TryGetValue(functionName, out var generatorType)
+        FunctionInfo.GeneratorTypes.TryGetValue(functionName, out var generatorType)
             ? FromTypeName(generatorType.TypeName, generatorType.ArgCount, level)
             : throw new NotImplementedException();
 
