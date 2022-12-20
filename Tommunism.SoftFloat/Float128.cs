@@ -924,11 +924,8 @@ public readonly struct Float128
         sigA.V64 |= 0x0001000000000000;
         sigB <<= 16;
         sig256Z = Mul128To256M(sigA, sigB);
-        sigZExtra = sig256Z[IndexWord(4, 1)] | (sig256Z[IndexWord(4, 0)] != 0 ? 1U : 0);
-        sigZ = Add128(
-            sig256Z[IndexWord(4, 3)], sig256Z[IndexWord(4, 2)],
-            sigA.V64, sigA.V00
-        );
+        sigZExtra = sig256Z.V064 | (sig256Z.V000 != 0 ? 1U : 0);
+        sigZ = sig256Z.V128_UI128 + sigA;
 
         if (0x0002000000000000 <= sigZ.V64)
         {

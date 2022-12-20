@@ -525,9 +525,11 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt256 ShiftRightJam256M(SFUInt256 a, int dist)
     {
-        Span<ulong> result = stackalloc ulong[4];
-        ShiftRightJam256M(a.AsSpan(), dist, result);
-        return new SFUInt256(result);
+        Span<ulong> aPtr = stackalloc ulong[4];
+        Span<ulong> zPtr = stackalloc ulong[4];
+        a.ToSpan(aPtr, BitConverter.IsLittleEndian);
+        ShiftRightJam256M(aPtr, dist, zPtr);
+        return new SFUInt256(zPtr, BitConverter.IsLittleEndian);
     }
 
     // softfloat_shiftRightJam256M
@@ -661,36 +663,6 @@ internal static class Primitives
 #endif
     }
 
-    // softfloat_add256M
-    /// <summary>
-    /// Adds the two 256-bit integers pointed to by <paramref name="aPtr"/> and <paramref name="bPtr"/>. The addition is modulo 2^256, so
-    /// any carry out is lost. The sum is stored at the location pointed to by <paramref name="zPtr"/>. Each of <paramref name="aPtr"/>,
-    /// <paramref name="bPtr"/>, and <paramref name="zPtr"/> points to an array of four 64-bit elements that concatenate in the platform's
-    /// normal endian order to form a 256-bit integer.
-    /// </summary>
-    public static void Add256M(ReadOnlySpan<ulong> aPtr, ReadOnlySpan<ulong> bPtr, Span<ulong> zPtr)
-    {
-        Debug.Assert(aPtr.Length >= 4, "A is too small.");
-        Debug.Assert(bPtr.Length >= 4, "B is too small.");
-        Debug.Assert(zPtr.Length >= 4, "Z is too small.");
-
-        var index = IndexWordLo(4);
-        var carry = 0UL;
-        while (true)
-        {
-            var wordA = aPtr[index];
-            var wordZ = wordA + bPtr[index] + carry;
-            zPtr[index] = wordZ;
-            if (index == IndexWordHi(4))
-                break;
-
-            if (wordZ != wordA)
-                carry = wordZ < wordA ? 1UL : 0UL;
-
-            index += WordIncrement;
-        }
-    }
-
     // softfloat_sub128
     /// <summary>
     /// Returns the difference of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> and the
@@ -708,34 +680,6 @@ internal static class Primitives
             v64: a64 - b64 - (a0 < b0 ? 1UL : 0UL)
         );
 #endif
-    }
-
-    // softfloat_sub256M
-    /// <summary>
-    /// Subtracts the 256-bit integer pointed to by <paramref name="bPtr"/> from the 256-bit integer pointed to by <paramref name="aPtr"/>.
-    /// The addition is modulo 2^256, so any borrow out (carry out) is lost. The difference is stored at the location pointed to by
-    /// <paramref name="zPtr"/>.  Each of <paramref name="aPtr"/>, <paramref name="bPtr"/>, and <paramref name="zPtr"/> points to an array
-    /// of four 64-bit elements that concatenate in the platform's normal endian order to form a 256-bit integer.
-    /// </summary>
-    public static void Sub256M(ReadOnlySpan<ulong> aPtr, ReadOnlySpan<ulong> bPtr, Span<ulong> zPtr)
-    {
-        Debug.Assert(aPtr.Length >= 4, "A is too small.");
-        Debug.Assert(bPtr.Length >= 4, "B is too small.");
-        Debug.Assert(zPtr.Length >= 4, "Z is too small.");
-
-        var index = IndexWordLo(4);
-        var borrow = 0UL;
-        while (true)
-        {
-            var wordA = aPtr[index];
-            var wordB = bPtr[index];
-            zPtr[index] = wordA - wordB - borrow;
-            if (index == IndexWordHi(4))
-                break;
-
-            borrow = ((borrow != 0) ? (wordA <= wordB) : (wordA < wordB)) ? 1UL : 0UL;
-            index += WordIncrement;
-        }
     }
 
     // softfloat_mul64ByShifted32To128
@@ -809,9 +753,8 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SFUInt256 Mul128To256M(SFUInt128 a, SFUInt128 b)
     {
-        Span<ulong> result = stackalloc ulong[4];
-        Mul128To256M(a.V64, a.V00, b.V64, b.V00, result);
-        return new SFUInt256(result);
+        Mul128To256M(a.V64, a.V00, b.V64, b.V00, out var z);
+        return z;
     }
 
     // softfloat_mul128To256M
@@ -821,10 +764,8 @@ internal static class Primitives
     /// location pointed to by <paramref name="zPtr"/>. Argument <paramref name="zPtr"/> points to an array of four 64-bit elements that
     /// concatenate in the platform's normal endian order to form a 256-bit integer.
     /// </summary>
-    public static void Mul128To256M(ulong a64, ulong a0, ulong b64, ulong b0, Span<ulong> zPtr)
+    public static void Mul128To256M(ulong a64, ulong a0, ulong b64, ulong b0, out SFUInt256 zPtr)
     {
-        Debug.Assert(zPtr.Length >= 4, "Z is too small.");
-
 #if NET7_0_OR_GREATER
         UInt128 z0, mid1, mid, z128;
         z0 = (UInt128)a0 * b0;
@@ -837,16 +778,16 @@ internal static class Primitives
         z0 += mid;
         z128 += (z0 < mid) ? UInt128.One : UInt128.Zero;
 
-        zPtr[IndexWord(4, 0)] = (ulong)z0;
-        zPtr[IndexWord(4, 1)] = (ulong)(z0 >> 64);
-        zPtr[IndexWord(4, 2)] = (ulong)z128;
-        zPtr[IndexWord(4, 3)] = (ulong)(z128 >> 64);
+        zPtr.V000 = (ulong)z0;
+        zPtr.V064 = (ulong)(z0 >> 64);
+        zPtr.V128 = (ulong)z128;
+        zPtr.V192 = (ulong)(z128 >> 64);
 #else
         SFUInt128 p0, p64, p128;
         ulong z64, z128, z192;
 
         p0 = Mul64To128(a0, b0);
-        zPtr[IndexWord(4, 0)] = p0.V00;
+        zPtr.V000 = p0.V00;
         p64 = Mul64To128(a64, b0);
         z64 = p64.V00 + p0.V64;
         z128 = p64.V64 + (z64 < p64.V00 ? 1UL : 0UL);
@@ -855,11 +796,11 @@ internal static class Primitives
         z192 = p128.V64 + (z128 < p128.V00 ? 1UL : 0UL);
         p64 = Mul64To128(a0, b64);
         z64 += p64.V00;
-        zPtr[IndexWord(4, 1)] = z64;
+        zPtr.V064 = z64;
         p64.V64 += z64 < p64.V00 ? 1UL : 0UL;
         z128 += p64.V64;
-        zPtr[IndexWord(4, 2)] = z128;
-        zPtr[IndexWord(4, 3)] = z192 + (z128 < p64.V64 ? 1UL : 0UL);
+        zPtr.V128 = z128;
+        zPtr.V192 = z192 + (z128 < p64.V64 ? 1UL : 0UL);
 #endif
     }
 }
