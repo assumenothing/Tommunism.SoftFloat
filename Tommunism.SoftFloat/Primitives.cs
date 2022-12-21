@@ -322,7 +322,7 @@ internal static class Primitives
 #if NET7_0_OR_GREATER
         return new UInt128(upper: a64, lower: a0) >> dist;
 #else
-        // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
+        // An out of range shift is fine, internally C# requires 64-bit shifts are ANDed by 63 anyways.
         return new SFUInt128(
             v64: a64 >> dist,
             v0: (a64 << (-dist)) | (a0 >> dist)
@@ -520,128 +520,6 @@ internal static class Primitives
             extra: zextra | (extra != 0 ? 1UL : 0UL),
             v: zv
         );
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt256 ShiftRightJam256M(SFUInt256 a, int dist)
-    {
-        Span<ulong> aPtr = stackalloc ulong[4];
-        Span<ulong> zPtr = stackalloc ulong[4];
-        a.ToSpan(aPtr, BitConverter.IsLittleEndian);
-        ShiftRightJam256M(aPtr, dist, zPtr);
-        return new SFUInt256(zPtr, BitConverter.IsLittleEndian);
-    }
-
-    // softfloat_shiftRightJam256M
-    /// <summary>
-    /// Shifts the 256-bit unsigned integer pointed to by <paramref name="aPtr"/> right by the number of bits given in
-    /// <paramref name="dist"/>, which must not be zero. If any nonzero bits are shifted off, they are "jammed" into the least-significant
-    /// bit of the shifted value by setting the least-significant bit to 1. This shifted-and-jammed value is stored at the location pointed
-    /// to by <paramref name="zPtr"/>. Each of <paramref name="aPtr"/> and <paramref name="zPtr"/> points to an array of four 64-bit
-    /// elements that concatenate in the platform's normal endian order to form a 256-bit integer.
-    /// </summary>
-    /// <remarks>
-    /// The value of <paramref name="dist"/> can be arbitrarily large.  In particular, if <paramref name="dist"/> is greater than 256, the
-    /// stored result will be either 0 or 1, depending on whether the original 256 bits are all zeros.
-    /// </remarks>
-    public static void ShiftRightJam256M(ReadOnlySpan<ulong> aPtr, int dist, Span<ulong> zPtr)
-    {
-        Debug.Assert(aPtr.Length >= 4, "A is too small.");
-        Debug.Assert(zPtr.Length >= 4, "Z is too small.");
-        Debug.Assert(dist > 0, "Shift amount is out of range.");
-
-        // softfloat_shortShiftRightJamM
-        static void ShortShiftRightJamM(ReadOnlySpan<ulong> aPtr, int dist, Span<ulong> zPtr)
-        {
-            Debug.Assert(dist is > 0 and < 64, "Shift amount is out of range.");
-            Debug.Assert(aPtr.Length <= zPtr.Length, "A length is less than Z length.");
-
-            var sizeWords = aPtr.Length;
-            var negDist = -dist;
-            var index = IndexWordLo(sizeWords);
-            var lastIndex = IndexWordHi(sizeWords);
-            var wordA = aPtr[index];
-
-            var partWordZ = wordA >> dist;
-            if ((partWordZ << dist) != wordA)
-                partWordZ |= 1;
-
-            while (index != lastIndex)
-            {
-                wordA = aPtr[index + WordIncrement];
-                zPtr[index] = (wordA << negDist) | partWordZ;
-                index += WordIncrement;
-                partWordZ = wordA >> dist;
-            }
-
-            zPtr[index] = partWordZ;
-        }
-
-        int ptr = 0, i;
-
-        var wordJam = 0UL;
-        var wordDist = dist >> 6;
-        if (wordDist != 0)
-        {
-            if (4 < wordDist)
-                wordDist = 4;
-
-            ptr = IndexMultiwordLo(4, wordDist);
-            i = wordDist;
-            do
-            {
-                wordJam = aPtr[ptr++];
-                if (wordJam != 0)
-                    break;
-
-                --i;
-            }
-            while (i != 0);
-
-            ptr = 0;
-        }
-
-        if (wordDist < 4)
-        {
-            var aPtrIndex = IndexMultiwordHiBut(4, wordDist);
-            var innerDist = dist & 63;
-            if (innerDist != 0)
-            {
-                ShortShiftRightJamM(
-                    aPtr.Slice(aPtrIndex, 4 - wordDist),
-                    innerDist,
-                    zPtr[IndexMultiwordLoBut(4, wordDist)..]
-                );
-
-                if (wordDist == 0)
-                    goto wordJam;
-            }
-            else
-            {
-                aPtrIndex += IndexWordLo(4 - wordDist);
-                ptr = IndexWordLo(4);
-                for (i = 4 - wordDist; i != 0; --i)
-                {
-                    zPtr[ptr] = aPtr[aPtrIndex];
-                    aPtrIndex += WordIncrement;
-                    ptr += WordIncrement;
-                }
-            }
-
-            ptr = IndexMultiwordHi(4, wordDist);
-        }
-
-        Debug.Assert(wordDist != 0);
-        do
-        {
-            zPtr[ptr++] = 0;
-            --wordDist;
-        }
-        while (wordDist != 0);
-
-    wordJam:
-        if (wordJam != 0)
-            zPtr[IndexWordLo(4)] |= 1;
     }
 
     // softfloat_add128

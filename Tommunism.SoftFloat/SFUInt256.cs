@@ -51,6 +51,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
     #region Fields
 
     public static readonly SFUInt256 Zero = new();
+    public static readonly SFUInt256 One = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000001);
     public static readonly SFUInt256 MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
     public static readonly SFUInt256 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
@@ -115,6 +116,25 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
     public override int GetHashCode() => HashCode.Combine(V000, V064, V128, V192);
 
+    public SFUInt256 ShiftRightJam(int dist)
+    {
+        Debug.Assert(dist > 0, "Shift amount is out of range.");
+
+        // Shortcut if shifting by 256 or more bits.
+        if (dist >= 256)
+            return ((V000 | V064 | V128 | V192) != 0) ? One : Zero;
+
+        // Shift value right.
+        SFUInt256 z = this >> dist;
+
+        // Calculate jam value and set jam bit (if needed).
+        SFUInt256 jamZ = this << -dist;
+        if ((jamZ.V192 | jamZ.V128 | jamZ.V064 | jamZ.V000) != 0)
+            z.V000 |= 1;
+
+        return z;
+    }
+
     public void ToSpan(Span<ulong> span, bool isLittleEndian)
     {
         Debug.Assert(span.Length >= 4, "Span is too small.");
@@ -136,6 +156,188 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
     public static bool operator ==(SFUInt256 left, SFUInt256 right) => left.Equals(right);
 
     public static bool operator !=(SFUInt256 left, SFUInt256 right) => !(left == right);
+
+    public static SFUInt256 operator <<(SFUInt256 a, int dist)
+    {
+        dist &= 255;
+
+        ulong z000, z064, z128, z192;
+        int negDist;
+
+        switch ((uint)dist >> 6)
+        {
+            case 0b00: // 0..63
+            {
+                Debug.Assert(dist is >= 0 and < 64);
+
+                if (dist == 0)
+                {
+                    z192 = a.V192;
+                    z128 = a.V128;
+                    z064 = a.V064;
+                    z000 = a.V000;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z192 = (a.V192 << dist) | (a.V128 >> negDist);
+                    z128 = (a.V128 << dist) | (a.V064 >> negDist);
+                    z064 = (a.V064 << dist) | (a.V000 >> negDist);
+                    z000 = a.V000 << dist;
+                }
+
+                break;
+            }
+            case 0b01: // 64..127
+            {
+                dist -= 64;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                if (dist == 0)
+                {
+                    z192 = a.V128;
+                    z128 = a.V064;
+                    z064 = a.V000;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z192 = (a.V128 << dist) | (a.V064 >> negDist);
+                    z128 = (a.V064 << dist) | (a.V000 >> negDist);
+                    z064 = a.V000 << dist;
+                }
+
+                z000 = 0;
+                break;
+            }
+            case 0b10: // 128..191
+            {
+                dist -= 128;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                if (dist == 0)
+                {
+                    z192 = a.V064;
+                    z128 = a.V000;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z192 = (a.V064 << dist) | (a.V000 >> negDist);
+                    z128 = a.V000 << dist;
+                }
+
+                z064 = 0;
+                z000 = 0;
+                break;
+            }
+            default: // 192..255
+            {
+                dist -= 192;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                z192 = a.V000 << dist;
+                z128 = 0;
+                z064 = 0;
+                z000 = 0;
+                break;
+            }
+        }
+
+        return new(z192, z128, z064, z000);
+    }
+
+    public static SFUInt256 operator >>>(SFUInt256 a, int dist) => a >> dist;
+
+    public static SFUInt256 operator >>(SFUInt256 a, int dist)
+    {
+        dist &= 255;
+
+        ulong z000, z064, z128, z192;
+        int negDist;
+
+        switch ((uint)dist >> 6)
+        {
+            case 0b00: // 0..63
+            {
+                Debug.Assert(dist is >= 0 and < 64);
+
+                if (dist == 0)
+                {
+                    z192 = a.V192;
+                    z128 = a.V128;
+                    z064 = a.V064;
+                    z000 = a.V000;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z192 = a.V192 >> dist;
+                    z128 = (a.V128 >> dist) | (a.V192 << negDist);
+                    z064 = (a.V064 >> dist) | (a.V128 << negDist);
+                    z000 = (a.V000 >> dist) | (a.V064 << negDist);
+                }
+
+                break;
+            }
+            case 0b01: // 64..127
+            {
+                dist -= 64;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                z192 = 0;
+                if (dist == 0)
+                {
+                    z128 = a.V192;
+                    z064 = a.V128;
+                    z000 = a.V064;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z128 = a.V192 >> dist;
+                    z064 = (a.V128 >> dist) | (a.V192 << negDist);
+                    z000 = (a.V064 >> dist) | (a.V128 << negDist);
+                }
+
+                break;
+            }
+            case 0b10: // 128..191
+            {
+                dist -= 128;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                z192 = 0;
+                z128 = 0;
+                if (dist == 0)
+                {
+                    z064 = a.V192;
+                    z000 = a.V128;
+                }
+                else
+                {
+                    negDist = -dist;
+                    z064 = a.V192 >> dist;
+                    z000 = (a.V128 >> dist) | (a.V192 << negDist);
+                }
+
+                break;
+            }
+            default: // 192..255
+            {
+                dist -= 192;
+                Debug.Assert(dist is >= 0 and < 64);
+
+                z192 = 0;
+                z128 = 0;
+                z064 = 0;
+                z000 = a.V192 >> dist;
+                break;
+            }
+        }
+
+        return new(z192, z128, z064, z000);
+    }
 
     public static SFUInt256 operator +(SFUInt256 left, SFUInt256 right)
     {

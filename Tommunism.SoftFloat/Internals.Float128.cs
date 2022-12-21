@@ -552,7 +552,7 @@ partial class Internals
             else
             {
                 sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
-                sig256C = ShiftRightJam256M(sig256C, expDiff);
+                sig256C = sig256C.ShiftRightJam(expDiff);
             }
         }
 
