@@ -31,10 +31,10 @@ internal static class SoftFloatTests
         { "f16_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f16_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f16_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
-        { "f16_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f16_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f16_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
-        { "f16_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f16_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f16_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f16_to_i32_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
+        { "f16_to_i64_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
         { "f16_to_f32", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f16_to_f64", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f16_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -58,10 +58,10 @@ internal static class SoftFloatTests
         { "f32_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f32_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f32_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
-        { "f32_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f32_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f32_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
-        { "f32_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f32_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f32_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f32_to_i32_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
+        { "f32_to_i64_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
         { "f32_to_f16", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f32_to_f64", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f32_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -85,10 +85,10 @@ internal static class SoftFloatTests
         { "f64_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f64_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f64_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
-        { "f64_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f64_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f64_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
-        { "f64_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f64_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f64_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f64_to_i32_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
+        { "f64_to_i64_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
         { "f64_to_f16", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f64_to_f32", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f64_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -112,10 +112,10 @@ internal static class SoftFloatTests
         { "extF80_to_ui64", TestFloatToInteger },   // level 2 "all" passes (strict)
         { "extF80_to_i32", TestFloatToInteger },    // level 2 "all" passes (strict)
         { "extF80_to_i64", TestFloatToInteger },    // level 2 "all" passes (strict)
-        { "extF80_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "extF80_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "extF80_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
-        { "extF80_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "extF80_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "extF80_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "extF80_to_i32_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
+        { "extF80_to_i64_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
         { "extF80_to_f16", TestFloatToFloat },      // level 2 "all" passes (strict)
         { "extF80_to_f32", TestFloatToFloat },      // level 2 "all" passes (strict)
         { "extF80_to_f64", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -138,10 +138,10 @@ internal static class SoftFloatTests
         { "f128_to_ui64", TestFloatToInteger },     // level 2 "all" passes (strict)
         { "f128_to_i32", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f128_to_i64", TestFloatToInteger },      // level 2 "all" passes (strict)
-        { "f128_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f128_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
-        { "f128_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
-        { "f128_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f128_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f128_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // level 2 "all" passes (strict)
+        { "f128_to_i32_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
+        { "f128_to_i64_r_minMag", TestFloatToIntegerMinMag },  // level 2 "all" passes (strict)
         { "f128_to_f16", TestFloatToFloat },        // level 2 "all" passes (strict)
         { "f128_to_f32", TestFloatToFloat },        // level 2 "all" passes (strict)
         { "f128_to_f64", TestFloatToFloat },        // level 2 "all" passes (strict)
