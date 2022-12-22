@@ -2,8 +2,6 @@
 
 namespace Tommunism.SoftFloat;
 
-using static Internals;
-
 partial class SoftFloatSpecialize
 {
     public sealed class X86Sse : SoftFloatSpecialize
@@ -68,7 +66,7 @@ partial class SoftFloatSpecialize
                     return (ushort)(bitsA | 0x0200);
             }
 
-            return (ushort)((IsNaNF16UI(bitsA) ? bitsA : bitsB) | 0x0200);
+            return (ushort)((Float16.IsNaNUI(bitsA) ? bitsA : bitsB) | 0x0200);
         }
 
         #endregion
@@ -87,7 +85,7 @@ partial class SoftFloatSpecialize
                     return bitsA | 0x00400000;
             }
 
-            return (IsNaNF32UI(bitsA) ? bitsA : bitsB) | 0x00400000;
+            return (Float32.IsNaNUI(bitsA) ? bitsA : bitsB) | 0x00400000;
         }
 
         #endregion
@@ -106,7 +104,7 @@ partial class SoftFloatSpecialize
                     return bitsA | 0x0008000000000000;
             }
 
-            return (IsNaNF64UI(bitsA) ? bitsA : bitsB) | 0x0008000000000000;
+            return (Float64.IsNaNUI(bitsA) ? bitsA : bitsB) | 0x0008000000000000;
         }
 
         #endregion
@@ -131,7 +129,7 @@ partial class SoftFloatSpecialize
                     return new UInt128(upper: bitsA64 | 0x0000800000000000, lower: bitsA0);
             }
 
-            return IsNaNF128UI(bitsA64, bitsA0)
+            return Float128.IsNaNUI(bitsA64, bitsA0)
                 ? new UInt128(upper: bitsA64 | 0x0000800000000000, lower: bitsA0)
                 : new UInt128(upper: bitsB64 | 0x0000800000000000, lower: bitsB0);
         }

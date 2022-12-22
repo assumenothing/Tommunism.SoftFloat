@@ -2,8 +2,6 @@
 
 namespace Tommunism.SoftFloat;
 
-using static Internals;
-
 partial class SoftFloatSpecialize
 {
     public sealed class X86 : SoftFloatSpecialize
@@ -73,11 +71,11 @@ partial class SoftFloatSpecialize
                 if (isSigNaNA)
                 {
                     if (!isSigNaNB)
-                        return (ushort)(IsNaNF16UI(bitsB) ? uiNonsigB : uiNonsigA);
+                        return (ushort)(Float16.IsNaNUI(bitsB) ? uiNonsigB : uiNonsigA);
                 }
                 else
                 {
-                    return (ushort)(IsNaNF16UI(bitsA) ? uiNonsigA : uiNonsigB);
+                    return (ushort)(Float16.IsNaNUI(bitsA) ? uiNonsigA : uiNonsigB);
                 }
             }
 
@@ -109,11 +107,11 @@ partial class SoftFloatSpecialize
                 if (isSigNaNA)
                 {
                     if (!isSigNaNB)
-                        return IsNaNF32UI(bitsB) ? uiNonsigB : uiNonsigA;
+                        return Float32.IsNaNUI(bitsB) ? uiNonsigB : uiNonsigA;
                 }
                 else
                 {
-                    return IsNaNF32UI(bitsA) ? uiNonsigA : uiNonsigB;
+                    return Float32.IsNaNUI(bitsA) ? uiNonsigA : uiNonsigB;
                 }
             }
 
@@ -145,11 +143,11 @@ partial class SoftFloatSpecialize
                 if (isSigNaNA)
                 {
                     if (!isSigNaNB)
-                        return IsNaNF64UI(bitsB) ? uiNonsigB : uiNonsigA;
+                        return Float64.IsNaNUI(bitsB) ? uiNonsigB : uiNonsigA;
                 }
                 else
                 {
-                    return IsNaNF64UI(bitsA) ? uiNonsigA : uiNonsigB;
+                    return Float64.IsNaNUI(bitsA) ? uiNonsigA : uiNonsigB;
                 }
             }
 
@@ -188,14 +186,14 @@ partial class SoftFloatSpecialize
                 {
                     if (!isSigNaNB)
                     {
-                        return IsNaNF128UI(bitsB64, bitsB0)
+                        return Float128.IsNaNUI(bitsB64, bitsB0)
                             ? new UInt128(upper: uiNonsigB64, lower: bitsB0)
                             : new UInt128(upper: uiNonsigA64, lower: bitsA0);
                     }
                 }
                 else
                 {
-                    return IsNaNF128UI(bitsA64, bitsA0)
+                    return Float128.IsNaNUI(bitsA64, bitsA0)
                         ? new UInt128(upper: bitsA64, lower: bitsB0)
                         : new UInt128(upper: uiNonsigA64, lower: bitsA0);
                 }

@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-// NOTE: It looks like .NET 7 added support for 128-bit integers. But we have a few specialiazation functionss that might not be so easy to
+// NOTE: It looks like .NET 7 added support for 128-bit integers. But we have a few specialiazation functions that might not be so easy to
 // do with the new integer type.
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 2)]
@@ -78,11 +78,15 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 
     public int CompareTo(UInt128M other)
     {
+#if NET7_0_OR_GREATER
+        return ((UInt128)this).CompareTo(other);
+#else
         if (other.V64 < V64) return 1;
         if (V64 < other.V64) return -1;
         if (other.V00 < V00) return 1;
         if (V00 < other.V00) return -1;
         return 0;
+#endif
     }
 
     public void Deconstruct(out ulong v64, out ulong v0) => (v64, v0) = (V64, V00);

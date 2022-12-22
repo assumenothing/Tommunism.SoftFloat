@@ -42,9 +42,6 @@ using System;
 
 namespace Tommunism.SoftFloat;
 
-using static Internals;
-using static Primitives;
-
 public abstract partial class SoftFloatSpecialize
 {
     #region Default Instance
@@ -437,14 +434,14 @@ public abstract partial class SoftFloatSpecialize
             {
                 if (!isSigNaNB)
                 {
-                    return IsNaNExtF80UI((int)bitsB64, bitsB0)
+                    return ExtFloat80.IsNaNUI((int)bitsB64, bitsB0)
                         ? new UInt128(upper: bitsB64, lower: uiNonsigB0)
                         : new UInt128(upper: bitsA64, lower: uiNonsigA0);
                 }
             }
             else
             {
-                return IsNaNExtF80UI((int)bitsA64, bitsA0)
+                return ExtFloat80.IsNaNUI((int)bitsA64, bitsA0)
                     ? new UInt128(upper: bitsA64, lower: uiNonsigA0)
                     : new UInt128(upper: bitsB64, lower: uiNonsigB0);
             }

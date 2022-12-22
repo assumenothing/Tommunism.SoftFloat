@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
@@ -164,7 +165,7 @@ public readonly struct ExtFloat80
             var sign = a < 0;
             absA = (uint)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes32(absA);
-            return PackToExtF80(sign, 0x401E - shiftDist, (ulong)absA << (shiftDist + 32));
+            return Pack(sign, 0x401E - shiftDist, (ulong)absA << (shiftDist + 32));
         }
 
         return FromBitsUI80(0, 0);
@@ -180,7 +181,7 @@ public readonly struct ExtFloat80
             var sign = a < 0;
             absA = (ulong)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes64(absA);
-            return PackToExtF80(sign, 0x403E - shiftDist, absA << shiftDist);
+            return Pack(sign, 0x403E - shiftDist, absA << shiftDist);
         }
 
         return FromBitsUI80(0, 0);
@@ -207,8 +208,8 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         if (exp == 0x7FFF && (sig & 0x7FFFFFFFFFFFFFFF) != 0)
@@ -246,8 +247,8 @@ public readonly struct ExtFloat80
         ulong sig, sigExtra;
 
         uiA64 = _signExp;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -275,8 +276,8 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         if (exp == 0x7FFF && (sig & 0x7FFFFFFFFFFFFFFF) != 0)
@@ -314,8 +315,8 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -348,7 +349,7 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        exp = ExpExtF80UI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -360,7 +361,7 @@ public readonly struct ExtFloat80
             return 0;
         }
 
-        sign = SignExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
         if (sign || shiftDist < 32)
         {
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -385,7 +386,7 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        exp = ExpExtF80UI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -397,7 +398,7 @@ public readonly struct ExtFloat80
             return 0;
         }
 
-        sign = SignExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
         if (sign || shiftDist < 0)
         {
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -422,7 +423,7 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        exp = ExpExtF80UI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -434,10 +435,10 @@ public readonly struct ExtFloat80
             return 0;
         }
 
-        sign = SignExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
         if (shiftDist < 33)
         {
-            if (uiA64 == PackToExtF80UI64(true, 0x401E) && sig < 0x8000000100000000)
+            if (uiA64 == PackToUI64(true, 0x401E) && sig < 0x8000000100000000)
             {
                 if (exact && (sig & 0x00000000FFFFFFFF) != 0)
                     context.ExceptionFlags |= ExceptionFlags.Inexact;
@@ -467,7 +468,7 @@ public readonly struct ExtFloat80
         bool sign;
 
         uiA64 = _signExp;
-        exp = ExpExtF80UI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = _signif;
 
         shiftDist = 0x403E - exp;
@@ -479,10 +480,10 @@ public readonly struct ExtFloat80
             return 0;
         }
 
-        sign = SignExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
         if (shiftDist <= 0)
         {
-            if (uiA64 == PackToExtF80UI64(true, 0x403E) && sig == 0x8000000000000000)
+            if (uiA64 == PackToUI64(true, 0x403E) && sig == 0x8000000000000000)
                 return -0x7FFFFFFFFFFFFFFF - 1;
 
             context.RaiseFlags(ExceptionFlags.Invalid);
@@ -512,8 +513,8 @@ public readonly struct ExtFloat80
 
         uiA64 = _signExp;
         uiA0 = _signif;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = uiA0;
 
         if (exp == 0x7FFF)
@@ -525,19 +526,19 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return PackToF16(sign, 0x1f, 0);
+                return Float16.Pack(sign, 0x1f, 0);
             }
         }
 
         sig16 = (uint)sig.ShortShiftRightJam(49);
         if (((uint)exp | sig16) == 0)
-            return PackToF16(sign, 0, 0);
+            return Float16.Pack(sign, 0, 0);
 
         exp -= 0x3FF1;
         if (sizeof(int) < sizeof(int) && exp < -0x40)
             exp = -0x40;
 
-        return RoundPackToF16(context, sign, exp, sig16);
+        return Float16.RoundPack(context, sign, exp, sig16);
     }
 
     // extF80_to_f32
@@ -551,8 +552,8 @@ public readonly struct ExtFloat80
 
         uiA64 = _signExp;
         uiA0 = _signif;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = uiA0;
 
         if (exp == 0x7FFF)
@@ -564,19 +565,19 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return PackToF32(sign, 0xFF, 0);
+                return Float32.Pack(sign, 0xFF, 0);
             }
         }
 
         sig32 = (uint)sig.ShortShiftRightJam(33);
         if (((uint)exp | sig32) == 0)
-            return PackToF32(sign, 0, 0);
+            return Float32.Pack(sign, 0, 0);
 
         exp -= 0x3F81;
         if (sizeof(int) < sizeof(int) && exp < -0x1000)
             exp = -0x1000;
 
-        return RoundPackToF32(context, sign, exp, sig32);
+        return Float32.RoundPack(context, sign, exp, sig32);
     }
 
     // extF80_to_f64
@@ -589,12 +590,12 @@ public readonly struct ExtFloat80
 
         uiA64 = _signExp;
         uiA0 = _signif;
-        sign = SignExtF80UI64(uiA64);
-        exp = ExpExtF80UI64(uiA64);
+        sign = GetSignUI64(uiA64);
+        exp = GetExpUI64(uiA64);
         sig = uiA0;
 
         if (((uint)exp | sig) == 0)
-            return PackToF64(sign, 0, 0);
+            return Float64.Pack(sign, 0, 0);
 
         if (exp == 0x7FFF)
         {
@@ -605,7 +606,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return PackToF64(sign, 0x7FF, 0);
+                return Float64.Pack(sign, 0x7FF, 0);
             }
         }
 
@@ -614,7 +615,7 @@ public readonly struct ExtFloat80
         if (sizeof(int) < sizeof(int) && exp < -0x1000)
             exp = -0x1000;
 
-        return RoundPackToF64(context, sign, exp, sig);
+        return Float64.RoundPack(context, sign, exp, sig);
     }
 
     // extF80_to_f128
@@ -627,7 +628,7 @@ public readonly struct ExtFloat80
 
         uiA64 = _signExp;
         uiA0 = _signif;
-        exp = (uint)ExpExtF80UI64(uiA64);
+        exp = (uint)GetExpUI64(uiA64);
         frac = uiA0 & 0x7FFFFFFFFFFFFFFF;
 
         if (exp == 0x7FFF && frac != 0)
@@ -637,9 +638,9 @@ public readonly struct ExtFloat80
         }
         else
         {
-            sign = SignExtF80UI64(uiA64);
+            sign = GetSignUI64(uiA64);
             frac128 = (UInt128M)frac << 49;
-            return PackToF128(sign, (int)exp, frac128.V64, frac128.V00);
+            return Float128.Pack(sign, (int)exp, frac128.V64, frac128.V00);
         }
     }
 
@@ -655,8 +656,8 @@ public readonly struct ExtFloat80
         ulong sigA, sigZ, lastBitMask, roundBitsMask;
 
         uiA64 = _signExp;
-        signUI64 = uiA64 & PackToExtF80UI64(true, 0);
-        exp = ExpExtF80UI64(uiA64);
+        signUI64 = uiA64 & PackToUI64(true, 0);
+        exp = GetExpUI64(uiA64);
         sigA = _signif;
 
         if ((sigA & 0x8000000000000000) == 0 && exp != 0x7FFF)
@@ -664,7 +665,7 @@ public readonly struct ExtFloat80
             if (sigA == 0)
                 return FromBitsUI80((ushort)signUI64, 0);
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
+            (var expTmp, sigA) = NormSubnormalSig(sigA);
             exp += expTmp;
         }
 
@@ -769,23 +770,23 @@ public readonly struct ExtFloat80
     // extF80_add
     public static ExtFloat80 Add(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
-        var signA = SignExtF80UI64(a._signExp);
-        var signB = SignExtF80UI64(b._signExp);
+        var signA = GetSignUI64(a._signExp);
+        var signB = GetSignUI64(b._signExp);
 
         return signA == signB
-            ? AddMagsExtF80(context, a._signExp, a._signif, b._signExp, b._signif, signA)
-            : SubMagsExtF80(context, a._signExp, a._signif, b._signExp, b._signif, signA);
+            ? AddMags(context, a._signExp, a._signif, b._signExp, b._signif, signA)
+            : SubMags(context, a._signExp, a._signif, b._signExp, b._signif, signA);
     }
 
     // extF80_sub
     public static ExtFloat80 Subtract(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
-        var signA = SignExtF80UI64(a._signExp);
-        var signB = SignExtF80UI64(b._signExp);
+        var signA = GetSignUI64(a._signExp);
+        var signB = GetSignUI64(b._signExp);
 
         return (signA == signB)
-            ? SubMagsExtF80(context, a._signExp, a._signif, b._signExp, b._signif, signA)
-            : AddMagsExtF80(context, a._signExp, a._signif, b._signExp, b._signif, signA);
+            ? SubMags(context, a._signExp, a._signif, b._signExp, b._signif, signA)
+            : AddMags(context, a._signExp, a._signif, b._signExp, b._signif, signA);
     }
 
     // extF80_mul
@@ -799,13 +800,13 @@ public readonly struct ExtFloat80
 
         uiA64 = a._signExp;
         uiA0 = a._signif;
-        signA = SignExtF80UI64(uiA64);
-        expA = ExpExtF80UI64(uiA64);
+        signA = GetSignUI64(uiA64);
+        expA = GetExpUI64(uiA64);
         sigA = uiA0;
         uiB64 = b._signExp;
         uiB0 = b._signif;
-        signB = SignExtF80UI64(uiB64);
-        expB = ExpExtF80UI64(uiB64);
+        signB = GetSignUI64(uiB64);
+        expB = GetExpUI64(uiB64);
         sigB = uiB0;
         signZ = signA ^ signB;
 
@@ -821,7 +822,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
+                return Pack(signZ, 0x7FFF, 0x8000000000000000);
             }
         }
         else if (expB == 0x7FFF)
@@ -836,7 +837,7 @@ public readonly struct ExtFloat80
             }
             else
             {
-                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
+                return Pack(signZ, 0x7FFF, 0x8000000000000000);
             }
         }
 
@@ -846,9 +847,9 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return PackToExtF80(signZ, 0, 0);
+                return Pack(signZ, 0, 0);
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
+            (var expTmp, sigA) = NormSubnormalSig(sigA);
             expA += expTmp;
         }
 
@@ -858,9 +859,9 @@ public readonly struct ExtFloat80
         if ((sigB & 0x8000000000000000) == 0)
         {
             if (sigB == 0)
-                return PackToExtF80(signZ, 0, 0);
+                return Pack(signZ, 0, 0);
 
-            (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
+            (var expTmp, sigB) = NormSubnormalSig(sigB);
             expB += expTmp;
         }
 
@@ -872,7 +873,7 @@ public readonly struct ExtFloat80
             sig128Z += sig128Z; // shift left by one instead?
         }
 
-        return RoundPackToExtF80(context, signZ, expZ, sig128Z.V64, sig128Z.V00, context.RoundingPrecisionExtFloat80);
+        return RoundPack(context, signZ, expZ, sig128Z.V64, sig128Z.V00, context.RoundingPrecisionExtFloat80);
     }
 
     // extF80_div
@@ -887,13 +888,13 @@ public readonly struct ExtFloat80
 
         uiA64 = a._signExp;
         uiA0 = a._signif;
-        signA = SignExtF80UI64(uiA64);
-        expA = ExpExtF80UI64(uiA64);
+        signA = GetSignUI64(uiA64);
+        expA = GetExpUI64(uiA64);
         sigA = uiA0;
         uiB64 = b._signExp;
         uiB0 = b._signif;
-        signB = SignExtF80UI64(uiB64);
-        expB = ExpExtF80UI64(uiB64);
+        signB = GetSignUI64(uiB64);
+        expB = GetExpUI64(uiB64);
         sigB = uiB0;
         signZ = signA ^ signB;
 
@@ -911,13 +912,13 @@ public readonly struct ExtFloat80
                 return context.DefaultNaNExtFloat80;
             }
 
-            return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
+            return Pack(signZ, 0x7FFF, 0x8000000000000000);
         }
         else if (expB == 0x7FFF)
         {
             return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
                 ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
-                : PackToExtF80(signZ, 0, 0);
+                : Pack(signZ, 0, 0);
         }
 
         if (expB == 0)
@@ -934,10 +935,10 @@ public readonly struct ExtFloat80
                 }
 
                 context.RaiseFlags(ExceptionFlags.Infinite);
-                return PackToExtF80(signZ, 0x7FFF, 0x8000000000000000);
+                return Pack(signZ, 0x7FFF, 0x8000000000000000);
             }
 
-            (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
+            (var expTmp, sigB) = NormSubnormalSig(sigB);
             expB += expTmp;
         }
 
@@ -947,9 +948,9 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return PackToExtF80(signZ, 0, 0);
+                return Pack(signZ, 0, 0);
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
+            (var expTmp, sigA) = NormSubnormalSig(sigA);
             expA += expTmp;
         }
 
@@ -1010,7 +1011,7 @@ public readonly struct ExtFloat80
         sigZ = (sigZ << 6) + (q >> 23);
         sigZExtra = (ulong)q << 41;
 
-        return RoundPackToExtF80(context, signZ, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
+        return RoundPack(context, signZ, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
     }
 
     // extF80_rem
@@ -1024,12 +1025,12 @@ public readonly struct ExtFloat80
 
         uiA64 = a._signExp;
         uiA0 = a._signif;
-        signA = SignExtF80UI64(uiA64);
-        expA = ExpExtF80UI64(uiA64);
+        signA = GetSignUI64(uiA64);
+        expA = GetExpUI64(uiA64);
         sigA = uiA0;
         uiB64 = b._signExp;
         uiB0 = b._signif;
-        expB = ExpExtF80UI64(uiB64);
+        expB = GetExpUI64(uiB64);
         sigB = uiB0;
 
         if (expA == 0x7FFF)
@@ -1061,7 +1062,7 @@ public readonly struct ExtFloat80
                 return context.DefaultNaNExtFloat80;
             }
 
-            (var expTmp, sigB) = NormSubnormalExtF80Sig(sigB);
+            (var expTmp, sigB) = NormSubnormalSig(sigB);
             expB += expTmp;
         }
 
@@ -1079,10 +1080,10 @@ public readonly struct ExtFloat80
                     expA = 0;
                 }
 
-                return PackToExtF80(signA, expA, sigA);
+                return Pack(signA, expA, sigA);
             }
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
+            (var expTmp, sigA) = NormSubnormalSig(sigA);
             expA += expTmp;
         }
 
@@ -1095,7 +1096,7 @@ public readonly struct ExtFloat80
                 expA = 0;
             }
 
-            return PackToExtF80(signA, expA, sigA);
+            return Pack(signA, expA, sigA);
         }
 
         rem = new UInt128M(0, sigA) << 32;
@@ -1168,7 +1169,7 @@ public readonly struct ExtFloat80
             rem = -rem;
         }
 
-        return NormRoundPackToExtF80(context, signRem, !rem.IsZero ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
+        return NormRoundPack(context, signRem, !rem.IsZero ? expB + 32 : 0, rem.V64, rem.V00, ExtFloat80RoundingPrecision._80);
     }
 
     // extF80_sqrt
@@ -1183,8 +1184,8 @@ public readonly struct ExtFloat80
 
         uiA64 = _signExp;
         uiA0 = _signif;
-        signA = SignExtF80UI64(uiA64);
-        expA = ExpExtF80UI64(uiA64);
+        signA = GetSignUI64(uiA64);
+        expA = GetExpUI64(uiA64);
         sigA = uiA0;
 
         if (expA == 0x7FFF)
@@ -1202,7 +1203,7 @@ public readonly struct ExtFloat80
         if (signA)
         {
             if (sigA == 0)
-                return PackToExtF80(signA, 0, 0);
+                return Pack(signA, 0, 0);
 
             context.RaiseFlags(ExceptionFlags.Invalid);
             return context.DefaultNaNExtFloat80;
@@ -1214,9 +1215,9 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0)
         {
             if (sigA == 0)
-                return PackToExtF80(signA, 0, 0);
+                return Pack(signA, 0, 0);
 
-            (var expTmp, sigA) = NormSubnormalExtF80Sig(sigA);
+            (var expTmp, sigA) = NormSubnormalSig(sigA);
             expA += expTmp;
         }
 
@@ -1284,7 +1285,7 @@ public readonly struct ExtFloat80
             }
         }
 
-        return RoundPackToExtF80(context, false, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
+        return RoundPack(context, false, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
     }
 
     #endregion
@@ -1302,7 +1303,7 @@ public readonly struct ExtFloat80
         uiB64 = b._signExp;
         uiB0 = b._signif;
 
-        if (IsNaNExtF80UI((int)uiA64, uiA0) || IsNaNExtF80UI((int)uiB64, uiB0))
+        if (IsNaNUI((int)uiA64, uiA0) || IsNaNUI((int)uiB64, uiB0))
         {
             if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -1325,7 +1326,7 @@ public readonly struct ExtFloat80
         uiB64 = b._signExp;
         uiB0 = b._signif;
 
-        if (IsNaNExtF80UI((int)uiA64, uiA0) || IsNaNExtF80UI((int)uiB64, uiB0))
+        if (IsNaNUI((int)uiA64, uiA0) || IsNaNUI((int)uiB64, uiB0))
         {
             if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -1333,8 +1334,8 @@ public readonly struct ExtFloat80
             return false;
         }
 
-        signA = SignExtF80UI64(uiA64);
-        signB = SignExtF80UI64(uiB64);
+        signA = GetSignUI64(uiA64);
+        signB = GetSignUI64(uiB64);
 
         return (signA != signB)
             ? (signA || (((uiA64 | uiB64) & 0x7FFF) == 0 && (uiA0 | uiB0) == 0))
@@ -1353,7 +1354,7 @@ public readonly struct ExtFloat80
         uiB64 = b._signExp;
         uiB0 = b._signif;
 
-        if (IsNaNExtF80UI((int)uiA64, uiA0) || IsNaNExtF80UI((int)uiB64, uiB0))
+        if (IsNaNUI((int)uiA64, uiA0) || IsNaNUI((int)uiB64, uiB0))
         {
             if (signaling || context.IsSignalingNaNExtFloat80Bits(uiA64, uiA0) || context.IsSignalingNaNExtFloat80Bits(uiB64, uiB0))
                 context.RaiseFlags(ExceptionFlags.Invalid);
@@ -1361,12 +1362,429 @@ public readonly struct ExtFloat80
             return false;
         }
 
-        signA = SignExtF80UI64(uiA64);
-        signB = SignExtF80UI64(uiB64);
+        signA = GetSignUI64(uiA64);
+        signB = GetSignUI64(uiB64);
 
         return (signA != signB)
             ? (signA && (((uiA64 | uiB64) & 0x7FFF) != 0 || (uiA0 | uiB0) != 0))
             : ((uiA64 != uiB64 || uiA0 != uiB0) && (signA ^ new UInt128M(uiA64, uiA0) < new UInt128M(uiB64, uiB0)));
+    }
+
+    #endregion
+
+    #region Internals
+
+    // signExtF80UI64
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool GetSignUI64(uint a64) => (a64 >> 15) != 0;
+
+    // expExtF80UI64
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int GetExpUI64(uint a64) => (int)(a64 & 0x7FFF);
+
+    // packToExtF80UI64
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ushort PackToUI64(bool sign, int exp) => (ushort)((sign ? (1U << 15) : 0U) | (uint)exp);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ExtFloat80 Pack(bool sign, int exp, ulong sig) => FromBitsUI80(PackToUI64(sign, exp), sig);
+
+    // isNaNExtF80UI
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsNaNUI(int a64, ulong a0) => ((a64 & 0x7FFF) == 0x7FFF) && (a0 & 0x7FFFFFFFFFFFFFFF) != 0;
+
+    // softfloat_normSubnormalExtF80Sig
+    internal static (int exp, ulong sig) NormSubnormalSig(ulong sig)
+    {
+        var shiftDist = CountLeadingZeroes64(sig);
+        return (
+            exp: -shiftDist,
+            sig: sig << shiftDist
+        );
+    }
+
+    // softfloat_roundPackToExtF80
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ExtFloat80 RoundPack(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    {
+        Debug.Assert(roundingPrecision is ExtFloat80RoundingPrecision._32 or ExtFloat80RoundingPrecision._64 or ExtFloat80RoundingPrecision._80, "Unexpected rounding precision.");
+        return roundingPrecision switch
+        {
+            ExtFloat80RoundingPrecision._32 => RoundPackImpl32Or64(context, sign, exp, sig, sigExtra, 0x0000008000000000, 0x000000FFFFFFFFFF),
+            ExtFloat80RoundingPrecision._64 => RoundPackImpl32Or64(context, sign, exp, sig, sigExtra, 0x0000000000000400, 0x00000000000007FF),
+            _ => RoundPackImpl80(context, sign, exp, sig, sigExtra),
+        };
+    }
+
+    // Called when rounding precision is 32 or 64.
+    private static ExtFloat80 RoundPackImpl32Or64(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ulong roundIncrement, ulong roundMask)
+    {
+        ulong roundBits;
+
+        var roundingMode = context.Rounding;
+        var roundNearEven = (roundingMode == RoundingMode.NearEven);
+
+        sig |= sigExtra != 0 ? 1UL : 0;
+        roundBits = sig & roundMask;
+        if (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
+            roundIncrement = (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? roundMask : 0;
+
+        if (0x7FFD <= (uint)(exp - 1))
+        {
+            if (exp <= 0)
+            {
+                var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < 0 || sig <= sig + roundIncrement;
+                sig = sig.ShiftRightJam(1 - exp);
+                roundBits = sig & roundMask;
+                if (roundBits != 0)
+                {
+                    if (isTiny)
+                        context.RaiseFlags(ExceptionFlags.Underflow);
+
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
+                    if (roundingMode == RoundingMode.Odd)
+                        sig |= roundMask + 1;
+                }
+
+                sig += roundIncrement;
+                exp = (sig & 0x8000000000000000) != 0 ? 1 : 0;
+                roundIncrement = roundMask + 1;
+                if (roundNearEven && (roundBits << 1) == roundIncrement)
+                    roundMask |= roundIncrement;
+
+                sig &= ~roundMask;
+                return Pack(sign, exp, sig);
+            }
+
+            if (0x7FFE < exp || (exp == 0x7FFE && sig + roundIncrement < sig))
+            {
+                context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
+                if (roundNearEven || roundingMode == RoundingMode.NearMaxMag ||
+                    roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max))
+                {
+                    exp = 0x7FFF;
+                    sig = 0x8000000000000000;
+                }
+                else
+                {
+                    exp = 0x7FFE;
+                    sig = ~roundMask;
+                }
+
+                return Pack(sign, exp, sig);
+            }
+        }
+
+        if (roundBits != 0)
+        {
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
+            if (roundingMode == RoundingMode.Odd)
+            {
+                sig = (sig & ~roundMask) | (roundMask + 1);
+                return Pack(sign, exp, sig);
+            }
+        }
+
+        sig += roundIncrement;
+        if (sig < roundIncrement)
+        {
+            ++exp;
+            sig = 0x8000000000000000;
+        }
+
+        roundIncrement = roundMask + 1;
+        if (roundNearEven && (roundBits << 1) == roundIncrement)
+            roundMask |= roundIncrement;
+
+        sig &= ~roundMask;
+        return Pack(sign, exp, sig);
+    }
+
+    // Called when rounding precision is 80 (or anything except 32 or 64).
+    private static ExtFloat80 RoundPackImpl80(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra)
+    {
+        var roundingMode = context.Rounding;
+        var roundNearEven = (roundingMode == RoundingMode.NearEven);
+        var roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
+            ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
+            : (0x8000000000000000 <= sigExtra);
+
+        if (0x7FFD <= (uint)(exp - 1))
+        {
+            if (exp <= 0)
+            {
+                var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < 0 || !roundIncrement || sig < 0xFFFFFFFFFFFFFFFF;
+                (sigExtra, sig) = new UInt64Extra(sig, sigExtra).ShiftRightJam(1 - exp);
+                exp = 0;
+                if (sigExtra != 0)
+                {
+                    if (isTiny)
+                        context.RaiseFlags(ExceptionFlags.Underflow);
+
+                    context.ExceptionFlags |= ExceptionFlags.Inexact;
+                    if (roundingMode == RoundingMode.Odd)
+                    {
+                        sig |= 1;
+                        return Pack(sign, exp, sig);
+                    }
+                }
+
+                roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
+                    ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
+                    : (0x8000000000000000 <= sigExtra);
+                if (roundIncrement)
+                {
+                    ++sig;
+                    sig &= ~((sigExtra & 0x7FFFFFFFFFFFFFFF) == 0 & roundNearEven ? 1UL : 0);
+                    exp = (sig & 0x8000000000000000) != 0 ? 1 : 0;
+                }
+
+                return Pack(sign, exp, sig);
+            }
+
+            if (0x7FFE < exp || (exp == 0x7FFE && sig == 0xFFFFFFFFFFFFFFFF && roundIncrement))
+            {
+                context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
+                if (roundNearEven || roundingMode == RoundingMode.NearMaxMag ||
+                    roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max))
+                {
+                    exp = 0x7FFF;
+                    sig = 0x8000000000000000;
+                }
+                else
+                {
+                    exp = 0x7FFE;
+                    sig = ~0UL;
+                }
+
+                return Pack(sign, exp, sig);
+            }
+        }
+
+        if (sigExtra != 0)
+        {
+            context.ExceptionFlags |= ExceptionFlags.Inexact;
+            if (roundingMode == RoundingMode.Odd)
+                return Pack(sign, exp, sig | 1);
+        }
+
+        if (roundIncrement)
+        {
+            ++sig;
+            if (sig == 0)
+            {
+                ++exp;
+                sig = 0x8000000000000000;
+            }
+            else
+            {
+                sig &= ~((sigExtra & 0x7FFFFFFFFFFFFFFF) == 0 & roundNearEven ? 1UL : 0);
+            }
+        }
+
+        return Pack(sign, exp, sig);
+    }
+
+    // softfloat_normRoundPackToExtF80
+    internal static ExtFloat80 NormRoundPack(SoftFloatContext context, bool sign, int exp, ulong sig, ulong sigExtra, ExtFloat80RoundingPrecision roundingPrecision)
+    {
+        if (sig == 0)
+        {
+            exp -= 64;
+            sig = sigExtra;
+            sigExtra = 0;
+        }
+
+        var shiftDist = CountLeadingZeroes64(sig);
+        exp -= shiftDist;
+        if (shiftDist != 0)
+            (sig, sigExtra) = new UInt128M(sig, sigExtra) << shiftDist;
+
+        return RoundPack(context, sign, exp, sig, sigExtra, roundingPrecision);
+    }
+
+    // softfloat_addMagsExtF80
+    internal static ExtFloat80 AddMags(SoftFloatContext context, uint uiA64, ulong uiA0, uint uiB64, ulong uiB0, bool signZ)
+    {
+        int expA, expB, expDiff, expZ;
+        ulong sigA, sigB, sigZ, sigZExtra;
+
+        expA = GetExpUI64(uiA64);
+        sigA = uiA0;
+        expB = GetExpUI64(uiB64);
+        sigB = uiB0;
+
+        expDiff = expA - expB;
+        if (expDiff == 0)
+        {
+            if (expA == 0x7FFF)
+            {
+                return (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    : FromBitsUI80((ushort)uiA64, uiA0);
+            }
+
+            sigZ = sigA + sigB;
+            sigZExtra = 0;
+            if (expA == 0)
+            {
+                (expZ, sigZ) = NormSubnormalSig(sigZ);
+                expZ++;
+                return RoundPack(context, signZ, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
+            }
+
+            expZ = expA;
+        }
+        else
+        {
+            if (expDiff < 0)
+            {
+                if (expB == 0x7FFF)
+                {
+                    return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
+                        ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                        : Pack(signZ, 0x7FFF, uiB0);
+                }
+
+                expZ = expB;
+                if (expA == 0)
+                {
+                    ++expDiff;
+                    sigZExtra = 0;
+                    if (expDiff == 0)
+                        goto newlyAligned;
+                }
+
+                (sigZExtra, sigA) = new UInt64Extra(sigA).ShiftRightJam(-expDiff);
+            }
+            else
+            {
+                if (expA == 0x7FFF)
+                {
+                    return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
+                        ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                        : FromBitsUI80((ushort)uiA64, uiA0);
+                }
+
+                expZ = expA;
+                if (expB == 0)
+                {
+                    --expDiff;
+                    sigZExtra = 0;
+                    if (expDiff == 0)
+                        goto newlyAligned;
+                }
+
+                (sigZExtra, sigB) = new UInt64Extra(sigB).ShiftRightJam(expDiff);
+            }
+
+        newlyAligned:
+            sigZ = sigA + sigB;
+            if ((sigZ & 0x8000000000000000) != 0)
+                return RoundPack(context, signZ, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
+        }
+
+        (sigZExtra, sigZ) = new UInt64Extra(sigZ, sigZExtra).ShortShiftRightJam(1);
+        sigZ |= 0x8000000000000000;
+        ++expZ;
+        return RoundPack(context, signZ, expZ, sigZ, sigZExtra, context.RoundingPrecisionExtFloat80);
+    }
+
+    // softfloat_subMagsExtF80
+    internal static ExtFloat80 SubMags(SoftFloatContext context, uint uiA64, ulong uiA0, uint uiB64, ulong uiB0, bool signZ)
+    {
+        int expA, expB, expDiff, expZ;
+        ulong sigA, sigB, sigExtra;
+        UInt128M sig128;
+
+        expA = GetExpUI64(uiA64);
+        sigA = uiA0;
+        expB = GetExpUI64(uiB64);
+        sigB = uiB0;
+
+        expDiff = expA - expB;
+        if (expDiff == 0)
+        {
+            if (expA == 0x7FFF)
+            {
+                if (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
+                    return context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0);
+
+                context.RaiseFlags(ExceptionFlags.Invalid);
+                return context.DefaultNaNExtFloat80;
+            }
+
+            expZ = expA;
+            if (expZ == 0)
+                expZ = 1;
+
+            sigExtra = 0;
+
+            if (sigB < sigA)
+            {
+                sig128 = new UInt128M(sigA, 0) - new UInt128M(sigB, sigExtra);
+            }
+            else if (sigA < sigB)
+            {
+                signZ = !signZ;
+                sig128 = new UInt128M(sigB, 0) - new UInt128M(sigA, sigExtra);
+            }
+            else
+            {
+                return Pack(context.Rounding == RoundingMode.Min, 0, 0);
+            }
+        }
+        else if (0 < expDiff)
+        {
+            if (expA == 0x7FFF)
+            {
+                return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    : FromBitsUI80((ushort)uiA64, uiA0);
+            }
+
+            if (expB == 0)
+            {
+                --expDiff;
+                sigExtra = 0;
+                if (expDiff != 0)
+                    (sigB, sigExtra) = new UInt128M(sigB, 0).ShiftRightJam(expDiff);
+            }
+            else
+            {
+                (sigB, sigExtra) = new UInt128M(sigB, 0).ShiftRightJam(expDiff);
+            }
+
+            expZ = expA;
+            sig128 = new UInt128M(sigA, 0) - new UInt128M(sigB, sigExtra);
+        }
+        else //if (expDiff < 0)
+        {
+            if (expB == 0x7FFF)
+            {
+                return ((sigB & 0x7FFFFFFFFFFFFFFF) != 0)
+                    ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
+                    : Pack(!signZ, 0x7FFF, 0x8000000000000000);
+            }
+
+            if (expA == 0)
+            {
+                ++expDiff;
+                sigExtra = 0;
+                if (expDiff != 0)
+                    (sigA, sigExtra) = new UInt128M(sigA, 0).ShiftRightJam(-expDiff);
+            }
+            else
+            {
+                (sigA, sigExtra) = new UInt128M(sigA, 0).ShiftRightJam(-expDiff);
+            }
+
+            signZ = !signZ;
+            expZ = expB;
+            sig128 = new UInt128M(sigB, 0) - new UInt128M(sigA, sigExtra);
+        }
+
+        return NormRoundPack(context, signZ, expZ, sig128.V64, sig128.V00, context.RoundingPrecisionExtFloat80);
     }
 
     #endregion
