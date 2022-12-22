@@ -47,36 +47,6 @@ namespace Tommunism.SoftFloat;
 
 internal static class Primitives
 {
-    #region Big/Little Endian Index Helpers
-
-    public static readonly int WordIncrement = BitConverter.IsLittleEndian ? 1 : -1;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexWord(int total, int n) => BitConverter.IsLittleEndian ? n : (total - 1 - n);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexWordHi(int total) => BitConverter.IsLittleEndian ? (total - 1) : 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexWordLo(int total) => BitConverter.IsLittleEndian ? 0 : (total - 1);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexMultiword(int total, int m, int n) => BitConverter.IsLittleEndian ? n : (total - 1 - m);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexMultiwordHi(int total, int n) => BitConverter.IsLittleEndian ? (total - n) : 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexMultiwordLo(int total, int n) => BitConverter.IsLittleEndian ? 0 : (total - n);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexMultiwordHiBut(int total, int n) => BitConverter.IsLittleEndian ? n : 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexMultiwordLoBut(int total, int n) => BitConverter.IsLittleEndian ? 0 : n;
-
-    #endregion
-
 #if NET7_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong GetUpperUI64(this UInt128 value) => (ulong)(value >> 64);
@@ -247,89 +217,6 @@ internal static class Primitives
         return (r & 0x80000000) != 0 ? r : 0x80000000;
     }
 
-    // softfloat_eq128
-    /// <summary>
-    /// Returns true if the 128-bit unsigned integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> is equal to
-    /// the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EQ128(ulong a64, ulong a0, ulong b64, ulong b0)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) == new UInt128(upper: b64, lower: b0);
-#else
-        return (a64 == b64) && (a0 == b0);
-#endif
-    }
-
-    // softfloat_le128
-    /// <summary>
-    /// Returns true if the 128-bit unsigned integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> is less than
-    /// or equal to the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool LE128(ulong a64, ulong a0, ulong b64, ulong b0)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) <= new UInt128(upper: b64, lower: b0);
-#else
-        return (a64 < b64) || ((a64 == b64) && (a0 <= b0));
-#endif
-    }
-
-    // softfloat_lt128
-    /// <summary>
-    /// Returns true if the 128-bit unsigned integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> is less than
-    /// the 128-bit unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool LT128(ulong a64, ulong a0, ulong b64, ulong b0)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) < new UInt128(upper: b64, lower: b0);
-#else
-        return (a64 < b64) || ((a64 == b64) && (a0 < b0));
-#endif
-    }
-
-    // softfloat_shortShiftLeft128
-    /// <summary>
-    /// Shifts the 128 bits formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> left by the number of bits given in
-    /// <paramref name="dist"/>, which must be in the range 1 to 63.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 ShortShiftLeft128(ulong a64, ulong a0, int dist)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) << dist;
-#else
-        // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
-        return new SFUInt128(
-            v64: (a64 << dist) | (a0 >> (-dist)),
-            v0: a0 << dist
-        );
-#endif
-    }
-
-    // softfloat_shortShiftRight128
-    /// <summary>
-    /// Shifts the 128 bits formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> right by the number of bits given in
-    /// <paramref name="dist"/>, which must be in the range 1 to 63.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 ShortShiftRight128(ulong a64, ulong a0, int dist)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) >> dist;
-#else
-        // An out of range shift is fine, internally C# requires 64-bit shifts are ANDed by 63 anyways.
-        return new SFUInt128(
-            v64: a64 >> dist,
-            v0: (a64 << (-dist)) | (a0 >> dist)
-        );
-#endif
-    }
-
     // softfloat_shortShiftRightJam64Extra
     /// <summary>
     /// This function is the same as <see cref="ShiftRightJam64Extra(ulong,ulong,int)"/>, except that <paramref name="dist"/> must be in
@@ -343,28 +230,6 @@ internal static class Primitives
             v: a >> dist,
             extra: (a << (-dist)) | (extra != 0 ? 1UL : 0UL)
         );
-    }
-
-    // softfloat_shortShiftRightJam128
-    /// <summary>
-    /// Shifts the 128 bits formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> right by the number of bits given in
-    /// <paramref name="dist"/>, which must be in the range 1 to 63. If any nonzero bits are shifted off, they are "jammed" into the
-    /// least-significant bit of the shifted value by setting the least-significant bit to 1. This shifted-and-jammed value is returned.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 ShortShiftRightJam128(ulong a64, ulong a0, int dist)
-    {
-        Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
-#if NET7_0_OR_GREATER
-        var a = new UInt128(upper: a64, lower: a0);
-        return (a >> dist) | (((ulong)a << (-dist)) != 0 ? UInt128.One : UInt128.Zero);
-#else
-        var negDist = -dist;
-        return new SFUInt128(
-            v64: a64 >> dist,
-            v0: (a64 << negDist) | (a0 >> dist) | ((a0 << negDist) != 0 ? 1UL : 0UL)
-        );
-#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -382,8 +247,8 @@ internal static class Primitives
         var negDist = -dist;
         return new UInt128Extra(
             v: new SFUInt128(
-                v64: a64 >> dist,
-                v0: (a64 << negDist) | (a0 >> dist)
+                a64 >> dist,
+                (a64 << negDist) | (a0 >> dist)
             ),
             extra: (a0 << negDist) | (extra != 0 ? 1UL : 0UL)
         );
@@ -422,41 +287,6 @@ internal static class Primitives
 
         z.Extra |= extra != 0 ? 1UL : 0UL;
         return z;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 ShiftRightJam128(SFUInt128 a, int dist) => ShiftRightJam128(a.V64, a.V00, dist);
-
-    // softfloat_shiftRightJam128
-    /// <summary>
-    /// Shifts the 128 bits formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> right by the number of bits given in
-    /// <paramref name="dist"/>, which must not be zero. If any nonzero bits are shifted off, they are "jammed" into the least-significant
-    /// bit of the shifted value by setting the least-significant bit to 1. This shifted-and-jammed value is returned.
-    /// </summary>
-    /// <remarks>
-    /// The value of <paramref name="dist"/> can be arbitrarily large. In particular, if <paramref name="dist"/> is greater than 128, the
-    /// result will be either 0 or 1, depending on whether the original 128 bits are all zeros.
-    /// </remarks>
-    public static SFUInt128 ShiftRightJam128(ulong a64, ulong a0, int dist)
-    {
-        Debug.Assert(dist > 0, "Shift amount is out of range.");
-        if (dist < 64)
-        {
-            var negDist = -dist;
-            return new SFUInt128(
-                v64: a64 >> dist,
-                v0: (a64 << negDist) | (a0 >> dist) | ((a0 << negDist) != 0 ? 1UL : 0UL)
-            );
-        }
-        else
-        {
-            return new SFUInt128(
-                v64: 0,
-                v0: (dist < 127)
-                    ? (a64 >> dist) | (((a64 & ((1UL << dist) - 1)) | a0) != 0 ? 1UL : 0UL)
-                    : ((a64 | a0) != 0 ? 1UL : 0UL)
-            );
-        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -520,112 +350,6 @@ internal static class Primitives
             extra: zextra | (extra != 0 ? 1UL : 0UL),
             v: zv
         );
-    }
-
-    // softfloat_add128
-    /// <summary>
-    /// Returns the sum of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> and the 128-bit
-    /// integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>. The addition is modulo 2^128, so any carry out is
-    /// lost.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Add128(ulong a64, ulong a0, ulong b64, ulong b0)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) + new UInt128(upper: b64, lower: b0);
-#else
-        SFUInt128 z;
-        z.V00 = a0 + b0;
-        z.V64 = a64 + b64 + (z.V00 < a0 ? 1UL : 0UL);
-        return z;
-#endif
-    }
-
-    // softfloat_sub128
-    /// <summary>
-    /// Returns the difference of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> and the
-    /// 128-bit integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>. The subtraction is modulo 2^128, so any
-    /// borrow out (carry out) is lost.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Sub128(ulong a64, ulong a0, ulong b64, ulong b0)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) - new UInt128(upper: b64, lower: b0);
-#else
-        return new(
-            v0: a0 - b0,
-            v64: a64 - b64 - (a0 < b0 ? 1UL : 0UL)
-        );
-#endif
-    }
-
-    // softfloat_mul64ByShifted32To128
-    /// <summary>
-    /// Returns the 128-bit product of <paramref name="a"/>, <paramref name="b"/>, and 2^32.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Mul64ByShifted32To128(ulong a, uint b)
-    {
-#if NET7_0_OR_GREATER
-        return (UInt128)a * ((UInt128)b << 32);
-#else
-        var mid = (ulong)(uint)a * b;
-        return new SFUInt128(
-            v64: (ulong)(uint)(a >> 32) * b + (mid >> 32),
-            v0: mid << 32
-        );
-#endif
-    }
-
-    // softfloat_mul64To128
-    /// <summary>
-    /// Returns the 128-bit product of <paramref name="a"/> and <paramref name="b"/>.
-    /// </summary>
-    public static SFUInt128 Mul64To128(ulong a, ulong b)
-    {
-#if NET7_0_OR_GREATER
-        return (UInt128)a * b;
-#else
-        SFUInt128 z;
-
-        var a32 = (uint)(a >> 32);
-        var a0 = (uint)a;
-
-        var b32 = (uint)(b >> 32);
-        var b0 = (uint)b;
-
-        z.V00 = (ulong)a0 * b0;
-        var mid1 = (ulong)a32 * b0;
-        var mid = mid1 + (ulong)a0 * b32;
-        z.V64 = (ulong)a32 * b32;
-
-        z.V64 += (mid < mid1 ? (1UL << 32) : 0UL) | (mid >> 32);
-        mid <<= 32;
-        z.V00 += mid;
-        z.V64 += z.V00 < mid ? 1UL : 0UL;
-        return z;
-#endif
-    }
-
-    // softfloat_mul128By32
-    /// <summary>
-    /// Returns the product of the 128-bit integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/>, multiplied by
-    /// <paramref name="b"/>. The multiplication is modulo 2^128; any overflow bits are discarded.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt128 Mul128By32(ulong a64, ulong a0, uint b)
-    {
-#if NET7_0_OR_GREATER
-        return new UInt128(upper: a64, lower: a0) * b;
-#else
-        SFUInt128 z;
-        z.V00 = a0 * b;
-        var mid = (ulong)(uint)(a0 >> 32) * b;
-        var carry = (uint)(z.V00 >> 32) - (uint)mid;
-        z.V64 = a64 * b + (uint)((mid + carry) >> 32);
-        return z;
-#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

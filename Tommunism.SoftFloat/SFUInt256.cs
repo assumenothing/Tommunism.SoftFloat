@@ -85,7 +85,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
     public SFUInt128 V000_UI128
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => new(v64: V064, v0: V000);
+        get => new(V064, V000);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => (V064, V000) = value;
@@ -94,7 +94,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
     public SFUInt128 V128_UI128
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => new(v64: V192, v0: V128);
+        get => new(V192, V128);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => (V192, V128) = value;

@@ -56,7 +56,7 @@ internal struct UInt128Extra : IEquatable<UInt128Extra>
     public UInt128Extra(ulong extra, ulong v0, ulong v64)
     {
         Extra = extra;
-        V = new SFUInt128(v64: v64, v0: v0);
+        V = new SFUInt128(v64, v0);
     }
 
     public void Deconstruct(out ulong extra, out SFUInt128 v)

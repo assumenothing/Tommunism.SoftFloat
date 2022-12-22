@@ -499,11 +499,11 @@ public abstract partial class SoftFloatSpecialize
         if (IsSignalingNaNFloat128Bits(bits64, bits0))
             context.RaiseFlags(ExceptionFlags.Invalid);
 
-        var NaNSig = ShortShiftLeft128(bits64, bits0, 16);
+        var NaNSig = new SFUInt128(bits64, bits0) << 16;
         commonNaN = new SoftFloatCommonNaN()
         {
             Sign = (bits64 >> 63) != 0,
-            Value = new UInt128(upper: NaNSig.V64, lower: NaNSig.V00)
+            Value = NaNSig
         };
     }
 

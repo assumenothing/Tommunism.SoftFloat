@@ -39,14 +39,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Tommunism.SoftFloat;
 
-using static Primitives;
-
-// NOTE: It looks like .NET 7 will add builtin support for 128-bit integers. But we have a few specialiazation functionss that might not be
-// so easy to do with the new integer type.
+// NOTE: It looks like .NET 7 added support for 128-bit integers. But we have a few specialiazation functionss that might not be so easy to
+// do with the new integer type.
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 2)]
 internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
@@ -54,6 +53,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
     #region Fields
 
     public static readonly SFUInt128 Zero = new();
+    public static readonly SFUInt128 One = new(0x0000000000000000, 0x0000000000000001);
     public static readonly SFUInt128 MinValue = new(0x0000000000000000, 0x0000000000000000);
     public static readonly SFUInt128 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
@@ -93,45 +93,240 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     public override int GetHashCode() => HashCode.Combine(V00, V64);
 
+    public static SFUInt128 Multiply(ulong a, ulong b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a * b;
+#else
+        SFUInt128 z;
+
+        var a32 = (uint)(a >> 32);
+        var a0 = (uint)a;
+
+        var b32 = (uint)(b >> 32);
+        var b0 = (uint)b;
+
+        z.V00 = (ulong)a0 * b0;
+        var mid1 = (ulong)a32 * b0;
+        var mid = mid1 + (ulong)a0 * b32;
+        z.V64 = (ulong)a32 * b32;
+
+        z.V64 += (mid < mid1 ? (1UL << 32) : 0UL) | (mid >> 32);
+        mid <<= 32;
+        z.V00 += mid;
+        z.V64 += z.V00 < mid ? 1UL : 0UL;
+        return z;
+#endif
+    }
+
+    public static SFUInt128 Multiply64ByShifted32(ulong a, uint b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a * ((ulong)b << 32);
+#else
+        var mid = (ulong)(uint)a * b;
+        return new SFUInt128(
+            (ulong)(uint)(a >> 32) * b + (mid >> 32),
+            mid << 32
+        );
+#endif
+    }
+
+    public SFUInt128 ShiftRightJam(int dist)
+    {
+        Debug.Assert(dist > 0, "Shift amount is out of range.");
+
+#if NET7_0_OR_GREATER
+        if (dist >= 128)
+            return !IsZero ? One : Zero;
+
+        var a = (UInt128)this;
+        return (a >> dist) | ((a << -dist) != 0 ? UInt128.One : UInt128.Zero);
+#else
+        if (dist < 64)
+        {
+            var negDist = -dist;
+            return new SFUInt128(
+                V64 >> dist,
+                (V64 << negDist) | (V00 >> dist) | ((V00 << negDist) != 0 ? 1UL : 0UL)
+            );
+        }
+        else
+        {
+            return new SFUInt128(
+                0,
+                (dist < 127)
+                    ? (V64 >> dist) | (((V64 & ((1UL << dist) - 1)) | V00) != 0 ? 1UL : 0UL)
+                    : (!IsZero ? 1UL : 0UL)
+            );
+        }
+#endif
+    }
+
+    public SFUInt128 ShortShiftRightJam(int dist)
+    {
+        Debug.Assert(dist is > 0 and < 64, "Shift amount is out of range.");
+
+#if NET7_0_OR_GREATER
+        var a = (UInt128)this;
+        return (a >> dist) | (((ulong)a << (-dist)) != 0 ? UInt128.One : UInt128.Zero);
+#else
+        var negDist = -dist;
+        return new SFUInt128(
+            V64 >> dist,
+            (V64 << negDist) | (V00 >> dist) | ((V00 << negDist) != 0 ? 1UL : 0UL)
+        );
+#endif
+    }
+
     public override string ToString() => $"0x{V64:x16}{V00:x16}";
 
-    public static explicit operator SFUInt128(ulong value) => new(v64: 0, v0: value);
+    public static explicit operator SFUInt128(ulong value) => new(0, value);
 
     public static explicit operator ulong(SFUInt128 value) => value.V00;
 
 #if NET7_0_OR_GREATER
-    public static implicit operator UInt128(SFUInt128 value) => new(upper: value.V64, lower: value.V00);
+    public static implicit operator UInt128(SFUInt128 value) => new(value.V64, value.V00);
 
-    public static implicit operator SFUInt128(UInt128 value) => new(v64: value.GetUpperUI64(), v0: value.GetLowerUI64());
+    public static implicit operator SFUInt128(UInt128 value) => new(value.GetUpperUI64(), value.GetLowerUI64());
 #endif
 
-    public static bool operator ==(SFUInt128 left, SFUInt128 right) => EQ128(left.V64, left.V00, right.V64, right.V00);
+    public static bool operator ==(SFUInt128 a, SFUInt128 b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a == (UInt128)b;
+#else
+        return (a.V64 == b.V64) && (a.V00 == b.V00);
+#endif
+    }
 
-    public static bool operator !=(SFUInt128 left, SFUInt128 right) => !EQ128(left.V64, left.V00, right.V64, right.V00);
+    public static bool operator !=(SFUInt128 a, SFUInt128 b) => !(a == b);
 
-    public static bool operator <(SFUInt128 left, SFUInt128 right) => LT128(left.V64, left.V00, right.V64, right.V00);
+    public static bool operator <(SFUInt128 a, SFUInt128 b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a < (UInt128)b;
+#else
+        return (a.V64 < b.V64) || ((a.V64 == b.V64) && (a.V00 < b.V00));
+#endif
+    }
 
-    public static bool operator >(SFUInt128 left, SFUInt128 right) => LT128(right.V64, right.V00, left.V64, left.V00);
+    public static bool operator >(SFUInt128 a, SFUInt128 b) => b < a;
 
-    public static bool operator <=(SFUInt128 left, SFUInt128 right) => LE128(left.V64, left.V00, right.V64, right.V00);
+    public static bool operator <=(SFUInt128 a, SFUInt128 b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a <= (UInt128)b;
+#else
+        return (a.V64 < b.V64) || ((a.V64 == b.V64) && (a.V00 <= b.V00));
+#endif
+    }
 
-    public static bool operator >=(SFUInt128 left, SFUInt128 right) => LE128(right.V64, right.V00, left.V64, left.V00);
+    public static bool operator >=(SFUInt128 a, SFUInt128 b) => b <= a;
 
-    public static SFUInt128 operator <<(SFUInt128 left, int right) => ShortShiftLeft128(left.V64, left.V00, right);
+    public static SFUInt128 operator <<(SFUInt128 a, int dist)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a << dist;
+#else
+        // An out of range shift is fine, internally C# requires 32-bit shifts are ANDed by 63 anyways.
+        return new SFUInt128(
+            (a.V64 << dist) | (a.V00 >> -dist),
+            a.V00 << dist
+        );
+#endif
+    }
 
-    public static SFUInt128 operator >>(SFUInt128 left, int right) => ShortShiftRight128(left.V64, left.V00, right);
+    public static SFUInt128 operator >>>(SFUInt128 a, int dist) => a >> dist;
 
-    public static SFUInt128 operator +(SFUInt128 left, SFUInt128 right) => Add128(left.V64, left.V00, right.V64, right.V00);
+    public static SFUInt128 operator >>(SFUInt128 a, int dist)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a >> dist;
+#else
+        // An out of range shift is fine, internally C# requires 64-bit shifts are ANDed by 63 anyways.
+        return new SFUInt128(
+            a.V64 >> dist,
+            (a.V64 << -dist) | (a.V00 >> dist)
+        );
+#endif
+    }
 
-    public static SFUInt128 operator +(SFUInt128 left, ulong right) => Add128(left.V64, left.V00, 0, right);
+    public static SFUInt128 operator +(SFUInt128 a, SFUInt128 b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a + (UInt128)b;
+#else
+        SFUInt128 z;
+        z.V00 = a.V00 + b.V00;
+        z.V64 = a.V64 + b.V64 + (z.V00 < a.V00 ? 1UL : 0UL);
+        return z;
+#endif
+    }
 
-    public static SFUInt128 operator -(SFUInt128 left, SFUInt128 right) => Sub128(left.V64, left.V00, right.V64, right.V00);
+    public static SFUInt128 operator +(SFUInt128 a, ulong b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a + b;
+#else
+        SFUInt128 z;
+        z.V00 = a.V00 + b;
+        z.V64 = a.V64 + (z.V00 < a.V00 ? 1UL : 0UL);
+        return z;
+#endif
+    }
 
-    public static SFUInt128 operator -(SFUInt128 left, ulong right) => Sub128(left.V64, left.V00, 0, right);
+    public static SFUInt128 operator -(SFUInt128 a, SFUInt128 b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a - (UInt128)b;
+#else
+        SFUInt128 z;
+        z.V00 = a.V00 - b.V00;
+        z.V64 = a.V64 - b.V64 - (a.V00 < b.V00 ? 1UL : 0UL);
+        return z;
+#endif
+    }
 
-    public static SFUInt128 operator -(SFUInt128 value) => Sub128(0, 0, value.V64, value.V00);
+    public static SFUInt128 operator -(SFUInt128 a, ulong b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a - b;
+#else
+        SFUInt128 z;
+        z.V00 = a.V00 - b;
+        z.V64 = a.V64 - (a.V00 < b ? 1UL : 0UL);
+        return z;
+#endif
+    }
 
-    public static SFUInt128 operator *(SFUInt128 left, uint right) => Mul128By32(left.V64, left.V00, right);
+    public static SFUInt128 operator -(SFUInt128 a)
+    {
+#if NET7_0_OR_GREATER
+        return -(UInt128)a;
+#else
+        SFUInt128 z;
+        z.V00 = 0 - a.V00;
+        z.V64 = 0 - a.V64 - (0 < a.V00 ? 1UL : 0UL);
+        return z;
+#endif
+    }
+
+    public static SFUInt128 operator *(SFUInt128 a, uint b)
+    {
+#if NET7_0_OR_GREATER
+        return (UInt128)a * b;
+#else
+        SFUInt128 z;
+        z.V00 = a.V00 * b;
+        var mid = (ulong)(uint)(a.V00 >> 32) * b;
+        var carry = (uint)(z.V00 >> 32) - (uint)mid;
+        z.V64 = a.V64 * b + (uint)((mid + carry) >> 32);
+        return z;
+#endif
+    }
+
+    public static SFUInt128 operator --(SFUInt128 a) => a - One;
 
     #endregion
 }

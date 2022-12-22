@@ -638,7 +638,7 @@ public readonly struct ExtFloat80
         else
         {
             sign = SignExtF80UI64(uiA64);
-            frac128 = ShortShiftLeft128(0, frac, 49);
+            frac128 = (SFUInt128)frac << 49;
             return PackToF128(sign, (int)exp, frac128.V64, frac128.V00);
         }
     }
@@ -865,7 +865,7 @@ public readonly struct ExtFloat80
         }
 
         expZ = expA + expB - 0x3FFE;
-        sig128Z = Mul64To128(sigA, sigB);
+        sig128Z = SFUInt128.Multiply(sigA, sigB);
         if (sig128Z.V64 < 0x8000000000000000)
         {
             --expZ;
@@ -957,11 +957,11 @@ public readonly struct ExtFloat80
         if (sigA < sigB)
         {
             --expZ;
-            rem = ShortShiftLeft128(0, sigA, 32);
+            rem = (SFUInt128)sigA << 32;
         }
         else
         {
-            rem = ShortShiftLeft128(0, sigA, 31);
+            rem = (SFUInt128)sigA << 31;
         }
 
         recip32 = ApproxRecip32_1((uint)(sigB >> 32));
@@ -975,12 +975,12 @@ public readonly struct ExtFloat80
                 break;
 
             rem <<= 29;
-            term = Mul64ByShifted32To128(sigB, q);
+            term = SFUInt128.Multiply64ByShifted32(sigB, q);
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
                 --q;
-                rem += new SFUInt128(v64: sigB >> 32, v0: sigB << 32);
+                rem += new SFUInt128(sigB >> 32, sigB << 32);
             }
 
             sigZ = (sigZ << 29) + q;
@@ -989,9 +989,9 @@ public readonly struct ExtFloat80
         if (((q + 1) & 0x3FFFFF) < 2)
         {
             rem <<= 29;
-            term = Mul64ByShifted32To128(sigB, q);
+            term = SFUInt128.Multiply64ByShifted32(sigB, q);
             rem -= term;
-            term = ShortShiftLeft128(0, sigB, 32);
+            term = (SFUInt128)sigB << 32;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
                 --q;
@@ -1128,7 +1128,7 @@ public readonly struct ExtFloat80
 
                 q = (uint)((q64 + 0x80000000) >> 32);
                 rem <<= 29;
-                term = Mul64ByShifted32To128(sigB, q);
+                term = SFUInt128.Multiply64ByShifted32(sigB, q);
                 rem -= term;
                 if ((rem.V64 & 0x8000000000000000) != 0)
                     rem += shiftedSigB;
@@ -1139,7 +1139,7 @@ public readonly struct ExtFloat80
             // ('expDiff' cannot be less than -29 here.)
             q = (uint)(q64 >> 32) >> (~expDiff);
             rem <<= expDiff + 30;
-            term = Mul64ByShifted32To128(sigB, q);
+            term = SFUInt128.Multiply64ByShifted32(sigB, q);
             rem -= term;
             if ((rem.V64 & 0x8000000000000000) != 0)
             {
@@ -1247,7 +1247,7 @@ public readonly struct ExtFloat80
         // (Repeating this loop is a rare occurrence.)
         while (true)
         {
-            term = Mul64ByShifted32To128(x64 + sigZ, (uint)q);
+            term = SFUInt128.Multiply64ByShifted32(x64 + sigZ, (uint)q);
             rem = y - term;
             if ((rem.V64 & 0x8000000000000000) == 0)
                 break;
@@ -1265,7 +1265,7 @@ public readonly struct ExtFloat80
         {
             q &= ~0xFFFFUL;
             sigZExtra = q << 39;
-            term = Mul64ByShifted32To128(x64 + (q >> 27), (uint)q);
+            term = SFUInt128.Multiply64ByShifted32(x64 + (q >> 27), (uint)q);
             x64 = (uint)(q << 5) * (ulong)(uint)q;
             term += x64;
             rem <<= 28;
@@ -1338,7 +1338,7 @@ public readonly struct ExtFloat80
 
         return (signA != signB)
             ? (signA || (((uiA64 | uiB64) & 0x7FFF) == 0 && (uiA0 | uiB0) == 0))
-            : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ LT128(uiA64, uiA0, uiB64, uiB0));
+            : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ new SFUInt128(uiA64, uiA0) < new SFUInt128(uiB64, uiB0));
     }
 
     // extF80_lt (signaling=true) & extF80_lt_quiet (signaling=false)
@@ -1366,7 +1366,7 @@ public readonly struct ExtFloat80
 
         return (signA != signB)
             ? (signA && (((uiA64 | uiB64) & 0x7FFF) != 0 || (uiA0 | uiB0) != 0))
-            : ((uiA64 != uiB64 || uiA0 != uiB0) && (signA ^ LT128(uiA64, uiA0, uiB64, uiB0)));
+            : ((uiA64 != uiB64 || uiA0 != uiB0) && (signA ^ new SFUInt128(uiA64, uiA0) < new SFUInt128(uiB64, uiB0)));
     }
 
     #endregion

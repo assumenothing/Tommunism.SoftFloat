@@ -372,7 +372,7 @@ partial class Internals
         expZ = expA + expB - 0x3FE;
         sigA = (sigA | 0x0010000000000000) << 10;
         sigB = (sigB | 0x0010000000000000) << 10;
-        sig128Z = Mul64To128(sigA, sigB);
+        sig128Z = SFUInt128.Multiply(sigA, sigB);
 
         if (sig128Z.V64 < 0x2000000000000000)
         {
@@ -405,14 +405,14 @@ partial class Internals
             }
             else
             {
-                sig128Z = ShortShiftRightJam128(sig128Z.V64, sig128Z.V00, 1);
+                sig128Z = sig128Z.ShortShiftRightJam(1);
             }
         }
         else if (expDiff != 0)
         {
             // Compiler thinks that it isn't used, because of the SkipInit hacks later in the code.
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
-            sig128C = ShiftRightJam128(sigC, 0, expDiff);
+            sig128C = new SFUInt128(sigC, 0).ShiftRightJam(expDiff);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
         }
 
@@ -440,7 +440,7 @@ partial class Internals
             if (expDiff < 0)
             {
                 signZ = signC;
-                sig128Z = Sub128(sigC, 0, sig128Z.V64, sig128Z.V00);
+                sig128Z = new SFUInt128(sigC, 0) - sig128Z;
             }
             else if (expDiff == 0)
             {
@@ -475,7 +475,7 @@ partial class Internals
             }
             else
             {
-                sig128Z = ShortShiftLeft128(sig128Z.V64, sig128Z.V00, shiftDist);
+                sig128Z <<= shiftDist;
                 sigZ = sig128Z.V64;
             }
 

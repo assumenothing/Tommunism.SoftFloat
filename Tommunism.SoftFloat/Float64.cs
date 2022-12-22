@@ -605,7 +605,7 @@ public readonly struct Float64
             exp--;
         }
 
-        frac128 = ShortShiftLeft128(0, frac, 60);
+        frac128 = (SFUInt128)frac << 60;
         return PackToF128(sign, exp + 0x3C00, frac128.V64, frac128.V00);
     }
 
@@ -803,7 +803,7 @@ public readonly struct Float64
         expZ = expA + expB - 0x3FF;
         sigA = (sigA | 0x0010000000000000) << 10;
         sigB = (sigB | 0x0010000000000000) << 11;
-        sig128Z = Mul64To128(sigA, sigB);
+        sig128Z = SFUInt128.Multiply(sigA, sigB);
         sigZ = sig128Z.V64 | (sig128Z.V00 != 0 ? 1U : 0);
 
         if (sigZ < 0x4000000000000000)
