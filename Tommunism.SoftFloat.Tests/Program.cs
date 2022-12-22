@@ -6,13 +6,13 @@ namespace Tommunism.SoftFloat.Tests;
 
 internal static class Program
 {
-    // If this is empty, then use the builtin case generator (if used then fast verification not possible).
-    // The builtin generator is theoretically faster, due to being able to generate test cases in parallel.
-    public static string GeneratorCommandPath { get; private set; } = ""; // or use the possibly slower serial "testfloat_gen" application
+    public static string GeneratorCommandPath { get; private set; } = "testfloat_gen";
 
     public static string VerifierCommandPath { get; private set; } = "testfloat_ver";
 
-    public static bool UseBuiltinGenerator => string.IsNullOrEmpty(GeneratorCommandPath);
+    // The builtin generator is theoretically faster, due to being able to generate test cases in parallel. Note that the builtin generator
+    // will generate different test cases than TestFloat's generator, because it uses a completely different random number generator.
+    public static bool UseBuiltinGenerator { get; private set; } = true;
 
     // Enumeration/option combination helper properties (lazy initialized).
 
@@ -418,10 +418,13 @@ internal static class Program
                 {
                     TestSlowFloat = true;
                 }
+                else if (arg.Equals("genBuiltin", StringComparison.OrdinalIgnoreCase))
+                {
+                    UseBuiltinGenerator = true;
+                }
                 else
                 {
-                    Console.Error.WriteLine($"ERROR: Unknown argument: {args[i]}");
-                    return 1;
+                    goto UnknownArgument;
                 }
             }
             else if (arg.StartsWith("all", StringComparison.OrdinalIgnoreCase))
