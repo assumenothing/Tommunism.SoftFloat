@@ -810,6 +810,15 @@ public readonly struct Float32
     public static Float32 MultiplyAndAdd(SoftFloatContext context, Float32 a, Float32 b, Float32 c) =>
         MulAdd(context, a._v, b._v, c._v, MulAddOperation.None);
 
+    // WARNING: This method overload is experimental and has not been thoroughly tested!
+    public static Float32 MultiplyAndAdd(SoftFloatContext context, Float32 a, Float32 b, Float32 c, MulAddOperation operation)
+    {
+        if (operation is not MulAddOperation.None and not MulAddOperation.SubtractC and not MulAddOperation.SubtractProduct)
+            throw new ArgumentException("Invalid multiply-and-add operation.", nameof(operation));
+
+        return MulAdd(context, a._v, b._v, c._v, operation);
+    }
+
     // f32_div
     public static Float32 Divide(SoftFloatContext context, Float32 a, Float32 b)
     {

@@ -944,6 +944,15 @@ public readonly struct Float128
     public static Float128 MultiplyAndAdd(SoftFloatContext context, Float128 a, Float128 b, Float128 c) =>
         MulAdd(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, MulAddOperation.None);
 
+    // WARNING: This method overload is experimental and has not been thoroughly tested!
+    public static Float128 MultiplyAndAdd(SoftFloatContext context, Float128 a, Float128 b, Float128 c, MulAddOperation operation)
+    {
+        if (operation is not MulAddOperation.None and not MulAddOperation.SubtractC and not MulAddOperation.SubtractProduct)
+            throw new ArgumentException("Invalid multiply-and-add operation.", nameof(operation));
+
+        return MulAdd(context, a._v64, a._v0, b._v64, b._v0, c._v64, c._v0, operation);
+    }
+
     // f128_div
     public static Float128 Divide(SoftFloatContext context, Float128 a, Float128 b)
     {

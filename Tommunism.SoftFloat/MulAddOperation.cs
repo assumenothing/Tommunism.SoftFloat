@@ -40,9 +40,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Tommunism.SoftFloat;
 
-internal enum MulAddOperation
+public enum MulAddOperation
 {
+    /// <summary>
+    /// Performs a normal fused multiply-and-add operation.
+    /// </summary>
     None = 0,
+
+    /// <summary>
+    /// Performs a fused multiply-and-subtract operation.
+    /// </summary>
     SubtractC = 1,
+
+    /// <summary>
+    /// Performs a fused negated-multiply-and-add operation.
+    /// </summary>
     SubtractProduct = 2
 }
