@@ -301,7 +301,7 @@ partial class Internals
         bool signA, signB, signC, signZ;
         int expA, expB, expC, expZ, expDiff;
         ulong sigA, sigB, sigC, magBits, uiZ, sigZ;
-        SFUInt128 sig128Z, sig128C;
+        UInt128M sig128Z, sig128C;
         int shiftDist;
 
         signA = SignF64UI(uiA);
@@ -372,7 +372,7 @@ partial class Internals
         expZ = expA + expB - 0x3FE;
         sigA = (sigA | 0x0010000000000000) << 10;
         sigB = (sigB | 0x0010000000000000) << 10;
-        sig128Z = SFUInt128.Multiply(sigA, sigB);
+        sig128Z = UInt128M.Multiply(sigA, sigB);
 
         if (sig128Z.V64 < 0x2000000000000000)
         {
@@ -412,7 +412,7 @@ partial class Internals
         {
             // Compiler thinks that it isn't used, because of the SkipInit hacks later in the code.
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
-            sig128C = new SFUInt128(sigC, 0).ShiftRightJam(expDiff);
+            sig128C = new UInt128M(sigC, 0).ShiftRightJam(expDiff);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
         }
 
@@ -440,7 +440,7 @@ partial class Internals
             if (expDiff < 0)
             {
                 signZ = signC;
-                sig128Z = new SFUInt128(sigC, 0) - sig128Z;
+                sig128Z = new UInt128M(sigC, 0) - sig128Z;
             }
             else if (expDiff == 0)
             {

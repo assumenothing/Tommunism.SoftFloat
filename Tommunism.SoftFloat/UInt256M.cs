@@ -46,14 +46,14 @@ using System.Runtime.InteropServices;
 namespace Tommunism.SoftFloat;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 4)]
-internal struct SFUInt256 : IEquatable<SFUInt256>
+internal struct UInt256M : IEquatable<UInt256M>
 {
     #region Fields
 
-    public static readonly SFUInt256 Zero = new();
-    public static readonly SFUInt256 One = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000001);
-    public static readonly SFUInt256 MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
-    public static readonly SFUInt256 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+    public static readonly UInt256M Zero = new();
+    public static readonly UInt256M One = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000001);
+    public static readonly UInt256M MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
+    public static readonly UInt256M MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
     internal ulong V000, V064, V128, V192;
 
@@ -61,16 +61,16 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
     #region Constructors
 
-    public SFUInt256(ulong v192, ulong v128, ulong v64, ulong v0) =>
+    public UInt256M(ulong v192, ulong v128, ulong v64, ulong v0) =>
         (V000, V064, V128, V192) = (v0, v64, v128, v192);
 
-    public SFUInt256(SFUInt128 v128, SFUInt128 v0)
+    public UInt256M(UInt128M v128, UInt128M v0)
     {
         (V064, V000) = v0;
         (V192, V128) = v128;
     }
 
-    internal SFUInt256(ReadOnlySpan<ulong> span, bool isLittleEndian)
+    internal UInt256M(ReadOnlySpan<ulong> span, bool isLittleEndian)
     {
         Debug.Assert(span.Length >= 4, "Span is too small.");
         (V000, V064, V128, V192) = isLittleEndian
@@ -84,7 +84,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
     public bool IsZero => (V000 | V064 | V128 | V192) == 0;
 
-    public SFUInt128 V000_UI128
+    public UInt128M V000_UI128
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => new(V064, V000);
@@ -93,7 +93,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
         set => (V064, V000) = value;
     }
 
-    public SFUInt128 V128_UI128
+    public UInt128M V128_UI128
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => new(V192, V128);
@@ -109,16 +109,16 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
     public void Deconstruct(out ulong v192, out ulong v128, out ulong v64, out ulong v0) =>
         (v192, v128, v64, v0) = (V192, V128, V064, V000);
 
-    public void Deconstruct(out SFUInt128 v128, out SFUInt128 v0) => (v128, v0) = (new(V192, V128), new(V064, V000));
+    public void Deconstruct(out UInt128M v128, out UInt128M v0) => (v128, v0) = (new(V192, V128), new(V064, V000));
 
-    public override bool Equals(object? obj) => obj is SFUInt256 int256 && Equals(int256);
+    public override bool Equals(object? obj) => obj is UInt256M int256 && Equals(int256);
 
-    public bool Equals(SFUInt256 other) =>
+    public bool Equals(UInt256M other) =>
         V000 == other.V000 && V064 == other.V064 && V128 == other.V128 && V192 == other.V192;
 
     public override int GetHashCode() => HashCode.Combine(V000, V064, V128, V192);
 
-    public SFUInt256 ShiftRightJam(int dist)
+    public UInt256M ShiftRightJam(int dist)
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
 
@@ -127,10 +127,10 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
             return !IsZero ? One : Zero;
 
         // Shift value right.
-        SFUInt256 z = this >> dist;
+        UInt256M z = this >> dist;
 
         // Calculate jam value and set jam bit (if needed).
-        SFUInt256 jamZ = this << -dist;
+        UInt256M jamZ = this << -dist;
         if (!jamZ.IsZero)
             z.V000 |= 1;
 
@@ -147,19 +147,19 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
     public override string ToString() => $"0x{V192:x16}{V128:x16}{V064:x16}{V000:x16}";
 
-    public static explicit operator SFUInt256(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
+    public static explicit operator UInt256M(ulong value) => new(v0: value, v64: 0, v128: 0, v192: 0);
 
-    public static explicit operator SFUInt256(SFUInt128 value) => new(v0: value, v128: SFUInt128.Zero);
+    public static explicit operator UInt256M(UInt128M value) => new(v0: value, v128: UInt128M.Zero);
 
-    public static explicit operator ulong(SFUInt256 value) => value.V000;
+    public static explicit operator ulong(UInt256M value) => value.V000;
 
-    public static explicit operator SFUInt128(SFUInt256 value) => value.V000_UI128;
+    public static explicit operator UInt128M(UInt256M value) => value.V000_UI128;
 
-    public static bool operator ==(SFUInt256 left, SFUInt256 right) => left.Equals(right);
+    public static bool operator ==(UInt256M left, UInt256M right) => left.Equals(right);
 
-    public static bool operator !=(SFUInt256 left, SFUInt256 right) => !(left == right);
+    public static bool operator !=(UInt256M left, UInt256M right) => !(left == right);
 
-    public static SFUInt256 operator <<(SFUInt256 a, int dist)
+    public static UInt256M operator <<(UInt256M a, int dist)
     {
         dist &= 255;
 
@@ -249,9 +249,9 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
         return new(z192, z128, z064, z000);
     }
 
-    public static SFUInt256 operator >>>(SFUInt256 a, int dist) => a >> dist;
+    public static UInt256M operator >>>(UInt256M a, int dist) => a >> dist;
 
-    public static SFUInt256 operator >>(SFUInt256 a, int dist)
+    public static UInt256M operator >>(UInt256M a, int dist)
     {
         dist &= 255;
 
@@ -341,7 +341,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
         return new(z192, z128, z064, z000);
     }
 
-    public static SFUInt256 operator +(SFUInt256 left, SFUInt256 right)
+    public static UInt256M operator +(UInt256M left, UInt256M right)
     {
         ulong a0 = left.V000, a64 = left.V064, a128 = left.V128, a192 = left.V192;
         ulong b0 = right.V000, b64 = right.V064, b128 = right.V128, b192 = right.V192;
@@ -362,7 +362,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
         return new(z3, z2, z1, z0);
     }
 
-    public static SFUInt256 operator -(SFUInt256 left, SFUInt256 right)
+    public static UInt256M operator -(UInt256M left, UInt256M right)
     {
         ulong a0 = left.V000, a64 = left.V064, a128 = left.V128, a192 = left.V192;
         ulong b0 = right.V000, b64 = right.V064, b128 = right.V128, b192 = right.V192;
@@ -381,7 +381,7 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
         return new(z3, z2, z1, z0);
     }
 
-    public static SFUInt256 operator -(SFUInt256 value)
+    public static UInt256M operator -(UInt256M value)
     {
         ulong b0 = value.V000, b64 = value.V064, b128 = value.V128, b192 = value.V192;
         ulong z0, z1, z2, z3, borrow;

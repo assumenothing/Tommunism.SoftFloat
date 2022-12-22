@@ -48,14 +48,14 @@ namespace Tommunism.SoftFloat;
 // do with the new integer type.
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong) * 2)]
-internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
+internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 {
     #region Fields
 
-    public static readonly SFUInt128 Zero = new();
-    public static readonly SFUInt128 One = new(0x0000000000000000, 0x0000000000000001);
-    public static readonly SFUInt128 MinValue = new(0x0000000000000000, 0x0000000000000000);
-    public static readonly SFUInt128 MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+    public static readonly UInt128M Zero = new();
+    public static readonly UInt128M One = new(0x0000000000000000, 0x0000000000000001);
+    public static readonly UInt128M MinValue = new(0x0000000000000000, 0x0000000000000000);
+    public static readonly UInt128M MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
     public ulong V00;
     public ulong V64;
@@ -64,7 +64,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     #region Constructors
 
-    public SFUInt128(ulong v64, ulong v0) => (V00, V64) = (v0, v64);
+    public UInt128M(ulong v64, ulong v0) => (V00, V64) = (v0, v64);
 
     #endregion
 
@@ -76,7 +76,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     #region Methods
 
-    public int CompareTo(SFUInt128 other)
+    public int CompareTo(UInt128M other)
     {
         if (other.V64 < V64) return 1;
         if (V64 < other.V64) return -1;
@@ -87,13 +87,13 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     public void Deconstruct(out ulong v64, out ulong v0) => (v64, v0) = (V64, V00);
 
-    public bool Equals(SFUInt128 other) => this == other;
+    public bool Equals(UInt128M other) => this == other;
 
-    public override bool Equals(object? obj) => obj is SFUInt128 int128 && Equals(int128);
+    public override bool Equals(object? obj) => obj is UInt128M int128 && Equals(int128);
 
     public override int GetHashCode() => HashCode.Combine(V00, V64);
 
-    public static SFUInt128 Multiply(ulong a, ulong b)
+    public static UInt128M Multiply(ulong a, ulong b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a * b;
@@ -119,7 +119,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 Multiply64ByShifted32(ulong a, uint b)
+    public static UInt128M Multiply64ByShifted32(ulong a, uint b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a * ((ulong)b << 32);
@@ -132,7 +132,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public SFUInt128 ShiftRightJam(int dist)
+    public UInt128M ShiftRightJam(int dist)
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
 
@@ -163,7 +163,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public SFUInt128 ShortShiftRightJam(int dist)
+    public UInt128M ShortShiftRightJam(int dist)
     {
         Debug.Assert(dist is > 0 and < 64, "Shift amount is out of range.");
 
@@ -181,17 +181,17 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 
     public override string ToString() => $"0x{V64:x16}{V00:x16}";
 
-    public static explicit operator SFUInt128(ulong value) => new(0, value);
+    public static explicit operator UInt128M(ulong value) => new(0, value);
 
-    public static explicit operator ulong(SFUInt128 value) => value.V00;
+    public static explicit operator ulong(UInt128M value) => value.V00;
 
 #if NET7_0_OR_GREATER
-    public static implicit operator UInt128(SFUInt128 value) => new(value.V64, value.V00);
+    public static implicit operator UInt128(UInt128M value) => new(value.V64, value.V00);
 
-    public static implicit operator SFUInt128(UInt128 value) => new(value.GetUpperUI64(), value.GetLowerUI64());
+    public static implicit operator UInt128M(UInt128 value) => new(value.GetUpperUI64(), value.GetLowerUI64());
 #endif
 
-    public static bool operator ==(SFUInt128 a, SFUInt128 b)
+    public static bool operator ==(UInt128M a, UInt128M b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a == (UInt128)b;
@@ -200,9 +200,9 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static bool operator !=(SFUInt128 a, SFUInt128 b) => !(a == b);
+    public static bool operator !=(UInt128M a, UInt128M b) => !(a == b);
 
-    public static bool operator <(SFUInt128 a, SFUInt128 b)
+    public static bool operator <(UInt128M a, UInt128M b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a < (UInt128)b;
@@ -211,9 +211,9 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static bool operator >(SFUInt128 a, SFUInt128 b) => b < a;
+    public static bool operator >(UInt128M a, UInt128M b) => b < a;
 
-    public static bool operator <=(SFUInt128 a, SFUInt128 b)
+    public static bool operator <=(UInt128M a, UInt128M b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a <= (UInt128)b;
@@ -222,9 +222,9 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static bool operator >=(SFUInt128 a, SFUInt128 b) => b <= a;
+    public static bool operator >=(UInt128M a, UInt128M b) => b <= a;
 
-    public static SFUInt128 operator <<(SFUInt128 a, int dist)
+    public static UInt128M operator <<(UInt128M a, int dist)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a << dist;
@@ -237,9 +237,9 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator >>>(SFUInt128 a, int dist) => a >> dist;
+    public static UInt128M operator >>>(UInt128M a, int dist) => a >> dist;
 
-    public static SFUInt128 operator >>(SFUInt128 a, int dist)
+    public static UInt128M operator >>(UInt128M a, int dist)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a >> dist;
@@ -252,7 +252,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator +(SFUInt128 a, SFUInt128 b)
+    public static UInt128M operator +(UInt128M a, UInt128M b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a + (UInt128)b;
@@ -264,7 +264,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator +(SFUInt128 a, ulong b)
+    public static UInt128M operator +(UInt128M a, ulong b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a + b;
@@ -276,7 +276,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator -(SFUInt128 a, SFUInt128 b)
+    public static UInt128M operator -(UInt128M a, UInt128M b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a - (UInt128)b;
@@ -288,7 +288,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator -(SFUInt128 a, ulong b)
+    public static UInt128M operator -(UInt128M a, ulong b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a - b;
@@ -300,7 +300,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator -(SFUInt128 a)
+    public static UInt128M operator -(UInt128M a)
     {
 #if NET7_0_OR_GREATER
         return -(UInt128)a;
@@ -312,7 +312,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator *(SFUInt128 a, uint b)
+    public static UInt128M operator *(UInt128M a, uint b)
     {
 #if NET7_0_OR_GREATER
         return (UInt128)a * b;
@@ -326,7 +326,7 @@ internal struct SFUInt128 : IEquatable<SFUInt128>, IComparable<SFUInt128>
 #endif
     }
 
-    public static SFUInt128 operator --(SFUInt128 a) => a - One;
+    public static UInt128M operator --(UInt128M a) => a - One;
 
     #endregion
 }

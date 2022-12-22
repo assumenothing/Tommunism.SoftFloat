@@ -73,10 +73,10 @@ partial class Internals
     public static bool IsNaNF128UI(ulong a64, ulong a0) => (~a64 & 0x7FFF000000000000) == 0 && (a0 != 0 || (a64 & 0x0000FFFFFFFFFFFF) != 0);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int exp, SFUInt128 sig) NormSubnormalF128Sig(SFUInt128 sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
+    public static (int exp, UInt128M sig) NormSubnormalF128Sig(UInt128M sig) => NormSubnormalF128Sig(sig.V64, sig.V00);
 
     // softfloat_normSubnormalF128Sig
-    public static (int exp, SFUInt128 sig) NormSubnormalF128Sig(ulong sig64, ulong sig0)
+    public static (int exp, UInt128M sig) NormSubnormalF128Sig(ulong sig64, ulong sig0)
     {
         int shiftDist;
         if (sig64 == 0)
@@ -85,8 +85,8 @@ partial class Internals
             return (
                 exp: -63 - shiftDist,
                 sig: (shiftDist < 0)
-                    ? new SFUInt128(sig0 >> (-shiftDist), sig0 << shiftDist)
-                    : new SFUInt128(sig0 << shiftDist, 0)
+                    ? new UInt128M(sig0 >> (-shiftDist), sig0 << shiftDist)
+                    : new UInt128M(sig0 << shiftDist, 0)
             );
         }
         else
@@ -94,13 +94,13 @@ partial class Internals
             shiftDist = CountLeadingZeroes64(sig64) - 15;
             return (
                 exp: 1 - shiftDist,
-                sig: new SFUInt128(sig64, sig0) << shiftDist
+                sig: new UInt128M(sig64, sig0) << shiftDist
             );
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int exp, SFUInt128 sig, ulong sigExtra) =>
+    public static Float128 RoundPackToF128(SoftFloatContext context, bool sign, int exp, UInt128M sig, ulong sigExtra) =>
         RoundPackToF128(context, sign, exp, sig.V64, sig.V00, sigExtra);
 
     // softfloat_roundPackToF128
@@ -117,7 +117,7 @@ partial class Internals
             if (exp < 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || !roundIncrement ||
-                    new SFUInt128(sig64, sig0) < new SFUInt128(0x0001FFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+                    new UInt128M(sig64, sig0) < new UInt128M(0x0001FFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
                 (sigExtra, sig64, sig0) = ShiftRightJam128Extra(sig64, sig0, sigExtra, -exp);
                 exp = 0;
                 if (isTiny && sigExtra != 0)
@@ -127,7 +127,7 @@ partial class Internals
                     ? (roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max) && sigExtra != 0)
                     : (0x8000000000000000 <= sigExtra);
             }
-            else if (0x7FFD < exp || (exp == 0x7FFD && new SFUInt128(sig64, sig0) == new SFUInt128(0x0001FFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF) && roundIncrement))
+            else if (0x7FFD < exp || (exp == 0x7FFD && new UInt128M(sig64, sig0) == new UInt128M(0x0001FFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF) && roundIncrement))
             {
                 context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
                 return (roundNearEven || roundingMode == RoundingMode.NearMaxMag || roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max))
@@ -145,7 +145,7 @@ partial class Internals
 
         if (roundIncrement)
         {
-            (sig64, sig0) = new SFUInt128(sig64, sig0) + SFUInt128.One;
+            (sig64, sig0) = new UInt128M(sig64, sig0) + UInt128M.One;
             sig0 &= ~((sigExtra & 0x7FFFFFFFFFFFFFFF) == 0 && roundNearEven ? 1UL : 0);
         }
         else
@@ -158,7 +158,7 @@ partial class Internals
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int exp, SFUInt128 sig) =>
+    public static Float128 NormRoundPackToF128(SoftFloatContext context, bool sign, int exp, UInt128M sig) =>
         NormRoundPackToF128(context, sign, exp, sig.V64, sig.V00);
 
     // softfloat_normRoundPackToF128
@@ -178,7 +178,7 @@ partial class Internals
         if (0 <= shiftDist)
         {
             if (shiftDist != 0)
-                (sig64, sig0) = new SFUInt128(sig64, sig0) << shiftDist;
+                (sig64, sig0) = new UInt128M(sig64, sig0) << shiftDist;
 
             if ((uint)exp < 0x7FFD)
                 return PackToF128(sign, (sig64 | sig0) != 0 ? exp : 0, sig64, sig0);
@@ -197,13 +197,13 @@ partial class Internals
     public static Float128 AddMagsF128(SoftFloatContext context, ulong uiA64, ulong uiA0, ulong uiB64, ulong uiB0, bool signZ)
     {
         int expA, expB, expDiff, expZ;
-        SFUInt128 sigA, sigB, sigZ;
+        UInt128M sigA, sigB, sigZ;
         ulong sigZExtra;
 
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
 
         expDiff = expA - expB;
         if (expDiff == 0)
@@ -292,12 +292,12 @@ partial class Internals
     public static Float128 SubMagsF128(SoftFloatContext context, ulong uiA64, ulong uiA0, ulong uiB64, ulong uiB0, bool signZ)
     {
         int expA, expB, expDiff, expZ;
-        SFUInt128 sigA, sigB, sigZ;
+        UInt128M sigA, sigB, sigZ;
 
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
 
         sigA <<= 4;
         sigB <<= 4;
@@ -402,23 +402,23 @@ partial class Internals
 
         bool signA, signB, signC, signZ;
         int expA, expB, expC, expZ, shiftDist, expDiff;
-        SFUInt128 sigA, sigB, sigC, uiZ, sigZ, x128;
+        UInt128M sigA, sigB, sigC, uiZ, sigZ, x128;
         ulong magBits, sigZExtra, sig256Z0;
-        SFUInt256 sig256Z, sig256C;
+        UInt256M sig256Z, sig256C;
 
         Unsafe.SkipInit(out sig256C); // workaround weird spaghetti code logic
 
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
 
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
 
         signC = SignF128UI64(uiC64) ^ (op == MulAddOperation.SubtractC);
         expC = ExpF128UI64(uiC64);
-        sigC = new SFUInt128(FracF128UI64(uiC64), uiC0);
+        sigC = new UInt128M(FracF128UI64(uiC64), uiC0);
 
         signZ = signA ^ signB ^ (op == MulAddOperation.SubtractProduct);
 
@@ -444,7 +444,7 @@ partial class Internals
         {
             if (!sigC.IsZero)
             {
-                uiZ = SFUInt128.Zero;
+                uiZ = UInt128M.Zero;
                 return context.PropagateNaNFloat128Bits(uiZ.V64, uiZ.V00, uiC64, uiC0);
             }
 
@@ -545,7 +545,7 @@ partial class Internals
             }
             else
             {
-                sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
+                sig256C = new UInt256M(v128: sigC, v0: UInt128M.Zero);
                 sig256C = sig256C.ShiftRightJam(expDiff);
             }
         }
@@ -593,7 +593,7 @@ partial class Internals
                 }
                 else
                 {
-                    sig256C = new SFUInt256(v128: sigC, v0: SFUInt128.Zero);
+                    sig256C = new UInt256M(v128: sigC, v0: UInt128M.Zero);
                     sig256Z = sig256C - sig256Z;
                 }
             }
@@ -675,7 +675,7 @@ partial class Internals
             {
                 shiftDist = -shiftDist;
                 sigZ <<= shiftDist;
-                x128 = (SFUInt128)sigZExtra << shiftDist;
+                x128 = (UInt128M)sigZExtra << shiftDist;
                 sigZ.V00 |= x128.V64;
                 sigZExtra = x128.V00;
             }
@@ -691,7 +691,7 @@ partial class Internals
     infProdArg:
         if (magBits != 0)
         {
-            uiZ = new SFUInt128(PackToF128UI64(signZ, 0x7FFF, 0), 0);
+            uiZ = new UInt128M(PackToF128UI64(signZ, 0x7FFF, 0), 0);
             if (expC != 0x7FFF)
                 return Float128.FromBitsUI128(uiZ);
 

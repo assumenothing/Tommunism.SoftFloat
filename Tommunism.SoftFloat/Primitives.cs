@@ -233,7 +233,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128Extra ShortShiftRightJam128Extra(SFUInt128 a, ulong extra, int dist) => ShortShiftRightJam128Extra(a.V64, a.V00, extra, dist);
+    public static UInt128Extra ShortShiftRightJam128Extra(UInt128M a, ulong extra, int dist) => ShortShiftRightJam128Extra(a.V64, a.V00, extra, dist);
 
     // softfloat_shortShiftRightJam128Extra
     /// <summary>
@@ -246,7 +246,7 @@ internal static class Primitives
         Debug.Assert(dist is >= 1 and < 64, "Shift amount is out of range.");
         var negDist = -dist;
         return new UInt128Extra(
-            v: new SFUInt128(
+            v: new UInt128M(
                 a64 >> dist,
                 (a64 << negDist) | (a0 >> dist)
             ),
@@ -290,7 +290,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt128Extra ShiftRightJam128Extra(SFUInt128 a, ulong extra, int dist) => ShiftRightJam128Extra(a.V64, a.V00, extra, dist);
+    public static UInt128Extra ShiftRightJam128Extra(UInt128M a, ulong extra, int dist) => ShiftRightJam128Extra(a.V64, a.V00, extra, dist);
 
     // softfloat_shiftRightJam128Extra
     /// <summary>
@@ -312,7 +312,7 @@ internal static class Primitives
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
 
-        SFUInt128 zv;
+        UInt128M zv;
         ulong zextra;
 
         var negDist = -dist;
@@ -353,7 +353,7 @@ internal static class Primitives
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SFUInt256 Mul128To256M(SFUInt128 a, SFUInt128 b)
+    public static UInt256M Mul128To256M(UInt128M a, UInt128M b)
     {
         Mul128To256M(a.V64, a.V00, b.V64, b.V00, out var z);
         return z;
@@ -366,7 +366,7 @@ internal static class Primitives
     /// location pointed to by <paramref name="zPtr"/>. Argument <paramref name="zPtr"/> points to an array of four 64-bit elements that
     /// concatenate in the platform's normal endian order to form a 256-bit integer.
     /// </summary>
-    public static void Mul128To256M(ulong a64, ulong a0, ulong b64, ulong b0, out SFUInt256 zPtr)
+    public static void Mul128To256M(ulong a64, ulong a0, ulong b64, ulong b0, out UInt256M zPtr)
     {
 #if NET7_0_OR_GREATER
         UInt128 z0, mid1, mid, z128;

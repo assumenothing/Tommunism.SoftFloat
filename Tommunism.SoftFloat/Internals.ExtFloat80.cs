@@ -273,7 +273,7 @@ partial class Internals
         var shiftDist = CountLeadingZeroes64(sig);
         exp -= shiftDist;
         if (shiftDist != 0)
-            (sig, sigExtra) = new SFUInt128(sig, sigExtra) << shiftDist;
+            (sig, sigExtra) = new UInt128M(sig, sigExtra) << shiftDist;
 
         return RoundPackToExtF80(context, sign, exp, sig, sigExtra, roundingPrecision);
     }
@@ -370,7 +370,7 @@ partial class Internals
     {
         int expA, expB, expDiff, expZ;
         ulong sigA, sigB, sigExtra;
-        SFUInt128 sig128;
+        UInt128M sig128;
 
         expA = ExpExtF80UI64(uiA64);
         sigA = uiA0;
@@ -397,12 +397,12 @@ partial class Internals
 
             if (sigB < sigA)
             {
-                sig128 = new SFUInt128(sigA, 0) - new SFUInt128(sigB, sigExtra);
+                sig128 = new UInt128M(sigA, 0) - new UInt128M(sigB, sigExtra);
             }
             else if (sigA < sigB)
             {
                 signZ = !signZ;
-                sig128 = new SFUInt128(sigB, 0) - new SFUInt128(sigA, sigExtra);
+                sig128 = new UInt128M(sigB, 0) - new UInt128M(sigA, sigExtra);
             }
             else
             {
@@ -423,15 +423,15 @@ partial class Internals
                 --expDiff;
                 sigExtra = 0;
                 if (expDiff != 0)
-                    (sigB, sigExtra) = new SFUInt128(sigB, 0).ShiftRightJam(expDiff);
+                    (sigB, sigExtra) = new UInt128M(sigB, 0).ShiftRightJam(expDiff);
             }
             else
             {
-                (sigB, sigExtra) = new SFUInt128(sigB, 0).ShiftRightJam(expDiff);
+                (sigB, sigExtra) = new UInt128M(sigB, 0).ShiftRightJam(expDiff);
             }
 
             expZ = expA;
-            sig128 = new SFUInt128(sigA, 0) - new SFUInt128(sigB, sigExtra);
+            sig128 = new UInt128M(sigA, 0) - new UInt128M(sigB, sigExtra);
         }
         else //if (expDiff < 0)
         {
@@ -447,16 +447,16 @@ partial class Internals
                 ++expDiff;
                 sigExtra = 0;
                 if (expDiff != 0)
-                    (sigA, sigExtra) = new SFUInt128(sigA, 0).ShiftRightJam(-expDiff);
+                    (sigA, sigExtra) = new UInt128M(sigA, 0).ShiftRightJam(-expDiff);
             }
             else
             {
-                (sigA, sigExtra) = new SFUInt128(sigA, 0).ShiftRightJam(-expDiff);
+                (sigA, sigExtra) = new UInt128M(sigA, 0).ShiftRightJam(-expDiff);
             }
 
             signZ = !signZ;
             expZ = expB;
-            sig128 = new SFUInt128(sigB, 0) - new SFUInt128(sigA, sigExtra);
+            sig128 = new UInt128M(sigB, 0) - new UInt128M(sigA, sigExtra);
         }
 
         return NormRoundPackToExtF80(context, signZ, expZ, sig128.V64, sig128.V00, context.RoundingPrecisionExtFloat80);

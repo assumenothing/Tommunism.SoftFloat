@@ -60,7 +60,7 @@ public readonly struct Float128
 
     #region Constructors
 
-    private Float128(SFUInt128 v)
+    private Float128(UInt128M v)
     {
         _v0 = v.V00;
         _v64 = v.V64;
@@ -87,7 +87,7 @@ public readonly struct Float128
 #endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static Float128 FromBitsUI128(SFUInt128 v) => new(v);
+    internal static Float128 FromBitsUI128(UInt128M v) => new(v);
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     internal static Float128 FromBitsUI128(ulong v64, ulong v0) => new(v64, v0);
@@ -115,8 +115,8 @@ public readonly struct Float128
         {
             var shiftDist = CountLeadingZeroes64(a) + 49;
             var zSig = (64 <= shiftDist)
-                ? new SFUInt128(a << (shiftDist - 64), 0)
-                : ((SFUInt128)a << shiftDist);
+                ? new UInt128M(a << (shiftDist - 64), 0)
+                : ((UInt128M)a << shiftDist);
             return PackToF128(false, 0x406E - shiftDist, zSig.V64, zSig.V00);
         }
 
@@ -148,8 +148,8 @@ public readonly struct Float128
             var absA = (ulong)(sign ? -a : a);
             var shiftDist = CountLeadingZeroes64(absA) + 49;
             var zSig = (64 <= shiftDist)
-                ? new SFUInt128(absA << (shiftDist - 64), 0)
-                : ((SFUInt128)absA << shiftDist);
+                ? new UInt128M(absA << (shiftDist - 64), 0)
+                : ((UInt128M)absA << shiftDist);
             return PackToF128(sign, 0x406E - shiftDist, zSig.V64, zSig.V00);
         }
 
@@ -236,7 +236,7 @@ public readonly struct Float128
 
             sig64 |= 0x0001000000000000;
             if (shiftDist != 0)
-                (sig64, sig0) = new SFUInt128(sig64, sig0) << -shiftDist;
+                (sig64, sig0) = new UInt128M(sig64, sig0) << -shiftDist;
         }
         else
         {
@@ -319,7 +319,7 @@ public readonly struct Float128
 
             sig64 |= 0x0001000000000000;
             if (shiftDist != 0)
-                (sig64, sig0) = new SFUInt128(sig64, sig0) << -shiftDist;
+                (sig64, sig0) = new UInt128M(sig64, sig0) << -shiftDist;
         }
         else
         {
@@ -617,7 +617,7 @@ public readonly struct Float128
     {
         ulong uiA64, uiA0, frac64, frac0;
         int exp;
-        SFUInt128 frac128;
+        UInt128M frac128;
         bool sign;
 
         uiA64 = _v64;
@@ -638,7 +638,7 @@ public readonly struct Float128
             return PackToF64(sign, 0x7FF, 0);
         }
 
-        frac128 = new SFUInt128(frac64, frac0) << 14;
+        frac128 = new UInt128M(frac64, frac0) << 14;
         frac64 = frac128.V64 | (frac128.V00 != 0 ? 1U : 0);
         if (((uint)exp | frac64) == 0)
             return PackToF64(sign, 0, 0);
@@ -655,7 +655,7 @@ public readonly struct Float128
     {
         ulong uiA64, uiA0, frac64, frac0;
         int exp;
-        SFUInt128 sig128;
+        UInt128M sig128;
         bool sign;
 
         uiA64 = _v64;
@@ -684,7 +684,7 @@ public readonly struct Float128
             (exp, (frac64, frac0)) = NormSubnormalF128Sig(frac64, frac0);
         }
 
-        sig128 = new SFUInt128(frac64 | 0x0001000000000000, frac0) << 15;
+        sig128 = new UInt128M(frac64 | 0x0001000000000000, frac0) << 15;
         return RoundPackToExtF80(context, sign, exp, sig128.V64, sig128.V00, ExtFloat80RoundingPrecision._80);
     }
 
@@ -699,7 +699,7 @@ public readonly struct Float128
     {
         ulong uiA64, uiA0, lastBitMask0, roundBitsMask, lastBitMask64;
         int exp;
-        SFUInt128 uiZ;
+        UInt128M uiZ;
         bool roundNearEven;
 
         uiA64 = _v64;
@@ -718,7 +718,7 @@ public readonly struct Float128
 
             lastBitMask0 = (ulong)2 << (0x406E - exp);
             roundBitsMask = lastBitMask0 - 1;
-            uiZ = new SFUInt128(uiA64, uiA0);
+            uiZ = new UInt128M(uiA64, uiA0);
             roundNearEven = roundingMode == RoundingMode.NearEven;
             if (roundNearEven || roundingMode == RoundingMode.NearMaxMag)
             {
@@ -733,14 +733,14 @@ public readonly struct Float128
                 }
                 else
                 {
-                    uiZ += (SFUInt128)(lastBitMask0 >> 1);
+                    uiZ += (UInt128M)(lastBitMask0 >> 1);
                     if (roundNearEven && (uiZ.V00 & roundBitsMask) == 0)
                         uiZ.V00 &= ~lastBitMask0;
                 }
             }
             else if (roundingMode == (SignF128UI64(uiZ.V64) ? RoundingMode.Min : RoundingMode.Max))
             {
-                uiZ += (SFUInt128)roundBitsMask;
+                uiZ += (UInt128M)roundBitsMask;
             }
 
             uiZ.V00 &= ~roundBitsMask;
@@ -756,7 +756,7 @@ public readonly struct Float128
                 if (exact)
                     context.ExceptionFlags |= ExceptionFlags.Inexact;
 
-                uiZ = new SFUInt128(uiA64 & PackToF128UI64(true, 0, 0), 0);
+                uiZ = new UInt128M(uiA64 & PackToF128UI64(true, 0, 0), 0);
                 switch (roundingMode)
                 {
                     case RoundingMode.NearEven:
@@ -797,7 +797,7 @@ public readonly struct Float128
                 return Float128.FromBitsUI128(uiZ);
             }
 
-            uiZ = new SFUInt128(uiA64, 0);
+            uiZ = new UInt128M(uiA64, 0);
             lastBitMask64 = (ulong)1 << (0x402F - exp);
             roundBitsMask = lastBitMask64 - 1;
             if (roundingMode == RoundingMode.NearMaxMag)
@@ -822,7 +822,7 @@ public readonly struct Float128
         if (uiZ.V64 != uiA64 || uiZ.V00 != uiA0)
         {
             if (roundingMode == RoundingMode.Odd)
-                uiZ = new SFUInt128(uiZ.V64 | lastBitMask64, uiZ.V00 | lastBitMask0);
+                uiZ = new UInt128M(uiZ.V64 | lastBitMask64, uiZ.V00 | lastBitMask0);
 
             if (exact)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
@@ -858,20 +858,20 @@ public readonly struct Float128
     {
         ulong uiA64, uiA0, uiB64, uiB0, magBits, sigZExtra;
         int expA, expB, expZ;
-        SFUInt128 sigA, sigB, sigZ;
-        SFUInt256 sig256Z;
+        UInt128M sigA, sigB, sigZ;
+        UInt256M sig256Z;
         bool signA, signB, signZ;
 
         uiA64 = a._v64;
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
         signZ = signA ^ signB;
 
         if (expA == 0x7FFF)
@@ -946,7 +946,7 @@ public readonly struct Float128
         Span<uint> qs = stackalloc uint[3];
         ulong uiA64, uiA0, uiB64, uiB0, q64, sigZExtra;
         int expA, expB, expZ;
-        SFUInt128 sigA, sigB, rem, term, sigZ;
+        UInt128M sigA, sigB, rem, term, sigZ;
         uint recip32, q;
         bool signA, signB, signZ;
 
@@ -954,12 +954,12 @@ public readonly struct Float128
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         signB = SignF128UI64(uiB64);
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
         signZ = signA ^ signB;
 
         if (expA == 0x7FFF)
@@ -1063,8 +1063,8 @@ public readonly struct Float128
         }
 
         sigZExtra = (ulong)q << 60;
-        term = (SFUInt128)qs[1] << 54;
-        sigZ = new SFUInt128((ulong)qs[2] << 19, ((ulong)qs[0] << 25) + (q >> 4)) + term;
+        term = (UInt128M)qs[1] << 54;
+        sigZ = new UInt128M((ulong)qs[2] << 19, ((ulong)qs[0] << 25) + (q >> 4)) + term;
 
         return RoundPackToF128(context, signZ, expZ, sigZ, sigZExtra);
     }
@@ -1074,7 +1074,7 @@ public readonly struct Float128
     {
         ulong uiA64, uiA0, uiB64, uiB0, q64;
         int expA, expB, expDiff;
-        SFUInt128 sigA, sigB, rem, term, altRem, meanRem;
+        UInt128M sigA, sigB, rem, term, altRem, meanRem;
         uint q, recip32;
         bool signA, signRem;
 
@@ -1082,11 +1082,11 @@ public readonly struct Float128
         uiA0 = a._v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
         uiB64 = b._v64;
         uiB0 = b._v0;
         expB = ExpF128UI64(uiB64);
-        sigB = new SFUInt128(FracF128UI64(uiB64), uiB0);
+        sigB = new UInt128M(FracF128UI64(uiB64), uiB0);
 
         if (expA == 0x7FFF)
         {
@@ -1207,7 +1207,7 @@ public readonly struct Float128
         Span<uint> qs = stackalloc uint[3];
         ulong uiA64, uiA0, x64, sig64Z, sigZExtra;
         int expA, expZ;
-        SFUInt128 sigA, rem, y, term, sigZ;
+        UInt128M sigA, rem, y, term, sigZ;
         uint sig32A, recipSqrt32, sig32Z, q;
         bool signA;
 
@@ -1215,7 +1215,7 @@ public readonly struct Float128
         uiA0 = _v0;
         signA = SignF128UI64(uiA64);
         expA = ExpF128UI64(uiA64);
-        sigA = new SFUInt128(FracF128UI64(uiA64), uiA0);
+        sigA = new UInt128M(FracF128UI64(uiA64), uiA0);
 
         if (expA == 0x7FFF)
         {
@@ -1275,7 +1275,7 @@ public readonly struct Float128
         // (Repeating this loop is a rare occurrence.)
         while (true)
         {
-            term = SFUInt128.Multiply64ByShifted32(x64 + sig64Z, q);
+            term = UInt128M.Multiply64ByShifted32(x64 + sig64Z, q);
             rem = y - term;
             if ((rem.V64 & 0x8000000000000000) == 0)
                 break;
@@ -1293,8 +1293,8 @@ public readonly struct Float128
         // (Repeating this loop is a rare occurrence.)
         while (true)
         {
-            term = (SFUInt128)sig64Z << 32;
-            term += (SFUInt128)((ulong)q << 6);
+            term = (UInt128M)sig64Z << 32;
+            term += (UInt128M)((ulong)q << 6);
             term *= q;
             rem = y - term;
             if ((rem.V64 & 0x8000000000000000) == 0)
@@ -1307,8 +1307,8 @@ public readonly struct Float128
 
         q = (uint)((((rem.V64 >> 2) * recipSqrt32) >> 32) + 2);
         sigZExtra = (ulong)q << 59;
-        term = (SFUInt128)qs[1] << 53;
-        sigZ = new SFUInt128((ulong)qs[2] << 18, ((ulong)qs[0] << 24) + (q >> 5)) + term;
+        term = (UInt128M)qs[1] << 53;
+        sigZ = new UInt128M((ulong)qs[2] << 18, ((ulong)qs[0] << 24) + (q >> 5)) + term;
 
         if ((q & 0xF) <= 2)
         {
@@ -1317,8 +1317,8 @@ public readonly struct Float128
             y = sigZ << 6;
             y.V00 |= sigZExtra >> 58;
             term = y - q;
-            y = SFUInt128.Multiply64ByShifted32(term.V00, q);
-            term = SFUInt128.Multiply64ByShifted32(term.V64, q);
+            y = UInt128M.Multiply64ByShifted32(term.V00, q);
+            term = UInt128M.Multiply64ByShifted32(term.V64, q);
             term += y.V64;
             rem <<= 20;
             term -= rem;
@@ -1394,7 +1394,7 @@ public readonly struct Float128
 
         return (signA != signB)
             ? (signA || (((uiA64 | uiB64) & 0x7FFFFFFFFFFFFFFF) | uiA0 | uiB0) == 0)
-            : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ new SFUInt128(uiA64, uiA0) < new SFUInt128(uiB64, uiB0));
+            : (uiA64 == uiB64 && uiA0 == uiB0) || (signA ^ new UInt128M(uiA64, uiA0) < new UInt128M(uiB64, uiB0));
     }
 
     // f128_lt (signaling=true) & f128_lt_quiet (signaling=false)
@@ -1421,7 +1421,7 @@ public readonly struct Float128
 
         return (signA != signB)
             ? (signA && (((uiA64 | uiB64) & 0x7FFFFFFFFFFFFFFF) | uiA0 | uiB0) != 0)
-            : ((uiA64 != uiB64 || uiA0 != uiB0) && (signA ^ new SFUInt128(uiA64, uiA0) < new SFUInt128(uiB64, uiB0)));
+            : ((uiA64 != uiB64 || uiA0 != uiB0) && (signA ^ new UInt128M(uiA64, uiA0) < new UInt128M(uiB64, uiB0)));
     }
 
     #endregion
