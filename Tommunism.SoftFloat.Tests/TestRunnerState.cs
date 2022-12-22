@@ -1,7 +1,6 @@
 ﻿namespace Tommunism.SoftFloat.Tests;
 
-// TestRunner is an object, because there are different object types which can use this.
-internal record TestRunnerState(object TestRunner, TestRunnerOptions Options, string TestFunction,
+internal record TestRunnerState(TestRunner2 TestRunner, TestRunnerOptions Options, string TestFunction, string VerifierFunction,
     Func<TestRunnerState, TestRunnerArguments, TestRunnerResult> TestFunctionHandler, bool AppendResultsToArguments = false)
 {
     private SlowFloatContext? _slowFloatContext;

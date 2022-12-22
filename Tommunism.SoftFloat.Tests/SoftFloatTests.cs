@@ -31,6 +31,10 @@ internal static class SoftFloatTests
         { "f16_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f16_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f16_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
+        { "f16_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f16_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f16_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f16_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
         { "f16_to_f32", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f16_to_f64", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f16_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -54,6 +58,10 @@ internal static class SoftFloatTests
         { "f32_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f32_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f32_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
+        { "f32_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f32_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f32_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f32_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
         { "f32_to_f16", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f32_to_f64", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f32_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -77,6 +85,10 @@ internal static class SoftFloatTests
         { "f64_to_ui64", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f64_to_i32", TestFloatToInteger },       // level 2 "all" passes (strict)
         { "f64_to_i64", TestFloatToInteger },       // level 2 "all" passes (strict)
+        { "f64_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f64_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f64_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f64_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
         { "f64_to_f16", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f64_to_f32", TestFloatToFloat },         // level 2 "all" passes (strict)
         { "f64_to_extF80", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -100,6 +112,10 @@ internal static class SoftFloatTests
         { "extF80_to_ui64", TestFloatToInteger },   // level 2 "all" passes (strict)
         { "extF80_to_i32", TestFloatToInteger },    // level 2 "all" passes (strict)
         { "extF80_to_i64", TestFloatToInteger },    // level 2 "all" passes (strict)
+        { "extF80_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "extF80_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "extF80_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "extF80_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
         { "extF80_to_f16", TestFloatToFloat },      // level 2 "all" passes (strict)
         { "extF80_to_f32", TestFloatToFloat },      // level 2 "all" passes (strict)
         { "extF80_to_f64", TestFloatToFloat },      // level 2 "all" passes (strict)
@@ -122,6 +138,10 @@ internal static class SoftFloatTests
         { "f128_to_ui64", TestFloatToInteger },     // level 2 "all" passes (strict)
         { "f128_to_i32", TestFloatToInteger },      // level 2 "all" passes (strict)
         { "f128_to_i64", TestFloatToInteger },      // level 2 "all" passes (strict)
+        { "f128_to_ui32_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f128_to_ui64_r_minMag", TestFloatToIntegerMinMag }, // 
+        { "f128_to_i32_r_minMag", TestFloatToIntegerMinMag },  // 
+        { "f128_to_i64_r_minMag", TestFloatToIntegerMinMag },  // 
         { "f128_to_f16", TestFloatToFloat },        // level 2 "all" passes (strict)
         { "f128_to_f32", TestFloatToFloat },        // level 2 "all" passes (strict)
         { "f128_to_f64", TestFloatToFloat },        // level 2 "all" passes (strict)
@@ -447,6 +467,166 @@ internal static class SoftFloatTests
             {
                 f128 = arguments.Argument1.ToFloat128();
                 i64 = f128.ToInt64(context, roundingMode, exact);
+                return new TestRunnerResult(i64, context.ExceptionFlags);
+            }
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    public static TestRunnerResult TestFloatToIntegerMinMag(TestRunnerState runner, TestRunnerArguments arguments)
+    {
+        // Remember the last two arguments are the generator's expected result.
+        if (arguments.Count < 1 + (runner.AppendResultsToArguments ? 0 : 2))
+            throw new InvalidOperationException("Not enough arguments to perform operation.");
+
+        // Get context and reset according to runner options.
+        var context = runner.SoftFloatContext;
+        runner.ResetContext(context);
+
+        Debug.Assert(runner.Options.Rounding == RoundingMode.MinMag, "Rounding mode is not defined.");
+
+        // These are the defaults that testfloat_ver expects if arguments are not explicitly set.
+        var exact = runner.Options.Exact ?? false;
+
+        // Make sure input and output types are correct.
+
+        Float16 f16;
+        Float32 f32;
+        Float64 f64;
+        ExtFloat80 extF80;
+        Float128 f128;
+
+        uint ui32;
+        ulong ui64;
+        int i32;
+        long i64;
+
+        switch (runner.TestFunction)
+        {
+            case "f16_to_ui32_r_minMag":
+            {
+                f16 = arguments.Argument1.ToFloat16();
+                ui32 = f16.ToUInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(ui32, context.ExceptionFlags);
+            }
+            case "f16_to_ui64_r_minMag":
+            {
+                f16 = arguments.Argument1.ToFloat16();
+                ui64 = f16.ToUInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(ui64, context.ExceptionFlags);
+            }
+            case "f16_to_i32_r_minMag":
+            {
+                f16 = arguments.Argument1.ToFloat16();
+                i32 = f16.ToInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(i32, context.ExceptionFlags);
+            }
+            case "f16_to_i64_r_minMag":
+            {
+                f16 = arguments.Argument1.ToFloat16();
+                i64 = f16.ToInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(i64, context.ExceptionFlags);
+            }
+
+            case "f32_to_ui32_r_minMag":
+            {
+                f32 = arguments.Argument1.ToFloat32();
+                ui32 = f32.ToUInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(ui32, context.ExceptionFlags);
+            }
+            case "f32_to_ui64_r_minMag":
+            {
+                f32 = arguments.Argument1.ToFloat32();
+                ui64 = f32.ToUInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(ui64, context.ExceptionFlags);
+            }
+            case "f32_to_i32_r_minMag":
+            {
+                f32 = arguments.Argument1.ToFloat32();
+                i32 = f32.ToInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(i32, context.ExceptionFlags);
+            }
+            case "f32_to_i64_r_minMag":
+            {
+                f32 = arguments.Argument1.ToFloat32();
+                i64 = f32.ToInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(i64, context.ExceptionFlags);
+            }
+
+            case "f64_to_ui32_r_minMag":
+            {
+                f64 = arguments.Argument1.ToFloat64();
+                ui32 = f64.ToUInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(ui32, context.ExceptionFlags);
+            }
+            case "f64_to_ui64_r_minMag":
+            {
+                f64 = arguments.Argument1.ToFloat64();
+                ui64 = f64.ToUInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(ui64, context.ExceptionFlags);
+            }
+            case "f64_to_i32_r_minMag":
+            {
+                f64 = arguments.Argument1.ToFloat64();
+                i32 = f64.ToInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(i32, context.ExceptionFlags);
+            }
+            case "f64_to_i64_r_minMag":
+            {
+                f64 = arguments.Argument1.ToFloat64();
+                i64 = f64.ToInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(i64, context.ExceptionFlags);
+            }
+
+            case "extF80_to_ui32_r_minMag":
+            {
+                extF80 = arguments.Argument1.ToExtFloat80();
+                ui32 = extF80.ToUInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(ui32, context.ExceptionFlags);
+            }
+            case "extF80_to_ui64_r_minMag":
+            {
+                extF80 = arguments.Argument1.ToExtFloat80();
+                ui64 = extF80.ToUInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(ui64, context.ExceptionFlags);
+            }
+            case "extF80_to_i32_r_minMag":
+            {
+                extF80 = arguments.Argument1.ToExtFloat80();
+                i32 = extF80.ToInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(i32, context.ExceptionFlags);
+            }
+            case "extF80_to_i64_r_minMag":
+            {
+                extF80 = arguments.Argument1.ToExtFloat80();
+                i64 = extF80.ToInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(i64, context.ExceptionFlags);
+            }
+
+            case "f128_to_ui32_r_minMag":
+            {
+                f128 = arguments.Argument1.ToFloat128();
+                ui32 = f128.ToUInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(ui32, context.ExceptionFlags);
+            }
+            case "f128_to_ui64_r_minMag":
+            {
+                f128 = arguments.Argument1.ToFloat128();
+                ui64 = f128.ToUInt64RoundMinMag(context, exact);
+                return new TestRunnerResult(ui64, context.ExceptionFlags);
+            }
+            case "f128_to_i32_r_minMag":
+            {
+                f128 = arguments.Argument1.ToFloat128();
+                i32 = f128.ToInt32RoundMinMag(context, exact);
+                return new TestRunnerResult(i32, context.ExceptionFlags);
+            }
+            case "f128_to_i64_r_minMag":
+            {
+                f128 = arguments.Argument1.ToFloat128();
+                i64 = f128.ToInt64RoundMinMag(context, exact);
                 return new TestRunnerResult(i64, context.ExceptionFlags);
             }
 

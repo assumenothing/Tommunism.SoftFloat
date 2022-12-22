@@ -2,6 +2,8 @@
 
 using static FunctionInfoFlags;
 
+internal record FunctionRewriteInfo(string Function, ExtFloat80RoundingPrecision? Precision = null, RoundingMode? Rounding = null, TininessMode? Tininess = null, bool? Exact = null);
+
 internal static class FunctionInfo
 {
     // NOTE: If ARG_1 or ARG_2 bits are not set, then three operands is implied (e.g., *_mulAdd are three operand functions).
@@ -174,10 +176,41 @@ internal static class FunctionInfo
         { "f128_lt_quiet",         F128 | ARG_2                 },
     };
 
+    // This is a map of test functions that can be generated & verified using other test functions (with specific options set). Entries in
+    // here must also be defined in the main functions dictionary and should have entries in the generator types. These are generally
+    // intended for testing optimized variations of existing functions (e.g., the float-to-int functions with fixed rounding modes).
+    public static IReadOnlyDictionary<string, FunctionRewriteInfo> RewriteFunctions { get; } = new Dictionary<string, FunctionRewriteInfo>()
+    {
+        { "f16_to_ui32_r_minMag", new("f16_to_ui32", Rounding: RoundingMode.MinMag) },
+        { "f16_to_ui64_r_minMag", new("f16_to_ui64", Rounding: RoundingMode.MinMag) },
+        { "f16_to_i32_r_minMag",  new("f16_to_i32", Rounding: RoundingMode.MinMag) },
+        { "f16_to_i64_r_minMag",  new("f16_to_i64", Rounding: RoundingMode.MinMag) },
+
+        { "f32_to_ui32_r_minMag", new("f32_to_ui32", Rounding: RoundingMode.MinMag) },
+        { "f32_to_ui64_r_minMag", new("f32_to_ui64", Rounding: RoundingMode.MinMag) },
+        { "f32_to_i32_r_minMag",  new("f32_to_i32", Rounding: RoundingMode.MinMag) },
+        { "f32_to_i64_r_minMag",  new("f32_to_i64", Rounding: RoundingMode.MinMag) },
+
+        { "f64_to_ui32_r_minMag", new("f64_to_ui32", Rounding: RoundingMode.MinMag) },
+        { "f64_to_ui64_r_minMag", new("f64_to_ui64", Rounding: RoundingMode.MinMag) },
+        { "f64_to_i32_r_minMag",  new("f64_to_i32", Rounding: RoundingMode.MinMag) },
+        { "f64_to_i64_r_minMag",  new("f64_to_i64", Rounding: RoundingMode.MinMag) },
+
+        { "extF80_to_ui32_r_minMag", new("extF80_to_ui32", Rounding: RoundingMode.MinMag) },
+        { "extF80_to_ui64_r_minMag", new("extF80_to_ui64", Rounding: RoundingMode.MinMag) },
+        { "extF80_to_i32_r_minMag",  new("extF80_to_i32", Rounding: RoundingMode.MinMag) },
+        { "extF80_to_i64_r_minMag",  new("extF80_to_i64", Rounding: RoundingMode.MinMag) },
+
+        { "f128_to_ui32_r_minMag", new("f128_to_ui32", Rounding: RoundingMode.MinMag) },
+        { "f128_to_ui64_r_minMag", new("f128_to_ui64", Rounding: RoundingMode.MinMag) },
+        { "f128_to_i32_r_minMag",  new("f128_to_i32", Rounding: RoundingMode.MinMag) },
+        { "f128_to_i64_r_minMag",  new("f128_to_i64", Rounding: RoundingMode.MinMag) },
+    };
+
     // This is a map of all normal functions to equivalent generator types (and required number of operands). Using these should result in
     // much faster test generation, because the results do not need to be computed. Note that integer types always have an operand count of
     // one, but the generator does not allow the count to be specified as an argument (and thus the value is always zero).
-    public static readonly Dictionary<string, (string TypeName, int ArgCount)> GeneratorTypes = new()
+    public static IReadOnlyDictionary<string, (string TypeName, int ArgCount)> GeneratorTypes { get; } = new Dictionary<string, (string TypeName, int ArgCount)>()
     {
         { "ui32_to_f16",            ("ui32", 0) },
         { "ui32_to_f32",            ("ui32", 0) },

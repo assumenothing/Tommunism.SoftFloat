@@ -460,67 +460,67 @@ internal static class Program
                 if (arg.IsEmpty)
                 {
                     // All functions.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("1"))
                 {
                     // Only functions with a single argument.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 1).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.ArgumentCount == 1).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("2"))
                 {
                     // Only functions with two arguments.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 2).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.ArgumentCount == 2).Select(x => x.Key));
                 }
                 else if (arg.SequenceEqual("3"))
                 {
                     // Only functions with three arguments.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.ArgumentCount == 3).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.ArgumentCount == 3).Select(x => x.Key));
                 }
                 else if (arg.Equals("_ui32", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the UInt32 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsUInt32).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsUInt32).Select(x => x.Key));
                 }
                 else if (arg.Equals("_ui64", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the UInt64 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsUInt64).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsUInt64).Select(x => x.Key));
                 }
                 else if (arg.Equals("_i32", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Int32 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsInt32).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsInt32).Select(x => x.Key));
                 }
                 else if (arg.Equals("_i64", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Int64 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsInt64).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsInt64).Select(x => x.Key));
                 }
                 else if (arg.Equals("_f16", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Float16 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat16).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsFloat16).Select(x => x.Key));
                 }
                 else if (arg.Equals("_f32", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Float32 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat32).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsFloat32).Select(x => x.Key));
                 }
                 else if (arg.Equals("_f64", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Float64 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat64).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsFloat64).Select(x => x.Key));
                 }
                 else if (arg.Equals("_extF80", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Float16 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsExtFloat80).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsExtFloat80).Select(x => x.Key));
                 }
                 else if (arg.Equals("_f128", StringComparison.OrdinalIgnoreCase))
                 {
                     // Only functions which are related to the Float64 type.
-                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => !x.Value.TestSoftFloatOnly && x.Value.IsFloat128).Select(x => x.Key));
+                    TestFunctions.UnionWith(FunctionInfo.Functions.Where(x => x.Value.IsFloat128).Select(x => x.Key));
                 }
                 else
                 {
@@ -637,6 +637,25 @@ internal static class Program
         // test cases).
         (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = FunctionInfo.GeneratorTypes[functionName];
 
+        // Check if we are using a rewritten function.
+        // NOTE: Any rewrite options that are non-null will override any user input options.
+        if (FunctionInfo.RewriteFunctions.TryGetValue(functionName, out var rewrite))
+        {
+            runner.VerifierFunction = rewrite.Function;
+            if (rewrite.Precision.HasValue)
+                options.RoundingPrecisionExtFloat80 = rewrite.Precision.Value;
+            if (rewrite.Rounding.HasValue)
+                options.Rounding = rewrite.Rounding.Value;
+            if (rewrite.Tininess.HasValue)
+                options.DetectTininess = rewrite.Tininess.Value;
+            if (rewrite.Exact.HasValue)
+                options.Exact = rewrite.Exact.Value;
+        }
+        else
+        {
+            runner.VerifierFunction = null;
+        }
+
         // Enumerate all useful test configurations for given function.
         long failureCount = 0;
         foreach (var config in GetTestConfigurations(functionName, options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess))
@@ -682,6 +701,25 @@ internal static class Program
         // verifier will calculate it anyways). This seems to have a fairly noticable impact on heavier operations with LOTS of generated
         // test cases).
         (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = FunctionInfo.GeneratorTypes[functionName];
+
+        // Check if we are using a rewritten function.
+        // NOTE: Any rewrite options that are non-null will override any user input options.
+        if (FunctionInfo.RewriteFunctions.TryGetValue(functionName, out var rewrite))
+        {
+            runner.VerifierFunction = rewrite.Function;
+            if (rewrite.Precision.HasValue)
+                options.RoundingPrecisionExtFloat80 = rewrite.Precision.Value;
+            if (rewrite.Rounding.HasValue)
+                options.Rounding = rewrite.Rounding.Value;
+            if (rewrite.Tininess.HasValue)
+                options.DetectTininess = rewrite.Tininess.Value;
+            if (rewrite.Exact.HasValue)
+                options.Exact = rewrite.Exact.Value;
+        }
+        else
+        {
+            runner.VerifierFunction = null;
+        }
 
         // Enumerate all useful test configurations for given function.
         long failureCount = 0;

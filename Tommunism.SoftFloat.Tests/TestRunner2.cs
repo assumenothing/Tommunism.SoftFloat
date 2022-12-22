@@ -46,6 +46,8 @@ internal class TestRunner2
 
     public int GeneratorTypeOperandCount { get; set; } = 0;
 
+    public string? VerifierFunction { get; set; } = null;
+
     public string TestFunction { get; set; } = string.Empty;
 
     public Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? TestHandler { get; set; }
@@ -82,6 +84,7 @@ internal class TestRunner2
         var testFunction = TestFunction;
         var generatorTypeOrFunction = GeneratorTypeOrFunction;
         var generatorTypeOperandCount = generatorTypeOrFunction != null ? GeneratorTypeOperandCount : 0;
+        var verifierFunction = VerifierFunction ?? testFunction;
         var testHandler = TestHandler;
 
         if (testHandler == null)
@@ -107,7 +110,7 @@ internal class TestRunner2
         };
 
         // We only need to append the results to the arguments if the generator function is a type code (which can be detected if it doesn't match the test function).
-        var state = new TestRunnerState(this, options, testFunction, testHandler,
+        var state = new TestRunnerState(this, options, testFunction, verifierFunction, testHandler,
             AppendResultsToArguments: !string.Equals(testFunction, generator.TestTypeOrFunction, StringComparison.Ordinal));
 
         // Keep track of the number of test blocks that failed.
@@ -241,7 +244,7 @@ internal class TestRunner2
         Debug.Assert(testHandler != null);
 
         // Make a copy of the state. This is because thread-specific contexts are required.
-        state = new TestRunnerState(this, state.Options, state.TestFunction, state.TestFunctionHandler, state.AppendResultsToArguments);
+        state = new TestRunnerState(this, state.Options, state.TestFunction, state.VerifierFunction, state.TestFunctionHandler, state.AppendResultsToArguments);
 
         // Create the verifier instance.
         var verifier = new TestVerifier()
@@ -292,6 +295,7 @@ internal class TestRunner2
         var testFunction = TestFunction;
         var generatorTypeOrFunction = GeneratorTypeOrFunction;
         var generatorTypeOperandCount = generatorTypeOrFunction != null ? GeneratorTypeOperandCount : 0;
+        var verifierFunction = VerifierFunction ?? testFunction;
         var testHandler = TestHandler;
 
         if (testHandler == null)
@@ -306,14 +310,14 @@ internal class TestRunner2
         };
 
         // We only need to append the results to the arguments if the generator function is a type code (which can be detected if it doesn't match the test function).
-        var state = new TestRunnerState(this, options, testFunction, testHandler,
+        var state = new TestRunnerState(this, options, testFunction, verifierFunction, testHandler,
             AppendResultsToArguments: !string.Equals(testFunction, generator.TestTypeOrFunction, StringComparison.Ordinal));
 
         // Create the verifier instance.
         var verifier = new TestVerifier()
         {
             Options = state.Options,
-            TestFunction = state.TestFunction,
+            TestFunction = state.VerifierFunction,
             ResultsWriter = Console.Out // TODO: add property for choosing/generating the output streams
         };
 
@@ -366,6 +370,7 @@ internal class TestRunner2
         var testFunction = TestFunction;
         var generatorTypeName = GeneratorTypeOrFunction;
         var generatorTypeOperandCount = generatorTypeName != null ? GeneratorTypeOperandCount : 0;
+        var verifierFunction = VerifierFunction ?? testFunction;
         var testHandler = TestHandler;
 
         if (testHandler == null)
@@ -403,7 +408,7 @@ internal class TestRunner2
         }
 
         // We always need to append the results to the arguments with the builtin test case generator.
-        var state = new TestRunnerState(this, options, testFunction, testHandler, AppendResultsToArguments: true);
+        var state = new TestRunnerState(this, options, testFunction, verifierFunction, testHandler, AppendResultsToArguments: true);
 
         var testProcessFailures = 0;
 
@@ -429,6 +434,7 @@ internal class TestRunner2
         var testFunction = TestFunction;
         var generatorTypeName = GeneratorTypeOrFunction;
         var generatorTypeOperandCount = generatorTypeName != null ? GeneratorTypeOperandCount : 0;
+        var verifierFunction = VerifierFunction ?? testFunction;
         var testHandler = TestHandler;
 
         if (testHandler == null)
@@ -466,7 +472,7 @@ internal class TestRunner2
         }
 
         // We always need to append the results to the arguments with the builtin test case generator.
-        var state = new TestRunnerState(this, options, testFunction, testHandler, AppendResultsToArguments: true);
+        var state = new TestRunnerState(this, options, testFunction, verifierFunction, testHandler, AppendResultsToArguments: true);
 
         // Use a partitioner to figure out the distribution of tests for multithreaded testing.
         // Use the MaxTestsPerProcess property to determine the size of each partitioner range.
@@ -525,13 +531,13 @@ internal class TestRunner2
         Debug.Assert(testHandler != null);
 
         // Make a copy of the state. This is because thread-specific contexts are required.
-        state = new TestRunnerState(this, state.Options, state.TestFunction, state.TestFunctionHandler, state.AppendResultsToArguments);
+        state = new TestRunnerState(this, state.Options, state.TestFunction, state.VerifierFunction, state.TestFunctionHandler, state.AppendResultsToArguments);
 
         // Create the verifier instance.
         var verifier = new TestVerifier()
         {
             Options = state.Options,
-            TestFunction = state.TestFunction,
+            TestFunction = state.VerifierFunction,
             ResultsWriter = Console.Out // TODO: add property for choosing/generating the output streams
         };
 
