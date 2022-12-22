@@ -243,7 +243,7 @@ public readonly struct Float128
             if (exp != 0)
                 sig64 |= 0x0001000000000000;
 
-            (sig0, sig64) = ShiftRightJam64Extra(sig64, sig0, shiftDist);
+            (sig0, sig64) = new UInt64Extra(sig64, sig0).ShiftRightJam(shiftDist);
         }
 
         return RoundToUI64(context, sign, sig64, sig0, roundingMode, exact);
@@ -326,7 +326,7 @@ public readonly struct Float128
             if (exp != 0)
                 sig64 |= 0x0001000000000000;
 
-            (sig0, sig64) = ShiftRightJam64Extra(sig64, sig0, shiftDist);
+            (sig0, sig64) = new UInt64Extra(sig64, sig0).ShiftRightJam(shiftDist);
         }
 
         return RoundToI64(context, sign, sig64, sig0, roundingMode, exact);
@@ -930,7 +930,7 @@ public readonly struct Float128
         if (0x0002000000000000 <= sigZ.V64)
         {
             ++expZ;
-            (sigZExtra, sigZ) = ShortShiftRightJam128Extra(sigZ, sigZExtra, 1);
+            (sigZExtra, sigZ) = new UInt128Extra(sigZ, sigZExtra).ShortShiftRightJam(1);
         }
 
         return RoundPackToF128(context, signZ, expZ, sigZ, sigZExtra);

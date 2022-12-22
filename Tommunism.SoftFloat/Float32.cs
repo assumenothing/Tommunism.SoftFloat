@@ -218,7 +218,7 @@ public readonly struct Float32
         sig64 = (ulong)sig << 40;
         extra = 0;
         if (shiftDist != 0)
-            (extra, sig64) = ShiftRightJam64Extra(sig64, 0, shiftDist);
+            (extra, sig64) = new UInt64Extra(sig64, 0).ShiftRightJam(shiftDist);
 
         return RoundToUI64(context, sign, sig64, extra, roundingMode, exact);
     }
@@ -291,7 +291,7 @@ public readonly struct Float32
         sig64 = (ulong)sig << 40;
         extra = 0;
         if (shiftDist != 0)
-            (extra, sig64) = ShiftRightJam64Extra(sig64, 0, shiftDist);
+            (extra, sig64) = new UInt64Extra(sig64, 0).ShiftRightJam(shiftDist);
 
         return RoundToI64(context, sign, sig64, extra, roundingMode, exact);
     }

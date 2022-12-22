@@ -214,7 +214,7 @@ public readonly struct Float64
         }
         else
         {
-            sigExtra = ShiftRightJam64Extra(sig, 0, shiftDist);
+            sigExtra = new UInt64Extra(sig, 0).ShiftRightJam(shiftDist);
         }
 
         return RoundToUI64(context, sign, sigExtra.V, sigExtra.Extra, roundingMode, exact);
@@ -290,7 +290,7 @@ public readonly struct Float64
         }
         else
         {
-            sigExtra = ShiftRightJam64Extra(sig, 0, shiftDist);
+            sigExtra = new UInt64Extra(sig, 0).ShiftRightJam(shiftDist);
         }
 
         return RoundToI64(context, sign, sigExtra.V, sigExtra.Extra, roundingMode, exact);

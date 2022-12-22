@@ -118,7 +118,7 @@ partial class Internals
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || !roundIncrement ||
                     new UInt128M(sig64, sig0) < new UInt128M(0x0001FFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
-                (sigExtra, sig64, sig0) = ShiftRightJam128Extra(sig64, sig0, sigExtra, -exp);
+                (sigExtra, sig64, sig0) = new UInt128Extra(sig64, sig0, sigExtra).ShiftRightJam(-exp);
                 exp = 0;
                 if (isTiny && sigExtra != 0)
                     context.RaiseFlags(ExceptionFlags.Underflow);
@@ -187,7 +187,7 @@ partial class Internals
         }
         else
         {
-            (sigExtra, sig64, sig0) = ShortShiftRightJam128Extra(sig64, sig0, 0, -shiftDist);
+            (sigExtra, sig64, sig0) = new UInt128Extra(sig64, sig0).ShortShiftRightJam(-shiftDist);
         }
 
         return RoundPackToF128(context, sign, exp, sig64, sig0, sigExtra);
@@ -247,7 +247,7 @@ partial class Internals
                         goto newlyAligned;
                 }
 
-                (sigZExtra, sigA) = ShiftRightJam128Extra(sigA, 0, -expDiff);
+                (sigZExtra, sigA) = new UInt128Extra(sigA).ShiftRightJam(-expDiff);
             }
             else
             {
@@ -271,7 +271,7 @@ partial class Internals
                         goto newlyAligned;
                 }
 
-                (sigZExtra, sigB) = ShiftRightJam128Extra(sigB, 0, expDiff);
+                (sigZExtra, sigB) = new UInt128Extra(sigB).ShiftRightJam(expDiff);
             }
 
         newlyAligned:
@@ -284,7 +284,7 @@ partial class Internals
             ++expZ;
         }
 
-        (sigZExtra, sigZ) = ShortShiftRightJam128Extra(sigZ, sigZExtra, 1);
+        (sigZExtra, sigZ) = new UInt128Extra(sigZ, sigZExtra).ShortShiftRightJam(1);
         return RoundPackToF128(context, signZ, expZ, sigZ, sigZExtra);
     }
 

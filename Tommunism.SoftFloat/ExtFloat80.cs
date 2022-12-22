@@ -261,7 +261,7 @@ public readonly struct ExtFloat80
 
         sigExtra = 0;
         if (shiftDist != 0)
-            (sigExtra, sig) = ShiftRightJam64Extra(sig, 0, shiftDist);
+            (sigExtra, sig) = new UInt64Extra(sig).ShiftRightJam(shiftDist);
 
         return RoundToUI64(context, sign, sig, sigExtra, roundingMode, exact);
     }
@@ -333,7 +333,7 @@ public readonly struct ExtFloat80
         }
         else
         {
-            (sigExtra, sig) = ShiftRightJam64Extra(sig, 0, shiftDist);
+            (sigExtra, sig) = new UInt64Extra(sig).ShiftRightJam(shiftDist);
         }
 
         return RoundToI64(context, sign, sig, sigExtra, roundingMode, exact);
