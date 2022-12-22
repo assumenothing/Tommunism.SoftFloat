@@ -12,7 +12,7 @@ internal static class Program
 
     // The builtin generator is theoretically faster, due to being able to generate test cases in parallel. Note that the builtin generator
     // will generate different test cases than TestFloat's generator, because it uses a completely different random number generator.
-    public static bool UseBuiltinGenerator { get; private set; } = true;
+    public static bool UseBuiltinGenerator { get; private set; } = false;
 
     // Enumeration/option combination helper properties (lazy initialized).
 
@@ -60,14 +60,13 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
-        // This is the original test runner. Single threaded and monolithic. Not great, but it does the job.
-        var testRunner = new TestRunner
-        {
-            ConsoleDebug = 1,
-        };
-
-        // This is a parallel test runner. Capable of utilizing many threads for running tests and verifying. Test generator is still
-        // single threaded though (which is probably one of the biggest reasons why these tests run so slowly).
+        // This is the test runner. Capable of utilizing many threads for running tests and verifying. Test generator can either use a
+        // single thread if UseBuiltinGenerator is false, or a builtin multithreaded generator if UseBuiltinGenerator is true. The verifier
+        // is split up into multiple tasks, depending on the MaxTestThreads and MaxTestsPerProcess properties. Note that Run() will always
+        // use a single-threaded generate-verify thread, while RunAsync() will use the multithreaded generate-verify threads. If the
+        // builtin generator is not being used, then the amount of memory that this program will use will scale based on the maximum number
+        // of threads required as well as the number of tests per thread (this can scale into the gigabytes of memory if running on a CPU
+        // with lots of cores and a large number of tests per verifier process).
         var testRunner2 = new TestRunner2
         {
         };
@@ -76,7 +75,7 @@ internal static class Program
         // then use the VFPv2 implementation by default. Otherwise, use the 8086-SSE implementation on 64-bit processors and the 8086
         // implementation on 32-bit processors by default (unfortunately there is no easy way of knowing what the verifier process is
         // using--that is why there is an argument to change it). This theoretically shouldn't matter if "-checkNaNs", "-checkInvInts", or
-        // "-checkAll" arguments/options are not specified.
+        // "-checkAll" command line arguments are not specified.
         SoftFloatSpecialize.Default = ArmBase.IsSupported
             ? SoftFloatSpecialize.ArmVfp2.Instance
             : Environment.Is64BitOperatingSystem ? SoftFloatSpecialize.X86Sse.Instance : SoftFloatSpecialize.X86.Instance;
@@ -106,7 +105,7 @@ internal static class Program
                 : SoftFloatTests.Functions[testFunction];
             if (UseSynchronousTestRunner)
             {
-                if (!RunTests(testRunner, Options, testFunction, testFunctionHandler))
+                if (!RunTests(testRunner2, Options, testFunction, testFunctionHandler))
                 {
                     failureCount++;
                 }
@@ -619,7 +618,8 @@ internal static class Program
         }
     }
 
-    private static bool RunTests(TestRunner runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler, bool stopOnFailure = false)
+    // TODO: Add support for CancellationToken?
+    private static bool RunTests(TestRunner2 runner, TestRunnerOptions options, string functionName, Func<TestRunnerState, TestRunnerArguments, TestRunnerResult>? functionHandler, bool stopOnFailure = false)
     {
         // Skip unimplemented functions.
         if (functionHandler == null)
@@ -628,20 +628,36 @@ internal static class Program
         // Make a copy of the test options to make sure the original options don't get mangled.
         options = options.Clone();
 
+        runner.Options = options;
+        runner.TestFunction = functionName;
+        runner.TestHandler = functionHandler;
+
+        // Optimize the generator by generating the input operands only (skip calculating the result--it is ignored in this program and the
+        // verifier will calculate it anyways). This seems to have a fairly noticable impact on heavier operations with LOTS of generated
+        // test cases).
+        (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = FunctionInfo.GeneratorTypes[functionName];
+
         // Enumerate all useful test configurations for given function.
-        var failureCount = 0;
+        long failureCount = 0;
         foreach (var config in GetTestConfigurations(functionName, options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess))
         {
             // Set configuration options.
             (options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess) = config;
 
+            var startTime = DateTime.UtcNow;
+            runner.TotalTestCount = 0;
             PrintTestName(options, functionName);
-            if (runner.Run(functionName, functionHandler, options) != 0)
+            if (!runner.Run(CancellationToken.None))
             {
                 failureCount++;
                 if (stopOnFailure)
                     break;
             }
+
+            // Use DateTime instead of Stopwatch in case this finishes on a different thread. (The internal Stopwatch implementation may
+            // not be guaranteed to have consistent timing between CPU cores. Though I think newer operating systems try to sync them.)
+            var elapsedTime = DateTime.UtcNow - startTime;
+            Console.WriteLine($"Ran a total of {runner.TotalTestCount:#,0} tests ({elapsedTime.TotalSeconds:f3} seconds).");
         }
 
         // Did all of the test configurations pass?
@@ -668,7 +684,7 @@ internal static class Program
         (runner.GeneratorTypeOrFunction, runner.GeneratorTypeOperandCount) = FunctionInfo.GeneratorTypes[functionName];
 
         // Enumerate all useful test configurations for given function.
-        var failureCount = 0;
+        long failureCount = 0;
         foreach (var config in GetTestConfigurations(functionName, options.RoundingPrecisionExtFloat80, options.Rounding, options.Exact, options.DetectTininess))
         {
             // Set configuration options.

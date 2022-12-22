@@ -57,6 +57,15 @@ internal class TestRunner2
 
     #region Methods
 
+    public bool Run() => Run(CancellationToken.None);
+
+    public bool Run(CancellationToken cancellationToken)
+    {
+        return Program.UseBuiltinGenerator
+            ? RunGeneratorBuiltin(cancellationToken)
+            : RunGeneratorProcess(cancellationToken);
+    }
+
     public Task<bool> RunAsync() => RunAsync(CancellationToken.None);
 
     public Task<bool> RunAsync(CancellationToken cancellationToken)
@@ -275,6 +284,143 @@ internal class TestRunner2
                 verifierProcess.Dispose();
             }
         }
+    }
+
+    private bool RunGeneratorProcess(CancellationToken cancellationToken)
+    {
+        var options = Options;
+        var testFunction = TestFunction;
+        var generatorTypeOrFunction = GeneratorTypeOrFunction;
+        var generatorTypeOperandCount = generatorTypeOrFunction != null ? GeneratorTypeOperandCount : 0;
+        var testHandler = TestHandler;
+
+        if (testHandler == null)
+            throw new InvalidOperationException("Test handler is not defined.");
+
+        // Create the generator instance.
+        var generator = new TestGenerator()
+        {
+            Options = options,
+            TestTypeOrFunction = generatorTypeOrFunction ?? testFunction,
+            TypeOperandCount = generatorTypeOperandCount
+        };
+
+        // We only need to append the results to the arguments if the generator function is a type code (which can be detected if it doesn't match the test function).
+        var state = new TestRunnerState(this, options, testFunction, testHandler,
+            AppendResultsToArguments: !string.Equals(testFunction, generator.TestTypeOrFunction, StringComparison.Ordinal));
+
+        // Create the verifier instance.
+        var verifier = new TestVerifier()
+        {
+            Options = state.Options,
+            TestFunction = state.TestFunction,
+            ResultsWriter = Console.Out // TODO: add property for choosing/generating the output streams
+        };
+
+        // Start generating and running tests.
+        Trace.TraceInformation($"[{"..."}] Started new test run/verify task.");
+        var stopwatch = Stopwatch.StartNew();
+
+        // Start the verifier process.
+        int verifierResult;
+        verifier.Start();
+        try
+        {
+            foreach (var testArgs in generator.GenerateTestData(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Run test and get result.
+                var result = testHandler(state, testArgs);
+                testArgs.SetResult(result, state.AppendResultsToArguments);
+
+                // Add test results to verifier queue.
+                verifier.AddResult(testArgs);
+                TotalTestCount++;
+            }
+
+            // Stop the verifier process and return the result.
+            verifierResult = verifier.Stop();
+        }
+        finally
+        {
+            var verifierProcess = verifier.Process;
+            if (verifierProcess != null)
+            {
+                if (!verifierProcess.HasExited)
+                    verifierProcess.Kill();
+                verifierProcess.Dispose();
+            }
+        }
+
+        stopwatch.Stop();
+        Trace.TraceInformation($"[{"..."}] Task finished in {stopwatch.Elapsed.TotalSeconds:f3} seconds with result {verifierResult} ({(verifierResult == 0 ? "PASS" : "FAIL")}).");
+
+        // Return false if the verifier result is not zero.
+        return verifierResult == 0;
+    }
+
+    private bool RunGeneratorBuiltin(CancellationToken cancellationToken)
+    {
+        var options = Options;
+        var testFunction = TestFunction;
+        var generatorTypeName = GeneratorTypeOrFunction;
+        var generatorTypeOperandCount = generatorTypeName != null ? GeneratorTypeOperandCount : 0;
+        var testHandler = TestHandler;
+
+        if (testHandler == null)
+            throw new InvalidOperationException("Test handler is not defined.");
+
+        // Try to get the generator type name from the TestFunction or GeneratorTypeOrFunction properties.
+        if (generatorTypeName == null)
+        {
+            if (!FunctionInfo.GeneratorTypes.TryGetValue(testFunction, out var generatorType))
+                throw new InvalidOperationException("Test function is either not implemented or has no known generator type.");
+
+            generatorTypeName = generatorType.TypeName;
+            generatorTypeOperandCount = generatorType.ArgCount;
+        }
+        else if (FunctionInfo.GeneratorTypes.TryGetValue(generatorTypeName, out var generatorType))
+        {
+            // For whatever reason, the user wants to generate arguments for a function that is possibly different from the verifier's test function.
+            generatorTypeName = generatorType.TypeName;
+            generatorTypeOperandCount = generatorType.ArgCount;
+        }
+
+        // Create the test case generator and get the total number of test cases.
+        var generator = TestCaseGenerator.FromTypeName(generatorTypeName, generatorTypeOperandCount, options.GeneratorLevel ?? 1);
+        var testCases = generator.TotalCount;
+        Debug.Assert(testCases >= 0, "Test case generator wants a negative number of test cases.");
+
+        // Did the user specify a custom number of test cases?
+        // NOTE: TestFloat does not allow less than the default number of cases, but this generator will allow any number of tests.
+        // TODO: This implementation currently does not support specifying an infinite number of tests.
+        if (options.GeneratorCount.HasValue)
+        {
+            testCases = options.GeneratorCount.Value;
+            if (testCases <= 0)
+                throw new NotImplementedException("A finite number of test cases must be defined.");
+        }
+
+        // We always need to append the results to the arguments with the builtin test case generator.
+        var state = new TestRunnerState(this, options, testFunction, testHandler, AppendResultsToArguments: true);
+
+        var testProcessFailures = 0;
+
+        var range = Tuple.Create(0L, testCases);
+
+        Trace.TraceInformation($"[{range}] Started new test run/verify task.");
+        var stopwatch = Stopwatch.StartNew();
+
+        var result = RunTestsCore(state, generator, Tuple.Create(0L, testCases), cancellationToken);
+        if (result != 0)
+            testProcessFailures = 1;
+
+        stopwatch.Stop();
+        Trace.TraceInformation($"[{range}] Task finished in {stopwatch.Elapsed.TotalSeconds:f3} seconds with result {result} ({(result == 0 ? "PASS" : "FAIL")}).");
+
+        TotalTestCount += testCases;
+        return testProcessFailures == 0;
     }
 
     private async Task<bool> RunGeneratorBuiltinAsync(CancellationToken cancellationToken)
