@@ -97,7 +97,7 @@ partial class Internals
             if (exp < 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || sig + roundIncrement < 0x80000000;
-                sig = ShiftRightJam32(sig, -exp);
+                sig = sig.ShiftRightJam(-exp);
                 exp = 0;
                 roundBits = sig & 0x7F;
 
@@ -195,7 +195,7 @@ partial class Internals
 
                 expZ = expB;
                 sigA += expA != 0 ? 0x20000000 : sigA;
-                sigA = ShiftRightJam32(sigA, -expDiff);
+                sigA = sigA.ShiftRightJam(-expDiff);
             }
             else
             {
@@ -209,7 +209,7 @@ partial class Internals
 
                 expZ = expA;
                 sigB += expB != 0 ? 0x20000000 : sigB;
-                sigB = ShiftRightJam32(sigB, expDiff);
+                sigB = sigB.ShiftRightJam(expDiff);
             }
 
             sigZ = 0x20000000 + sigA + sigB;
@@ -311,7 +311,7 @@ partial class Internals
                 sigY = sigB + (expB != 0 ? 0x40000000 : sigB);
             }
 
-            return NormRoundPackToF32(context, signZ, expZ, sigX - ShiftRightJam32(sigY, expDiff));
+            return NormRoundPackToF32(context, signZ, expZ, sigX - sigY.ShiftRightJam(expDiff));
         }
     }
 
@@ -409,7 +409,7 @@ partial class Internals
             if (sigC == 0)
             {
                 expZ = expProd - 1;
-                sigZ = (uint)ShortShiftRightJam64(sigProd, 31);
+                sigZ = (uint)sigProd.ShortShiftRightJam(31);
                 return RoundPackToF32(context, signZ, expZ, sigZ);
             }
 
@@ -424,13 +424,13 @@ partial class Internals
             if (expDiff <= 0)
             {
                 expZ = expC;
-                sigZ = (uint)(sigC + ShiftRightJam64(sigProd, 32 - expDiff));
+                sigZ = (uint)(sigC + sigProd.ShiftRightJam(32 - expDiff));
             }
             else
             {
                 expZ = expProd;
-                sig64Z = sigProd + ShiftRightJam64((ulong)sigC << 32, expDiff);
-                sigZ = (uint)ShortShiftRightJam64(sig64Z, 32);
+                sig64Z = sigProd + ((ulong)sigC << 32).ShiftRightJam(expDiff);
+                sigZ = (uint)sig64Z.ShortShiftRightJam(32);
             }
 
             if (sigZ < 0x40000000)
@@ -446,7 +446,7 @@ partial class Internals
             {
                 signZ = signC;
                 expZ = expC;
-                sig64Z = sig64C - ShiftRightJam64(sigProd, -expDiff);
+                sig64Z = sig64C - sigProd.ShiftRightJam(-expDiff);
             }
             else if (expDiff == 0)
             {
@@ -464,14 +464,14 @@ partial class Internals
             else
             {
                 expZ = expProd;
-                sig64Z = sigProd - ShiftRightJam64(sig64C, expDiff);
+                sig64Z = sigProd - sig64C.ShiftRightJam(expDiff);
             }
 
             shiftDist = CountLeadingZeroes64(sig64Z) - 1;
             expZ -= shiftDist;
             shiftDist -= 32;
             sigZ = (shiftDist < 0)
-                ? (uint)ShortShiftRightJam64(sig64Z, -shiftDist)
+                ? (uint)sig64Z.ShortShiftRightJam(-shiftDist)
                 : (uint)sig64Z << shiftDist;
         }
 

@@ -62,7 +62,7 @@ internal static class Primitives
     /// least-significant bit to 1. This shifted-and-jammed value is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong ShortShiftRightJam64(ulong a, int dist) => (a >> dist) | ((a & ((1UL << dist) - 1)) != 0 ? 1UL : 0UL);
+    public static ulong ShortShiftRightJam(this ulong a, int dist) => (a >> dist) | ((a & ((1UL << dist) - 1)) != 0 ? 1UL : 0UL);
 
     // softfloat_shiftRightJam32
     /// <summary>
@@ -75,7 +75,7 @@ internal static class Primitives
     /// result will be either 0 or 1, depending on whether <paramref name="a"/> is zero or nonzero.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint ShiftRightJam32(uint a, int dist) => (dist < 31) ? (a >> dist) | ((a << (-dist)) != 0 ? 1U : 0U) : (a != 0 ? 1U : 0U);
+    public static uint ShiftRightJam(this uint a, int dist) => (dist < 31) ? (a >> dist) | ((a << -dist) != 0 ? 1U : 0U) : (a != 0 ? 1U : 0U);
 
     // softfloat_shiftRightJam64
     /// <summary>
@@ -88,7 +88,7 @@ internal static class Primitives
     /// result will be either 0 or 1, depending on whether <paramref name="a"/> is zero or nonzero.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong ShiftRightJam64(ulong a, int dist) => (dist < 63) ? (a >> dist) | ((a << (-dist)) != 0 ? 1UL : 0UL) : (a != 0 ? 1UL : 0UL);
+    public static ulong ShiftRightJam(this ulong a, int dist) => (dist < 63) ? (a >> dist) | ((a << -dist) != 0 ? 1UL : 0UL) : (a != 0 ? 1UL : 0UL);
 
     // softfloat_countLeadingZeros16
     /// <summary>

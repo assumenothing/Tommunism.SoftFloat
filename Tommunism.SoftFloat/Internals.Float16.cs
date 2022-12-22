@@ -97,7 +97,7 @@ partial class Internals
             if (exp < 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000;
-                sig = ShiftRightJam32(sig, -exp);
+                sig = sig.ShiftRightJam(-exp);
                 exp = 0;
                 roundBits = sig & 0xF;
 
@@ -524,12 +524,12 @@ partial class Internals
             if (expDiff <= 0)
             {
                 expZ = expC;
-                sigZ = sigC + ShiftRightJam32(sigProd, 16 - expDiff);
+                sigZ = sigC + sigProd.ShiftRightJam(16 - expDiff);
             }
             else
             {
                 expZ = expProd;
-                sig32Z = sigProd + ShiftRightJam32(sigC << 16, expDiff);
+                sig32Z = sigProd + (sigC << 16).ShiftRightJam(expDiff);
                 sigZ = (sig32Z >> 16) | ((sig32Z & 0xFFFF) != 0 ? 1U : 0U);
             }
 
@@ -546,7 +546,7 @@ partial class Internals
             {
                 signZ = signC;
                 expZ = expC;
-                sig32Z = sig32C - ShiftRightJam32(sigProd, -expDiff);
+                sig32Z = sig32C - sigProd.ShiftRightJam(-expDiff);
             }
             else if (expDiff == 0)
             {
@@ -564,7 +564,7 @@ partial class Internals
             else
             {
                 expZ = expProd;
-                sig32Z = sigProd - ShiftRightJam32(sig32C, expDiff);
+                sig32Z = sigProd - sig32C.ShiftRightJam(expDiff);
             }
 
             shiftDist = CountLeadingZeroes32(sig32Z) - 1;

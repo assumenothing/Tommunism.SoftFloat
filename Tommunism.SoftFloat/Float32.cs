@@ -106,7 +106,7 @@ public readonly struct Float32
 
         shiftDist += 7;
         var sig = (shiftDist < 0)
-            ? (uint)ShortShiftRightJam64(a, -shiftDist)
+            ? (uint)a.ShortShiftRightJam(-shiftDist)
             : ((uint)a << shiftDist);
         return RoundPackToF32(context, false, 0x9C - shiftDist, sig);
     }
@@ -133,7 +133,7 @@ public readonly struct Float32
 
         shiftDist += 7;
         var sig = (shiftDist < 0)
-            ? (uint)ShortShiftRightJam64(absA, -shiftDist)
+            ? (uint)absA.ShortShiftRightJam(-shiftDist)
             : ((uint)absA << shiftDist);
         return RoundPackToF32(context, sign, 0x9C - shiftDist, sig);
     }
@@ -186,7 +186,7 @@ public readonly struct Float32
         sig64 = (ulong)sig << 32;
         shiftDist = 0xAA - exp;
         if (0 < shiftDist)
-            sig64 = ShiftRightJam64(sig64, shiftDist);
+            sig64 = sig64.ShiftRightJam(shiftDist);
 
         return RoundToUI32(context, sign, sig64, roundingMode, exact);
     }
@@ -259,7 +259,7 @@ public readonly struct Float32
         sig64 = (ulong)sig << 32;
         shiftDist = 0xAA - exp;
         if (0 < shiftDist)
-            sig64 = ShiftRightJam64(sig64, shiftDist);
+            sig64 = sig64.ShiftRightJam(shiftDist);
 
         return RoundToI32(context, sign, sig64, roundingMode, exact);
     }
@@ -793,7 +793,7 @@ public readonly struct Float32
         expZ = expA + expB - 0x7F;
         sigA = (sigA | 0x00800000) << 7;
         sigB = (sigB | 0x00800000) << 8;
-        sigZ = (uint)ShortShiftRightJam64((ulong)sigA * sigB, 32);
+        sigZ = (uint)((ulong)sigA * sigB).ShortShiftRightJam(32);
         if (sigZ < 0x40000000)
         {
             --expZ;

@@ -109,7 +109,7 @@ partial class Internals
             if (exp <= 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < 0 || sig <= sig + roundIncrement;
-                sig = ShiftRightJam64(sig, 1 - exp);
+                sig = sig.ShiftRightJam(1 - exp);
                 roundBits = sig & roundMask;
                 if (roundBits != 0)
                 {

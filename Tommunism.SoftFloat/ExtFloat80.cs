@@ -233,7 +233,7 @@ public readonly struct ExtFloat80
         if (shiftDist <= 0)
             shiftDist = 1;
 
-        sig = ShiftRightJam64(sig, shiftDist);
+        sig = sig.ShiftRightJam(shiftDist);
         return RoundToUI32(context, sign, sig, roundingMode, exact);
     }
 
@@ -301,7 +301,7 @@ public readonly struct ExtFloat80
         if (shiftDist <= 0)
             shiftDist = 1;
 
-        sig = ShiftRightJam64(sig, shiftDist);
+        sig = sig.ShiftRightJam(shiftDist);
         return RoundToI32(context, sign, sig, roundingMode, exact);
     }
 
@@ -529,7 +529,7 @@ public readonly struct ExtFloat80
             }
         }
 
-        sig16 = (uint)ShortShiftRightJam64(sig, 49);
+        sig16 = (uint)sig.ShortShiftRightJam(49);
         if (((uint)exp | sig16) == 0)
             return PackToF16(sign, 0, 0);
 
@@ -568,7 +568,7 @@ public readonly struct ExtFloat80
             }
         }
 
-        sig32 = (uint)ShortShiftRightJam64(sig, 33);
+        sig32 = (uint)sig.ShortShiftRightJam(33);
         if (((uint)exp | sig32) == 0)
             return PackToF32(sign, 0, 0);
 
@@ -609,7 +609,7 @@ public readonly struct ExtFloat80
             }
         }
 
-        sig = ShortShiftRightJam64(sig, 1);
+        sig = sig.ShortShiftRightJam(1);
         exp -= 0x3C01;
         if (sizeof(int) < sizeof(int) && exp < -0x1000)
             exp = -0x1000;

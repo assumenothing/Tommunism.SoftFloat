@@ -97,7 +97,7 @@ partial class Internals
             if (exp < 0)
             {
                 var isTiny = context.DetectTininess == TininessMode.BeforeRounding || exp < -1 || sig + roundIncrement < 0x8000000000000000;
-                sig = ShiftRightJam64(sig, -exp);
+                sig = sig.ShiftRightJam(-exp);
                 exp = 0;
                 roundBits = sig & 0x3FF;
 
@@ -178,7 +178,7 @@ partial class Internals
                 }
 
                 expZ = expB;
-                sigA = ShiftRightJam64((expA != 0) ? (sigA + 0x2000000000000000) : (sigA << 1), -expDiff);
+                sigA = ((expA != 0) ? (sigA + 0x2000000000000000) : (sigA << 1)).ShiftRightJam(-expDiff);
             }
             else
             {
@@ -190,7 +190,7 @@ partial class Internals
                 }
 
                 expZ = expA;
-                sigB = ShiftRightJam64((expB != 0) ? (sigB + 0x2000000000000000) : (sigB << 1), expDiff);
+                sigB = ((expB != 0) ? (sigB + 0x2000000000000000) : (sigB << 1)).ShiftRightJam(expDiff);
             }
 
             sigZ = 0x2000000000000000 + sigA + sigB;
@@ -268,7 +268,7 @@ partial class Internals
                 }
 
                 sigA += expA != 0 ? 0x4000000000000000 : sigA;
-                sigA = ShiftRightJam64(sigA, -expDiff);
+                sigA = sigA.ShiftRightJam(-expDiff);
                 sigB |= 0x4000000000000000;
                 expZ = expB;
                 sigZ = sigB - sigA;
@@ -283,7 +283,7 @@ partial class Internals
                 }
 
                 sigB += expB != 0 ? 0x4000000000000000 : sigB;
-                sigB = ShiftRightJam64(sigB, expDiff);
+                sigB = sigB.ShiftRightJam(expDiff);
                 sigA |= 0x4000000000000000;
                 expZ = expA;
                 sigZ = sigA - sigB;
@@ -401,7 +401,7 @@ partial class Internals
             expZ = expC;
             if (signZ == signC || expDiff < -1)
             {
-                sig128Z.V64 = ShiftRightJam64(sig128Z.V64, -expDiff);
+                sig128Z.V64 = sig128Z.V64.ShiftRightJam(-expDiff);
             }
             else
             {
@@ -471,7 +471,7 @@ partial class Internals
             expZ -= shiftDist;
             if (shiftDist < 0)
             {
-                sigZ = ShortShiftRightJam64(sig128Z.V64, -shiftDist);
+                sigZ = sig128Z.V64.ShortShiftRightJam(-shiftDist);
             }
             else
             {

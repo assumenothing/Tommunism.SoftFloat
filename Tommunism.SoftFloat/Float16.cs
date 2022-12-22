@@ -110,7 +110,7 @@ public readonly struct Float16
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
-            ? (uint)ShortShiftRightJam64(a, -shiftDist)
+            ? (uint)a.ShortShiftRightJam(-shiftDist)
             : ((uint)a << shiftDist);
         return RoundPackToF16(context, false, 0x1C - shiftDist, sig);
     }
@@ -142,7 +142,7 @@ public readonly struct Float16
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
-            ? (uint)ShortShiftRightJam64(absA, -shiftDist)
+            ? (uint)absA.ShortShiftRightJam(-shiftDist)
             : ((uint)absA << shiftDist);
         return RoundPackToF16(context, sign, 0x1C - shiftDist, sig);
     }

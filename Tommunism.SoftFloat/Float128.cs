@@ -204,7 +204,7 @@ public readonly struct Float128
 
         shiftDist = 0x4023 - exp;
         if (0 < shiftDist)
-            sig64 = ShiftRightJam64(sig64, shiftDist);
+            sig64 = sig64.ShiftRightJam(shiftDist);
 
         return RoundToUI32(context, sign, sig64, roundingMode, exact);
     }
@@ -287,7 +287,7 @@ public readonly struct Float128
         sig64 |= sig0 != 0 ? 1U : 0;
         shiftDist = 0x4023 - exp;
         if (0 < shiftDist)
-            sig64 = ShiftRightJam64(sig64, shiftDist);
+            sig64 = sig64.ShiftRightJam(shiftDist);
 
         return RoundToI32(context, sign, sig64, roundingMode, exact);
     }
@@ -565,7 +565,7 @@ public readonly struct Float128
             return PackToF16(sign, 0x1F, 0);
         }
 
-        frac16 = (uint)ShortShiftRightJam64(frac64, 34);
+        frac16 = (uint)frac64.ShortShiftRightJam(34);
         if (((uint)exp | frac16) == 0)
             return PackToF16(sign, 0, 0);
 
@@ -601,7 +601,7 @@ public readonly struct Float128
             return PackToF32(sign, 0xFF, 0);
         }
 
-        frac32 = (uint)ShortShiftRightJam64(frac64, 18);
+        frac32 = (uint)frac64.ShortShiftRightJam(18);
         if (((uint)exp | frac32) == 0)
             return PackToF32(sign, 0, 0);
 
