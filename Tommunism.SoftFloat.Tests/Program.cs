@@ -422,6 +422,34 @@ internal static class Program
                 {
                     UseBuiltinGenerator = true;
                 }
+                else if (arg.Equals("genCmdPath", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("genCmd", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("generatorCommandPath", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("generatorCommand", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"generator command path"} value argument.");
+                        return 1;
+                    }
+
+                    GeneratorCommandPath = args[i];
+                }
+                else if (arg.Equals("verCmdPath", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("verCmd", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("verifierCommandPath", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("verifierCommand", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (args.Length <= i)
+                    {
+                        Console.Error.WriteLine($"ERROR: Missing {"verifier command path"} value argument.");
+                        return 1;
+                    }
+
+                    VerifierCommandPath = args[i];
+                }
                 else
                 {
                     goto UnknownArgument;
