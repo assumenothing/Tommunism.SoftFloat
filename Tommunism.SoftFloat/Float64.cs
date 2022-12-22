@@ -84,6 +84,7 @@ public readonly struct Float64
     public ulong ToUInt64Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float64 FromBitsUI64(ulong v) => new(v, dummy: false);
 
     #region Integer-to-floating-point Conversions

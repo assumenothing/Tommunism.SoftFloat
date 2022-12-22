@@ -84,6 +84,7 @@ public readonly struct Float32
     public uint ToUInt32Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float32 FromBitsUI32(uint v) => new(v, dummy: false);
 
     #region Integer-to-floating-point Conversions

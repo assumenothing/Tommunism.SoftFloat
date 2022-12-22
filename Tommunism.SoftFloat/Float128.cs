@@ -89,9 +89,11 @@ public readonly struct Float128
 #endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float128 FromBitsUI128(UInt128M v) => new(v);
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float128 FromBitsUI128(ulong v64, ulong v0) => new(v64, v0);
 
     #region Integer-to-floating-point Conversions
