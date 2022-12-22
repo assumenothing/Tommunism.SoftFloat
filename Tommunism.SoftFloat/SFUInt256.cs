@@ -82,6 +82,8 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
     #region Properties
 
+    public bool IsZero => (V000 | V064 | V128 | V192) == 0;
+
     public SFUInt128 V000_UI128
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,14 +124,14 @@ internal struct SFUInt256 : IEquatable<SFUInt256>
 
         // Shortcut if shifting by 256 or more bits.
         if (dist >= 256)
-            return ((V000 | V064 | V128 | V192) != 0) ? One : Zero;
+            return !IsZero ? One : Zero;
 
         // Shift value right.
         SFUInt256 z = this >> dist;
 
         // Calculate jam value and set jam bit (if needed).
         SFUInt256 jamZ = this << -dist;
-        if ((jamZ.V192 | jamZ.V128 | jamZ.V064 | jamZ.V000) != 0)
+        if (!jamZ.IsZero)
             z.V000 |= 1;
 
         return z;
