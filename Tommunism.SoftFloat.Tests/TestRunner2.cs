@@ -328,7 +328,12 @@ internal class TestRunner2
 
         // Asynchronously run the test cases.
         var testProcessFailures = 0;
-        await Parallel.ForEachAsync(partitioner.GetDynamicPartitions(), cancellationToken,
+        var parallelOptions = new ParallelOptions()
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = MaxTestThreads <= 0 ? -1 : MaxTestThreads,
+        };
+        await Parallel.ForEachAsync(partitioner.GetDynamicPartitions(), parallelOptions,
             (range, cancellationToken) =>
             {
 #if DEBUG
