@@ -436,7 +436,8 @@ public readonly struct Float64
     public long ToInt64RoundMinMag(SoftFloatContext context, bool exact)
     {
         ulong sig;
-        int exp, shiftDist, absZ;
+        int exp, shiftDist;
+        long absZ;
         bool sign;
 
         sign = GetSignUI(_v);
@@ -458,7 +459,7 @@ public readonly struct Float64
             }
 
             sig |= 0x0010000000000000;
-            absZ = (int)(sig << (-shiftDist));
+            absZ = (long)(sig << -shiftDist);
         }
         else
         {
@@ -471,7 +472,7 @@ public readonly struct Float64
             }
 
             sig |= 0x0010000000000000;
-            absZ = (int)(sig >> shiftDist);
+            absZ = (long)(sig >> shiftDist);
             if (exact && ((ulong)absZ << shiftDist) != sig)
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
