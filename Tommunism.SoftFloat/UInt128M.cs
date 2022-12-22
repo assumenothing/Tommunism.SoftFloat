@@ -93,6 +93,10 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 
     public override int GetHashCode() => HashCode.Combine(V00, V64);
 
+    // softfloat_mul64To128
+    /// <summary>
+    /// Returns the 128-bit product of <paramref name="a"/> and <paramref name="b"/>.
+    /// </summary>
     public static UInt128M Multiply(ulong a, ulong b)
     {
 #if NET7_0_OR_GREATER
@@ -119,6 +123,10 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 #endif
     }
 
+    // softfloat_mul64ByShifted32To128
+    /// <summary>
+    /// Returns the 128-bit product of <paramref name="a"/>, <paramref name="b"/>, and 2^32.
+    /// </summary>
     public static UInt128M Multiply64ByShifted32(ulong a, uint b)
     {
 #if NET7_0_OR_GREATER
@@ -132,6 +140,16 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 #endif
     }
 
+    // softfloat_shiftRightJam128
+    /// <summary>
+    /// Shifts the 128 bits formed by this instance right by the number of bits given in <paramref name="dist"/>, which must not be zero.
+    /// If any nonzero bits are shifted off, they are "jammed" into the least-significant bit of the shifted value by setting the
+    /// least-significant bit to 1. This shifted-and-jammed value is returned.
+    /// </summary>
+    /// <remarks>
+    /// The value of <paramref name="dist"/> can be arbitrarily large. In particular, if <paramref name="dist"/> is greater than 128, the
+    /// result will be either 0 or 1, depending on whether the original 128 bits are all zeros.
+    /// </remarks>
     public UInt128M ShiftRightJam(int dist)
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
@@ -163,6 +181,12 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
 #endif
     }
 
+    // softfloat_shortShiftRightJam128
+    /// <summary>
+    /// Shifts the 128 bits formed by this instance right by the number of bits given in <paramref name="dist"/>, which must be in the
+    /// range 1 to 63. If any nonzero bits are shifted off, they are "jammed" into the least-significant bit of the shifted value by
+    /// setting the least-significant bit to 1. This shifted-and-jammed value is returned.
+    /// </summary>
     public UInt128M ShortShiftRightJam(int dist)
     {
         Debug.Assert(dist is > 0 and < 64, "Shift amount is out of range.");

@@ -55,7 +55,7 @@ internal struct UInt256M : IEquatable<UInt256M>
     public static readonly UInt256M MinValue = new(0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000);
     public static readonly UInt256M MaxValue = new(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
 
-    internal ulong V000, V064, V128, V192;
+    public ulong V000, V064, V128, V192;
 
     #endregion
 
@@ -68,14 +68,6 @@ internal struct UInt256M : IEquatable<UInt256M>
     {
         (V064, V000) = v0;
         (V192, V128) = v128;
-    }
-
-    internal UInt256M(ReadOnlySpan<ulong> span, bool isLittleEndian)
-    {
-        Debug.Assert(span.Length >= 4, "Span is too small.");
-        (V000, V064, V128, V192) = isLittleEndian
-            ? (span[0], span[1], span[2], span[3])
-            : (span[3], span[2], span[1], span[0]);
     }
 
     #endregion
@@ -118,6 +110,16 @@ internal struct UInt256M : IEquatable<UInt256M>
 
     public override int GetHashCode() => HashCode.Combine(V000, V064, V128, V192);
 
+    // softfloat_shiftRightJam256M
+    /// <summary>
+    /// Shifts this 256-bit unsigned integer right by the number of bits given in <paramref name="dist"/>, which must be greater than zero.
+    /// If any nonzero bits are shifted off, they are "jammed" into the least-significant bit of the shifted value by setting the
+    /// least-significant bit to 1. This shifted-and-jammed value is returned.
+    /// </summary>
+    /// <remarks>
+    /// The value of <paramref name="dist"/> can be arbitrarily large. In particular, if <paramref name="dist"/> is greater than 256, the
+    /// stored result will be either 0 or 1, depending on whether the original 256 bits are all zeros.
+    /// </remarks>
     public UInt256M ShiftRightJam(int dist)
     {
         Debug.Assert(dist > 0, "Shift amount is out of range.");
@@ -135,14 +137,6 @@ internal struct UInt256M : IEquatable<UInt256M>
             z.V000 |= 1;
 
         return z;
-    }
-
-    public void ToSpan(Span<ulong> span, bool isLittleEndian)
-    {
-        Debug.Assert(span.Length >= 4, "Span is too small.");
-        (span[0], span[1], span[2], span[3]) = isLittleEndian
-            ? (V000, V064, V128, V192)
-            : (V192, V128, V064, V000);
     }
 
     public override string ToString() => $"0x{V192:x16}{V128:x16}{V064:x16}{V000:x16}";
