@@ -923,7 +923,7 @@ public readonly struct Float128
         expZ = expA + expB - 0x4000;
         sigA.V64 |= 0x0001000000000000;
         sigB <<= 16;
-        sig256Z = Mul128To256M(sigA, sigB);
+        sig256Z = UInt256M.Multiply(sigA, sigB);
         sigZExtra = sig256Z.V064 | (sig256Z.V000 != 0 ? 1U : 0);
         sigZ = sig256Z.V128_UI128 + sigA;
 

@@ -90,31 +90,6 @@ internal static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong ShiftRightJam64(ulong a, int dist) => (dist < 63) ? (a >> dist) | ((a << (-dist)) != 0 ? 1UL : 0UL) : (a != 0 ? 1UL : 0UL);
 
-    // softfloat_countLeadingZeros8
-    /// <summary>
-    /// A constant table that translates an 8-bit unsigned integer (the array index) into the number of leading 0 bits before the
-    /// most-significant 1 of that integer. For integer zero (index 0), the corresponding table element is 8.
-    /// </summary>
-    public static ReadOnlySpan<byte> CountLeadingZeroes8 => new byte[256]
-    {
-        8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    };
-
     // softfloat_countLeadingZeros16
     /// <summary>
     /// Returns the number of leading 0 bits before the most-significant 1 bit of <paramref name="a"/>. If <paramref name="a"/> is zero, 16
@@ -215,59 +190,5 @@ internal static class Primitives
         var sqrSigma0 = (uint)(((ulong)sigma0 * sigma0) >> 32);
         r += (uint)((((r >> 1) + (r >> 3) - (r0 << 14)) * (ulong)sqrSigma0) >> 48);
         return (r & 0x80000000) != 0 ? r : 0x80000000;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UInt256M Mul128To256M(UInt128M a, UInt128M b)
-    {
-        Mul128To256M(a.V64, a.V00, b.V64, b.V00, out var z);
-        return z;
-    }
-
-    // softfloat_mul128To256M
-    /// <summary>
-    /// Multiplies the 128-bit unsigned integer formed by concatenating <paramref name="a64"/> and <paramref name="a0"/> by the 128-bit
-    /// unsigned integer formed by concatenating <paramref name="b64"/> and <paramref name="b0"/>. The 256-bit product is stored at the
-    /// location pointed to by <paramref name="zPtr"/>. Argument <paramref name="zPtr"/> points to an array of four 64-bit elements that
-    /// concatenate in the platform's normal endian order to form a 256-bit integer.
-    /// </summary>
-    public static void Mul128To256M(ulong a64, ulong a0, ulong b64, ulong b0, out UInt256M zPtr)
-    {
-#if NET7_0_OR_GREATER
-        UInt128 z0, mid1, mid, z128;
-        z0 = (UInt128)a0 * b0;
-        mid1 = (UInt128)a64 * b0;
-        mid = mid1 + (UInt128)a0 * b64;
-        z128 = (UInt128)a64 * b64;
-        z128 += new UInt128(upper: (mid < mid1) ? 1UL : 0, lower: (ulong)(mid >> 64));
-        //z128 += ((mid < mid1 ? UInt128.One : UInt128.Zero) << 64) | (mid >> 64); // should be identical to above, but maybe slightly slower
-        mid <<= 64;
-        z0 += mid;
-        z128 += (z0 < mid) ? UInt128.One : UInt128.Zero;
-
-        zPtr.V000 = (ulong)z0;
-        zPtr.V064 = (ulong)(z0 >> 64);
-        zPtr.V128 = (ulong)z128;
-        zPtr.V192 = (ulong)(z128 >> 64);
-#else
-        SFUInt128 p0, p64, p128;
-        ulong z64, z128, z192;
-
-        p0 = Mul64To128(a0, b0);
-        zPtr.V000 = p0.V00;
-        p64 = Mul64To128(a64, b0);
-        z64 = p64.V00 + p0.V64;
-        z128 = p64.V64 + (z64 < p64.V00 ? 1UL : 0UL);
-        p128 = Mul64To128(a64, b64);
-        z128 += p128.V00;
-        z192 = p128.V64 + (z128 < p128.V00 ? 1UL : 0UL);
-        p64 = Mul64To128(a0, b64);
-        z64 += p64.V00;
-        zPtr.V064 = z64;
-        p64.V64 += z64 < p64.V00 ? 1UL : 0UL;
-        z128 += p64.V64;
-        zPtr.V128 = z128;
-        zPtr.V192 = z192 + (z128 < p64.V64 ? 1UL : 0UL);
-#endif
     }
 }

@@ -110,6 +110,54 @@ internal struct UInt256M : IEquatable<UInt256M>
 
     public override int GetHashCode() => HashCode.Combine(V000, V064, V128, V192);
 
+    // softfloat_mul128To256M
+    /// <summary>
+    /// Multiplies the 128-bit unsigned integer <paramref name="a"/> by the 128-bit unsigned integer <paramref name="b"/>. The 256-bit
+    /// product is returned.
+    /// </summary>
+    public static UInt256M Multiply(UInt128M a, UInt128M b)
+    {
+        UInt256M z;
+
+#if NET7_0_OR_GREATER
+        UInt128 z0, mid1, mid, z128;
+        z0 = (UInt128)a.V00 * b.V00;
+        mid1 = (UInt128)a.V64 * b.V00;
+        mid = mid1 + (UInt128)a.V00 * b.V64;
+        z128 = (UInt128)a.V64 * b.V64;
+        z128 += new UInt128(upper: (mid < mid1) ? 1UL : 0, lower: (ulong)(mid >> 64));
+        mid <<= 64;
+        z0 += mid;
+        z128 += (z0 < mid) ? UInt128.One : UInt128.Zero;
+
+        z.V000 = (ulong)z0;
+        z.V064 = (ulong)(z0 >> 64);
+        z.V128 = (ulong)z128;
+        z.V192 = (ulong)(z128 >> 64);
+#else
+        UInt128M p0, p64, p128;
+        ulong z64, z128, z192;
+
+        p0 = UInt128M.Multiply(a.V00, b.V00);
+        z.V000 = p0.V00;
+        p64 = UInt128M.Multiply(a.V64, b.V00);
+        z64 = p64.V00 + p0.V64;
+        z128 = p64.V64 + (z64 < p64.V00 ? 1UL : 0UL);
+        p128 = UInt128M.Multiply(a.V64, b.V64);
+        z128 += p128.V00;
+        z192 = p128.V64 + (z128 < p128.V00 ? 1UL : 0UL);
+        p64 = UInt128M.Multiply(a.V00, b.V64);
+        z64 += p64.V00;
+        z.V064 = z64;
+        p64.V64 += z64 < p64.V00 ? 1UL : 0UL;
+        z128 += p64.V64;
+        z.V128 = z128;
+        z.V192 = z192 + (z128 < p64.V64 ? 1UL : 0UL);
+#endif
+
+        return z;
+    }
+
     // softfloat_shiftRightJam256M
     /// <summary>
     /// Shifts this 256-bit unsigned integer right by the number of bits given in <paramref name="dist"/>, which must be greater than zero.
