@@ -79,13 +79,14 @@ public readonly struct Float16
     public static explicit operator Float16(Half value) => new(value);
     public static implicit operator Half(Float16 value) => BitConverter.UInt16BitsToHalf(value._v);
 
-    public static Float16 FromUIntBits(ushort value) => FromBitsUI16(value);
+    public static Float16 FromUIntBits(ushort value) => new(value, dummy: false);
 
     public ushort ToUInt16Bits() => _v;
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     // TODO: Allow value to be a full 32-bit integer (reduces total number of "unnecessary" casts).
-    internal static Float16 FromBitsUI16(ushort v) => new(v, dummy: false);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static Float16 FromBitsUI16(uint v) => new((ushort)v, dummy: false);
 
     #region Integer-to-floating-point Conversions
 
@@ -94,7 +95,7 @@ public readonly struct Float16
     {
         int shiftDist = CountLeadingZeroes32(a) - 21;
         if (0 <= shiftDist)
-            return FromBitsUI16(a != 0 ? PackToUI(false, 0x18 - shiftDist, a << shiftDist) : (ushort)0);
+            return FromBitsUI16(a != 0 ? PackToUI(false, 0x18 - shiftDist, a << shiftDist) : 0U);
 
         shiftDist += 4;
         uint sig = (shiftDist < 0)
@@ -108,7 +109,7 @@ public readonly struct Float16
     {
         var shiftDist = CountLeadingZeroes64(a) - 53;
         if (0 <= shiftDist)
-            return FromBitsUI16(a != 0 ? PackToUI(false, 0x18 - shiftDist, (uint)a << shiftDist) : (ushort)0);
+            return FromBitsUI16(a != 0 ? PackToUI(false, 0x18 - shiftDist, (uint)a << shiftDist) : 0U);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -124,7 +125,7 @@ public readonly struct Float16
         var absA = (uint)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes32(absA) - 21;
         if (0 <= shiftDist)
-            return FromBitsUI16(a != 0 ? PackToUI(sign, 0x18 - shiftDist, absA << shiftDist) : (ushort)0);
+            return FromBitsUI16(a != 0 ? PackToUI(sign, 0x18 - shiftDist, absA << shiftDist) : 0U);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -140,7 +141,7 @@ public readonly struct Float16
         var absA = (ulong)(sign ? -a : a);
         var shiftDist = CountLeadingZeroes64(absA) - 53;
         if (0 <= shiftDist)
-            return FromBitsUI16(a != 0 ? PackToUI(sign, 0x18 - shiftDist, (uint)absA << shiftDist) : (ushort)0);
+            return FromBitsUI16(a != 0 ? PackToUI(sign, 0x18 - shiftDist, (uint)absA << shiftDist) : 0U);
 
         shiftDist += 4;
         var sig = (shiftDist < 0)
@@ -665,7 +666,7 @@ public readonly struct Float16
                 }
             }
 
-            return FromBitsUI16((ushort)uiZ);
+            return FromBitsUI16(uiZ);
         }
 
         if (0x19 <= exp)
@@ -703,7 +704,7 @@ public readonly struct Float16
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
-        return FromBitsUI16((ushort)uiZ);
+        return FromBitsUI16(uiZ);
     }
 
     // f16_add
@@ -1242,7 +1243,7 @@ public readonly struct Float16
             else if (0x1D < exp || 0x8000 <= sig + roundIncrement)
             {
                 context.RaiseFlags(ExceptionFlags.Overflow | ExceptionFlags.Inexact);
-                return FromBitsUI16((ushort)(PackToUI(sign, 0x1F, 0) - (roundIncrement == 0 ? 1U : 0U)));
+                return FromBitsUI16(PackToUI(sign, 0x1F, 0) - (roundIncrement == 0 ? 1U : 0U));
             }
         }
 
@@ -1296,14 +1297,14 @@ public readonly struct Float16
         if (expDiff == 0)
         {
             if (expA == 0)
-                return FromBitsUI16((ushort)(uiA + sigB));
+                return FromBitsUI16(uiA + sigB);
 
             if (expA == 0x1F)
             {
                 if ((sigA | sigB) != 0)
                     return context.PropagateNaNFloat16(uiA, uiB);
 
-                return FromBitsUI16((ushort)uiA);
+                return FromBitsUI16(uiA);
             }
 
             signZ = GetSignUI(uiA);
@@ -1333,7 +1334,7 @@ public readonly struct Float16
                     if (((uint)expA | sigA) != 0)
                         goto addEpsilon;
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 expZ = expB;
@@ -1349,7 +1350,7 @@ public readonly struct Float16
                     if (sigA != 0)
                         return context.PropagateNaNFloat16(uiA, uiB);
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 if (13 <= expDiff)
@@ -1357,7 +1358,7 @@ public readonly struct Float16
                     if (((uint)expB | sigB) != 0)
                         goto addEpsilon;
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 expZ = expA;
@@ -1407,7 +1408,7 @@ public readonly struct Float16
         }
 
         context.ExceptionFlags |= ExceptionFlags.Inexact;
-        return FromBitsUI16((ushort)uiZ);
+        return FromBitsUI16(uiZ);
     }
 
     // softfloat_subMagsF16
@@ -1480,7 +1481,7 @@ public readonly struct Float16
                     if (((uint)expA | sigA) != 0)
                         goto subEpsilon;
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 expZ = expA + 19;
@@ -1496,7 +1497,7 @@ public readonly struct Float16
                     if (sigA != 0)
                         return context.PropagateNaNFloat16(uiA, uiB);
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 if (13 <= expDiff)
@@ -1504,7 +1505,7 @@ public readonly struct Float16
                     if (((uint)expB | sigB) != 0)
                         goto subEpsilon;
 
-                    return FromBitsUI16((ushort)uiZ);
+                    return FromBitsUI16(uiZ);
                 }
 
                 expZ = expB + 19;
@@ -1548,7 +1549,7 @@ public readonly struct Float16
         }
 
         context.ExceptionFlags |= ExceptionFlags.Inexact;
-        return FromBitsUI16((ushort)uiZ);
+        return FromBitsUI16(uiZ);
     }
 
     // softfloat_mulAddF16
@@ -1598,7 +1599,7 @@ public readonly struct Float16
             if (sigC != 0)
                 return context.PropagateNaNFloat16(0, uiC);
 
-            return FromBitsUI16((ushort)uiC);
+            return FromBitsUI16(uiC);
         }
 
         if (expA == 0)
@@ -1608,7 +1609,7 @@ public readonly struct Float16
                 if (((uint)expC | sigC) == 0 && signProd != signC)
                     return Pack(context.Rounding == RoundingMode.Min, 0, 0);
 
-                return FromBitsUI16((ushort)uiC);
+                return FromBitsUI16(uiC);
             }
 
             (expA, sigA) = NormSubnormalSig(sigA);
@@ -1621,7 +1622,7 @@ public readonly struct Float16
                 if (((uint)expC | sigC) == 0 && signProd != signC)
                     return Pack(context.Rounding == RoundingMode.Min, 0, 0);
 
-                return FromBitsUI16((ushort)uiC);
+                return FromBitsUI16(uiC);
             }
 
             (expB, sigB) = NormSubnormalSig(sigB);
@@ -1717,13 +1718,13 @@ public readonly struct Float16
         {
             uiZ = PackToUI(signProd, 0x1F, 0);
             if (expC != 0x1F)
-                return FromBitsUI16((ushort)uiZ);
+                return FromBitsUI16(uiZ);
 
             if (sigC != 0)
                 return context.PropagateNaNFloat16(uiZ, uiC);
 
             if (signProd == signC)
-                return FromBitsUI16((ushort)uiZ);
+                return FromBitsUI16(uiZ);
         }
 
         context.RaiseFlags(ExceptionFlags.Invalid);
