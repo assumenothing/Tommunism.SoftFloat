@@ -105,15 +105,14 @@ public readonly struct ExtFloat80
 #endif
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    internal static ExtFloat80 FromBitsUI128(UInt128M v)
-    {
-        Debug.Assert((v.V64 & ~0xFFFFU) == 0);
-        return FromBitsUI80((ushort)v.V64, v.V00);
-    }
+    // NOTE: It doesn't matter if the value exceeds 80 bits, it will always be casted down (this is intentional to simplify calling code).
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ExtFloat80 FromBitsUI128(UInt128M v) => FromBitsUI80(v.V64, v.V00);
 
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
-    // TODO: Allow signExp to be a full 32-bit integer (reduces total number of "unnecessary" casts).
-    internal static ExtFloat80 FromBitsUI80(ushort signExp, ulong signif) => new(signExp, signif);
+    // NOTE: It doesn't matter if signExp exceeds 16 bits, it will always be casted down (this is intentional to simplify calling code).
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ExtFloat80 FromBitsUI80(ulong signExp, ulong signif) => new((ushort)signExp, signif);
 
     #region Integer-to-floating-point Conversions
 
@@ -133,7 +132,7 @@ public readonly struct ExtFloat80
             uiZ64 = 0;
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: (ulong)a << 32);
+        return FromBitsUI80(uiZ64, (ulong)a << 32);
     }
 
     // ui64_to_extF80
@@ -152,7 +151,7 @@ public readonly struct ExtFloat80
             uiZ64 = 0;
         }
 
-        return FromBitsUI80(signExp: (ushort)uiZ64, signif: a);
+        return FromBitsUI80(uiZ64, a);
     }
 
     // i32_to_extF80
@@ -663,7 +662,7 @@ public readonly struct ExtFloat80
         if ((sigA & 0x8000000000000000) == 0 && exp != 0x7FFF)
         {
             if (sigA == 0)
-                return FromBitsUI80((ushort)signUI64, 0);
+                return FromBitsUI80(signUI64, 0);
 
             (var expTmp, sigA) = NormSubnormalSig(sigA);
             exp += expTmp;
@@ -683,7 +682,7 @@ public readonly struct ExtFloat80
                 sigZ = sigA;
             }
 
-            return FromBitsUI80((ushort)(signUI64 | (uint)exp), sigZ);
+            return FromBitsUI80(signUI64 | (uint)exp, sigZ);
         }
         else if (exp <= 0x3FFE)
         {
@@ -702,31 +701,31 @@ public readonly struct ExtFloat80
                 case RoundingMode.NearMaxMag:
                 {
                     if (exp == 0x3FFE)
-                        return FromBitsUI80((ushort)(signUI64 | 0x3FFF), 0x8000000000000000);
+                        return FromBitsUI80(signUI64 | 0x3FFF, 0x8000000000000000);
 
                     break;
                 }
                 case RoundingMode.Min:
                 {
                     if (signUI64 != 0)
-                        return FromBitsUI80((ushort)(signUI64 | 0x3FFF), 0x8000000000000000);
+                        return FromBitsUI80(signUI64 | 0x3FFF, 0x8000000000000000);
 
                     break;
                 }
                 case RoundingMode.Max:
                 {
                     if (signUI64 == 0)
-                        return FromBitsUI80((ushort)(signUI64 | 0x3FFF), 0x8000000000000000);
+                        return FromBitsUI80(signUI64 | 0x3FFF, 0x8000000000000000);
 
                     break;
                 }
                 case RoundingMode.Odd:
                 {
-                    return FromBitsUI80((ushort)(signUI64 | 0x3FFF), 0x8000000000000000);
+                    return FromBitsUI80(signUI64 | 0x3FFF, 0x8000000000000000);
                 }
             }
 
-            return FromBitsUI80((ushort)signUI64, 0);
+            return FromBitsUI80(signUI64, 0);
         }
 
         uiZ64 = signUI64 | (uint)exp;
@@ -764,7 +763,7 @@ public readonly struct ExtFloat80
                 context.ExceptionFlags |= ExceptionFlags.Inexact;
         }
 
-        return FromBitsUI80((ushort)uiZ64, sigZ);
+        return FromBitsUI80(uiZ64, sigZ);
     }
 
     // extF80_add
@@ -1621,7 +1620,7 @@ public readonly struct ExtFloat80
             {
                 return (((sigA | sigB) & 0x7FFFFFFFFFFFFFFF) != 0)
                     ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
-                    : FromBitsUI80((ushort)uiA64, uiA0);
+                    : FromBitsUI80(uiA64, uiA0);
             }
 
             sigZ = sigA + sigB;
@@ -1663,7 +1662,7 @@ public readonly struct ExtFloat80
                 {
                     return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
                         ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
-                        : FromBitsUI80((ushort)uiA64, uiA0);
+                        : FromBitsUI80(uiA64, uiA0);
                 }
 
                 expZ = expA;
@@ -1740,7 +1739,7 @@ public readonly struct ExtFloat80
             {
                 return ((sigA & 0x7FFFFFFFFFFFFFFF) != 0)
                     ? context.PropagateNaNExtFloat80Bits(uiA64, uiA0, uiB64, uiB0)
-                    : FromBitsUI80((ushort)uiA64, uiA0);
+                    : FromBitsUI80(uiA64, uiA0);
             }
 
             if (expB == 0)
