@@ -54,6 +54,8 @@ public readonly struct Float128
 {
     #region Fields
 
+    public const int ExponentBias = 0x3FFF;
+
     // WARNING: DO NOT ADD OR CHANGE ANY OF THESE FIELDS!!!
     private readonly ulong _v0;
     private readonly ulong _v64;
@@ -74,13 +76,43 @@ public readonly struct Float128
         _v64 = v64;
     }
 
+    // NOTE: The exponential is the biased exponent value (not the bit encoded value).
+    public Float128(bool sign, int exponent, ulong significand64, ulong significand0)
+    {
+        exponent += ExponentBias;
+        if ((exponent >> 15) != 0)
+            throw new ArgumentOutOfRangeException(nameof(exponent));
+
+        if ((significand64 >> 48) != 0)
+            throw new ArgumentOutOfRangeException(nameof(significand64));
+
+        _v64 = PackToUI64(sign, exponent, significand64);
+        _v0 = significand0;
+    }
+
+#if NET7_0_OR_GREATER
+    // NOTE: The exponential is the biased exponent value (not the bit encoded value).
+    public Float128(bool sign, int exponent, UInt128 significand)
+    {
+        exponent += ExponentBias;
+        if (exponent is < 0 or > 0x7FFF)
+            throw new ArgumentOutOfRangeException(nameof(exponent));
+
+        if ((significand >> 112) != 0)
+            throw new ArgumentOutOfRangeException(nameof(significand));
+
+        _v64 = PackToUI64(sign, exponent, significand.GetUpperUI64());
+        _v0 = significand.GetLowerUI64();
+    }
+#endif
+
     #endregion
 
     #region Properties
 
     public bool Sign => GetSignUI64(_v64);
 
-    public int Exponential => GetExpUI64(_v64) - 0x3FFF; // offset-binary
+    public int Exponent => GetExpUI64(_v64) - ExponentBias; // offset-binary
 
     public ulong Significand64 => GetFracUI64(_v64);
 

@@ -54,6 +54,8 @@ public readonly struct ExtFloat80
 {
     #region Fields
 
+    public const int ExponentBias = 0x3FFF;
+
     // WARNING: DO NOT ADD OR CHANGE ANY OF THESE FIELDS!!!
 
     /// <summary>
@@ -76,13 +78,24 @@ public readonly struct ExtFloat80
         _signExp = signExp;
     }
 
+    // NOTE: The exponential is the biased exponent value (not the bit encoded value).
+    public ExtFloat80(bool sign, int exponent, ulong significand)
+    {
+        exponent += ExponentBias;
+        if ((exponent >> 15) != 0)
+            throw new ArgumentOutOfRangeException(nameof(exponent));
+
+        _signExp = PackToUI64(sign, exponent);
+        _signif = significand;
+    }
+
     #endregion
 
     #region Properties
 
     public bool Sign => GetSignUI64(_signExp);
 
-    public int Exponential => GetExpUI64(_signExp) - 0x3FFF; // offset-binary
+    public int Exponent => GetExpUI64(_signExp) - ExponentBias; // offset-binary
 
     public ulong Significand => _signif;
 
@@ -93,6 +106,7 @@ public readonly struct ExtFloat80
 
     public bool IsFinite => IsFiniteUI(_signExp);
 
+    // NOTE: This is the raw encoded sign and exponent values (not biased like the Exponent property above).
     public ushort SignAndExponent => _signExp;
 
     #endregion

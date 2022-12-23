@@ -54,6 +54,8 @@ public readonly struct Float32
 {
     #region Fields
 
+    public const int ExponentBias = 0x7F;
+
     // WARNING: DO NOT ADD OR CHANGE ANY OF THESE FIELDS!!!
     private readonly uint _v;
 
@@ -72,13 +74,26 @@ public readonly struct Float32
         _v = BitConverter.SingleToUInt32Bits(value);
     }
 
+    // NOTE: The exponential is the biased exponent value (not the bit encoded value).
+    public Float32(bool sign, int exponent, uint significand)
+    {
+        exponent += ExponentBias;
+        if ((exponent >> 8) != 0)
+            throw new ArgumentOutOfRangeException(nameof(exponent));
+
+        if ((significand >> 23) != 0)
+            throw new ArgumentOutOfRangeException(nameof(significand));
+
+        _v = PackToUI(sign, exponent, significand);
+    }
+
     #endregion
 
     #region Properties
 
     public bool Sign => GetSignUI(_v);
 
-    public int Exponential => GetExpUI(_v) - 0x7F; // offset-binary
+    public int Exponent => GetExpUI(_v) - ExponentBias; // offset-binary
 
     public uint Significand => GetFracUI(_v);
 
