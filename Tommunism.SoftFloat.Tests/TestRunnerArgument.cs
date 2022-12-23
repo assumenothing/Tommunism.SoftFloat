@@ -600,15 +600,28 @@ internal record struct TestRunnerArgument(UInt128 Value, TestRunnerArgumentKind 
 
     internal void WriteTo(ref ValueStringBuilder builder)
     {
+        var bitCount = (int)Kind;
+        Debug.Assert(bitCount is >= 0 and <= int.MaxValue - 3);
+
+        // Don't write anything if the bit count is zero.
+        if (bitCount == 0)
+            return;
+
         // The "kind" enumeration's values are always represented as the number of bits.
         // Round bit count up to the next nibble and convert to number of nibbles (hex characters).
-        var hexCharCount = ((int)Kind + 3) / 4;
+        var hexCharCount = (bitCount + 3) / 4;
+
+        // Mask the value to ensure no extra bits are emitted.
+        var value = Value;
+        if (bitCount < 128)
+            value &= (UInt128.One << bitCount) - 1;
 
         // Reserve characters in builder for encoded hex data.
         var buffer = builder.AppendSpan(hexCharCount);
         for (int shift = (hexCharCount - 1) * 4, i = 0; shift >= 0; shift -= 4, i++)
         {
-            var c = (int)(Value >> shift) & 0xF;
+            // Out of range shifts are always treated as zero values.
+            var c = (shift < 128) ? ((int)(value >> shift) & 0xF) : 0;
             buffer[i] = (char)HexChars[c];
         }
     }
