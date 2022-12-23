@@ -43,6 +43,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Tommunism.SoftFloat;
 
@@ -149,6 +150,19 @@ public readonly struct Float128
     // THIS IS THE INTERNAL CONSTRUCTOR FOR RAW BITS.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float128 FromBitsUI128(ulong v64, ulong v0) => new(v64, v0);
+
+    // NOTE: This is the raw exponent and significand encoded in hexadecimal, separated by a period, and prefixed with the sign.
+    public override string ToString()
+    {
+        // Value Format: -7FFF.FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        var builder = new ValueStringBuilder(stackalloc char[36]);
+        builder.Append(GetSignUI64(_v64) ? '-' : '+');
+        builder.AppendHex((uint)GetExpUI64(_v64), 15);
+        builder.Append('.');
+        builder.AppendHex(GetFracUI64(_v64), 48);
+        builder.AppendHex(_v0, 64);
+        return builder.ToString();
+    }
 
     #region Integer-to-floating-point Conversions
 

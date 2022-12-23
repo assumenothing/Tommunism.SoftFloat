@@ -43,6 +43,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Tommunism.SoftFloat;
 
@@ -138,6 +139,18 @@ public readonly struct ExtFloat80
     // NOTE: It doesn't matter if signExp exceeds 16 bits, it will always be casted down (this is intentional to simplify calling code).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ExtFloat80 FromBitsUI80(ulong signExp, ulong signif) => new((ushort)signExp, signif);
+
+    // NOTE: This is the raw exponent and significand encoded in hexadecimal, separated by a period, and prefixed with the sign.
+    public override string ToString()
+    {
+        // Value Format: -7FFF.FFFFFFFFFFFFFFFF
+        var builder = new ValueStringBuilder(stackalloc char[24]);
+        builder.Append(GetSignUI64(_signExp) ? '-' : '+');
+        builder.AppendHex((uint)GetExpUI64(_signExp), 15);
+        builder.Append('.');
+        builder.AppendHex(_signif, 64);
+        return builder.ToString();
+    }
 
     #region Integer-to-floating-point Conversions
 
