@@ -103,7 +103,10 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
     /// </summary>
     public static UInt128M Multiply(ulong a, ulong b)
     {
-#if NET7_0_OR_GREATER
+#if true
+        ulong v64 = Math.BigMul(a, b, out ulong v0);
+        return new UInt128M(v64, v0);
+#elif NET7_0_OR_GREATER
         return (UInt128)a * b;
 #else
         SFUInt128 z;
@@ -133,7 +136,10 @@ internal struct UInt128M : IEquatable<UInt128M>, IComparable<UInt128M>
     /// </summary>
     public static UInt128M Multiply64ByShifted32(ulong a, uint b)
     {
-#if NET7_0_OR_GREATER
+#if true
+        ulong v64 = Math.BigMul(a, (ulong)b << 32, out ulong v0);
+        return new UInt128M(v64, v0);
+#elif NET7_0_OR_GREATER
         return (UInt128)a * ((ulong)b << 32);
 #else
         var mid = (ulong)(uint)a * b;
