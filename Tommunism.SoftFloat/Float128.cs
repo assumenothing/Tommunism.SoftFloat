@@ -76,6 +76,28 @@ public readonly struct Float128
 
     #endregion
 
+    #region Properties
+
+    public bool Sign => GetSignUI64(_v64);
+
+    public int Exponential => GetExpUI64(_v64) - 0x3FFF; // offset-binary
+
+    public ulong Significand64 => GetFracUI64(_v64);
+
+    public ulong Significand00 => _v0;
+
+#if NET7_0_OR_GREATER
+    public UInt128 Significand => new(GetFracUI64(_v64), _v0);
+#endif
+
+    public bool IsNaN => IsNaNUI(_v64, _v0);
+
+    public bool IsInfinity => IsInfUI(_v64, _v0);
+
+    public bool IsFinite => IsFiniteUI(_v64);
+
+    #endregion
+
     #region Methods
 
     public static Float128 FromUIntBits(ulong upper, ulong lower) => new(v64: upper, v0: lower);
@@ -1464,8 +1486,13 @@ public readonly struct Float128
 
     // isNaNF128UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsNaNUI(ulong a64, ulong a0) =>
-        (~a64 & 0x7FFF000000000000) == 0 && (a0 != 0 || (a64 & 0x0000FFFFFFFFFFFF) != 0);
+    internal static bool IsNaNUI(ulong a64, ulong a0) => (~a64 & 0x7FFF000000000000) == 0 && (a0 != 0 || (a64 & 0x0000FFFFFFFFFFFF) != 0);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsInfUI(ulong a64, ulong a0) => (~a64 & 0x7FFF000000000000) == 0 && a0 == 0 && (a64 & 0x0000FFFFFFFFFFFF) == 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsFiniteUI(ulong a64) => (~a64 & 0x7FFF000000000000) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static (int exp, UInt128M sig) NormSubnormalSig(UInt128M sig) => NormSubnormalSig(sig.V64, sig.V00);

@@ -80,7 +80,18 @@ public readonly struct ExtFloat80
 
     #region Properties
 
+    public bool Sign => GetSignUI64(_signExp);
+
+    public int Exponential => GetExpUI64(_signExp) - 0x3FFF; // offset-binary
+
     public ulong Significand => _signif;
+
+    public bool IsNaN => IsNaNUI(_signExp, _signif);
+
+    // The interpretation is ambiguous between 8087, 80287, and 80387.
+    public bool IsInfinity => IsInfUI(_signExp, _signif);
+
+    public bool IsFinite => IsFiniteUI(_signExp);
 
     public ushort SignAndExponent => _signExp;
 
@@ -1390,7 +1401,14 @@ public readonly struct ExtFloat80
 
     // isNaNExtF80UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsNaNUI(int a64, ulong a0) => ((a64 & 0x7FFF) == 0x7FFF) && (a0 & 0x7FFFFFFFFFFFFFFF) != 0;
+    internal static bool IsNaNUI(int a64, ulong a0) => (a64 & 0x7FFF) == 0x7FFF && (a0 & 0x7FFFFFFFFFFFFFFF) != 0;
+
+    // According to wikipedia, this can be either "Pseudo-Infinity" (valid before 80387) as well as "Infinity" (valid on 80387), depending on bit 63.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsInfUI(int a64, ulong a0) => (a64 & 0x7FFF) == 0x7FFF && (a0 & 0x7FFFFFFFFFFFFFFF) == 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsFiniteUI(int a64) => (a64 & 0x7FFF) != 0x7FFF;
 
     // softfloat_normSubnormalExtF80Sig
     internal static (int exp, ulong sig) NormSubnormalSig(ulong sig)

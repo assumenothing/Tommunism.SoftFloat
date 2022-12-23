@@ -74,6 +74,22 @@ public readonly struct Float64
 
     #endregion
 
+    #region Properties
+
+    public bool Sign => GetSignUI(_v);
+
+    public int Exponential => GetExpUI(_v) - 0x3FF; // offset-binary
+
+    public ulong Significand => GetFracUI(_v);
+
+    public bool IsNaN => IsNaNUI(_v);
+
+    public bool IsInfinity => IsInfUI(_v);
+
+    public bool IsFinite => IsFiniteUI(_v);
+
+    #endregion
+
     #region Methods
 
     public static explicit operator Float64(double value) => new(value);
@@ -1252,6 +1268,12 @@ public readonly struct Float64
     // isNaNF64UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsNaNUI(ulong a) => (~a & 0x7FF0000000000000) == 0 && (a & 0x000FFFFFFFFFFFFF) != 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsInfUI(ulong a) => (~a & 0x7FF0000000000000) == 0 && (a & 0x000FFFFFFFFFFFFF) == 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsFiniteUI(ulong a) => (~a & 0x7FF0000000000000) != 0;
 
     // softfloat_normSubnormalF64Sig
     internal static (int exp, ulong sig) NormSubnormalSig(ulong sig)

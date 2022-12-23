@@ -74,6 +74,22 @@ public readonly struct Float16
 
     #endregion
 
+    #region Properties
+
+    public bool Sign => GetSignUI(_v);
+
+    public int Exponential => GetExpUI(_v) - 0xF; // offset-binary
+
+    public uint Significand => GetFracUI(_v);
+
+    public bool IsNaN => IsNaNUI(_v);
+
+    public bool IsInfinity => IsInfUI(_v);
+
+    public bool IsFinite => IsFiniteUI(_v);
+
+    #endregion
+
     #region Methods
 
     public static explicit operator Float16(Half value) => new(value);
@@ -1216,6 +1232,12 @@ public readonly struct Float16
     // isNaNF16UI
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsNaNUI(uint a) => (~a & 0x7C00) == 0 && (a & 0x03FF) != 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsInfUI(uint a) => (~a & 0x7C00) == 0 && (a & 0x03FF) == 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsFiniteUI(uint a) => (~a & 0x7C00) != 0;
 
     // softfloat_normSubnormalF16Sig
     internal static (int exp, uint sig) NormSubnormalSig(uint sig)
