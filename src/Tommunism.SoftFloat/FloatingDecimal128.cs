@@ -24,6 +24,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace Tommunism.SoftFloat;
@@ -320,16 +321,67 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable
 
     #region Methods
 
-    // NOTE: Only one format is currently supported here (an empty string/span) and the format providers are not currently implemented.
+    // NOTE: Only one format is currently supported here (an empty string/span or the exponential format code "E" or "e" with default precision).
     // NOTE: Even if it fails, there may have been characters written to the destination buffer.
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
-    {
-        if (!format.IsEmpty)
-            throw new ArgumentException("Invalid/unsupported format specified.", nameof(format));
-        if (provider != null)
-            throw new NotImplementedException("IFormatProvider is currently not implemented.");
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) =>
+        TryFormat(destination, out charsWritten, format, new FormatInfoValues(provider));
 
-        int length = GenericFormat(destination);
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        if (format != null && !string.Equals(format, "E", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Invalid/unsupported format specified.", nameof(format));
+
+        var formatValues = new FormatInfoValues(formatProvider);
+
+        // According to the Ryu source code, the maximum char buffer requirement is:
+        // sign + mantissa digits + decimal dot + 'E' + exponent sign + exponent digits
+        // = 1 + 39 + 1 + 1 + 1 + 10 = 53
+        int maxStringLength =
+            formatValues.NegativeSign.Length +
+            formatValues.DecimalSeparator.Length +
+            Math.Max(formatValues.NegativeSign.Length, formatValues.PositiveSign.Length) +
+            39 + 1 + 10;
+
+        // Just in case the format provider's symbols are longer than the max decimal string.
+        if (maxStringLength < formatValues.NaNSymbol.Length)
+            maxStringLength = formatValues.NaNSymbol.Length;
+        if (maxStringLength < formatValues.PositiveInfinitySymbol.Length)
+            maxStringLength = formatValues.PositiveInfinitySymbol.Length;
+        if (maxStringLength < formatValues.NegativeInfinitySymbol.Length)
+            maxStringLength = formatValues.NegativeInfinitySymbol.Length;
+
+        Span<char> buffer = stackalloc char[maxStringLength];
+        if (!TryFormat(buffer, out int length, format, formatValues))
+            throw new FormatException();
+
+        return new string(buffer[..length]);
+    }
+
+    private bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, FormatInfoValues formatValues)
+    {
+        // Default format code (if not specified).
+        if (format.IsEmpty)
+            format = "E";
+
+        int length;
+        switch (format[0])
+        {
+            case 'E':
+            case 'e':
+            {
+                // This implementation currently does not support custom precision values.
+                if (format.Length > 1)
+                    goto default;
+
+                length = FormatScientific(destination, formatValues, exponentSymbol: format[0]);
+                break;
+            }
+            default:
+            {
+                throw new ArgumentException("Invalid/unsupported format specified.", nameof(format));
+            }
+        }
+
         if (length < 0)
         {
             charsWritten = default;
@@ -340,89 +392,88 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable
         return true;
     }
 
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        // According to the Ryu source code, the maximum char buffer requirement is:
-        // sign + mantissa digits + decimal dot + 'E' + exponent sign + exponent digits
-        // = 1 + 39 + 1 + 1 + 1 + 10 = 53
-        Span<char> buffer = stackalloc char[53];
-        if (!TryFormat(buffer, out int length, format, formatProvider))
-            throw new FormatException();
-
-        return new string(buffer[..length]);
-    }
-
     // NOTE: If this returns -1, then it failed to format the value (likely means the destination buffer was too small).
-    private int GenericFormat(Span<char> buffer)
+    // NOTE: This always returns the equivalent of "Exponential (scientific)" format ("E" format). The exponent can be
+    // omitted if optionalExponent is true and the calculated exponent value is zero.
+    private int FormatScientific(Span<char> buffer, FormatInfoValues formatValues, bool optionalExponent = false, char exponentSymbol = 'E')
     {
-        // Handle special values floating-point.
+        // Handle special floating-point values.
         if (_exponent == ExceptionalExponent)
         {
-            if (_mantissa != 0)
-                return "NaN".TryCopyTo(buffer) ? "NaN".Length : -1;
+            var specialValue = (_mantissa != 0)
+                ? formatValues.NaNSymbol
+                : (_sign
+                    ? formatValues.PositiveInfinitySymbol
+                    : formatValues.NegativeInfinitySymbol);
 
-            var infString = _sign ? "-Infinity" : "+Infinity";
-            return infString.TryCopyTo(buffer) ? infString.Length : -1;
+            return specialValue.TryCopyTo(buffer) ? specialValue.Length : -1;
         }
 
         // Step 5: Print the decimal representation.
         int count = 0;
         if (_sign)
         {
-            if (buffer.IsEmpty)
+            var negativeSign = formatValues.NegativeSign;
+            if (!negativeSign.TryCopyTo(buffer))
                 return -1;
 
-            buffer[0] = '-';
-            buffer = buffer[1..];
-            count++;
+            buffer = buffer[negativeSign.Length..];
+            count += negativeSign.Length;
         }
 
         UInt128 output = _mantissa;
-        int outputLength = DecimalLength(output);
-        Debug.Assert(outputLength > 0);
+        int digitsLength = DecimalLength(output);
+        Debug.Assert(digitsLength > 0);
+
+        bool hasDecimalSeparator = digitsLength > 1;
+        int outputLength = digitsLength;
+        if (hasDecimalSeparator)
+            outputLength += formatValues.DecimalSeparator.Length;
+
         if (buffer.Length < outputLength)
             return -1;
 
         UInt128 ten = 10; // constant
-        var outputLengthMinusOne = outputLength - 1;
-        for (int i = 0; i < outputLengthMinusOne; ++i)
+        for (int i = 1; i < digitsLength; ++i)
         {
             (output, var c) = UInt128.DivRem(output, ten);
             buffer[outputLength - i] = (char)('0' + (int)c);
         }
 
-        Debug.Assert(output < 10, "Highest output digit is greater than or equal to 10!");
+        Debug.Assert(output < ten, "Highest output digit is greater than or equal to 10!");
         buffer[0] = (char)('0' + (uint)output);
 
-        // Print decimal point if needed (more than one digit).
-        if (outputLength > 1)
+        // Print decimal point if needed (if there is more than one digit).
+        if (hasDecimalSeparator)
+        {
+            formatValues.DecimalSeparator.CopyTo(buffer);
+            buffer = buffer[outputLength..];
+        }
+        else
+        {
+            Debug.Assert(outputLength == 1);
+            buffer = buffer[1..];
+        }
+
+        count += outputLength;
+
+        // Print the exponent.
+        int exp = _exponent + (digitsLength - 1);
+        if (!optionalExponent || exp != 0)
         {
             if (buffer.Length <= 1)
                 return -1;
 
-            buffer[1] = '.';
-            buffer = buffer[(outputLength + 1)..];
-            count += outputLength + 1;
-        }
-        else
-        {
+            buffer[0] = exponentSymbol;
             buffer = buffer[1..];
             count++;
+
+            if (!exp.TryFormat(buffer, out int expLength, default, formatValues.Info))
+                return -1;
+
+            count += expLength;
         }
 
-        if (buffer.Length <= 1)
-            return -1;
-
-        // Print the exponent.
-        buffer[0] = 'E';
-        buffer = buffer[1..];
-        count++;
-
-        int exp = _exponent + outputLength - 1;
-        if (!exp.TryFormat(buffer, out int expLength))
-            return -1;
-
-        count += expLength;
         return count;
     }
 
@@ -608,6 +659,41 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable
         // The first value this approximation fails for is 5^2621 which is just greater than 10^1832.
         Debug.Assert(e is >= 0 and <= (1 << 15));
         return (uint)(((ulong)e * 196742565691928) >> 48);
+    }
+
+    #endregion
+
+    #region Nested Types
+
+    /// <summary>
+    /// Used to cache common values from <see cref="NumberFormatInfo"/>.
+    /// </summary>
+    private sealed class FormatInfoValues
+    {
+        private readonly NumberFormatInfo _info;
+        private string? _negativeSign;
+        private string? _positiveSign;
+        private string? _decimalSeparator;
+        private string? _nanSymbol;
+        private string? _positiveInfinitySymbol;
+        private string? _negativeInfinitySymbol;
+
+        public FormatInfoValues(IFormatProvider? provider) : this(NumberFormatInfo.GetInstance(provider)) { }
+
+        public FormatInfoValues(NumberFormatInfo info) => _info = info;
+
+        public NumberFormatInfo Info => _info;
+
+        public string NegativeSign => _negativeSign ??= GetStringOrDefault(_info.NegativeSign, "-");
+        public string PositiveSign => _positiveSign ??= GetStringOrDefault(_info.PositiveSign, "+");
+        public string DecimalSeparator => _decimalSeparator ??= GetStringOrDefault(_info.NumberDecimalSeparator, ".");
+        public string NaNSymbol => _nanSymbol ??= GetStringOrDefault(_info.NaNSymbol, "NaN");
+        public string PositiveInfinitySymbol => _positiveInfinitySymbol ??= GetStringOrDefault(_info.PositiveInfinitySymbol, "Infinity");
+        public string NegativeInfinitySymbol => _negativeInfinitySymbol ??= GetStringOrDefault(_info.NegativeInfinitySymbol, "-Infinity");
+
+        // NOTE: This will use the default value is the given value is null or empty.
+        private static string GetStringOrDefault(string? value, string defaultValue) =>
+            string.IsNullOrEmpty(value) ? defaultValue : value;
     }
 
     #endregion
