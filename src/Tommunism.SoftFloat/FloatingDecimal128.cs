@@ -36,7 +36,7 @@ namespace Tommunism.SoftFloat;
 /// <summary>
 /// A floating decimal representing (-1)^s * m * 10^e.
 /// </summary>
-public readonly partial struct FloatingDecimal128 : ISpanFormattable
+public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable<FloatingDecimal128>
 {
     #region Fields
 
@@ -320,6 +320,12 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable
     #endregion
 
     #region Methods
+
+    public override bool Equals(object? obj) => obj is FloatingDecimal128 value && Equals(value);
+
+    public bool Equals(FloatingDecimal128 other) => _mantissa.Equals(other._mantissa) && _exponent == other._exponent && _sign == other._sign;
+
+    public override int GetHashCode() => HashCode.Combine(_mantissa, _exponent, _sign);
 
     // NOTE: Only one format is currently supported here (an empty string/span or the exponential format code "E" or "e" with default precision).
     // NOTE: Even if it fails, there may have been characters written to the destination buffer.
@@ -660,6 +666,10 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable
         Debug.Assert(e is >= 0 and <= (1 << 15));
         return (uint)(((ulong)e * 196742565691928) >> 48);
     }
+
+    public static bool operator ==(FloatingDecimal128 left, FloatingDecimal128 right) => left.Equals(right);
+
+    public static bool operator !=(FloatingDecimal128 left, FloatingDecimal128 right) => !(left == right);
 
     #endregion
 
