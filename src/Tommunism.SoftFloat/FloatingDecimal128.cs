@@ -1113,8 +1113,9 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     private static int DecimalLength(uint v)
     {
         // See: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
+        // Modified to always return the floor value plus one.
         int t = (int)(uint)((((uint)BitOperations.Log2(v) + 1) * 1233UL) >> 12);
-        return t - (v < PowersOf10[t] ? 1 : 0);
+        return t + (v < PowersOf10[t] ? 0 : 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
