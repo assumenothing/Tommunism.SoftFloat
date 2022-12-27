@@ -13,19 +13,22 @@ namespace System.Text
         private char[]? _arrayToReturnToPool;
         private Span<char> _chars;
         private int _pos;
+        private readonly bool _canGrow;
 
-        public ValueStringBuilder(Span<char> initialBuffer)
+        public ValueStringBuilder(Span<char> initialBuffer, bool canGrow = true)
         {
             _arrayToReturnToPool = null;
             _chars = initialBuffer;
             _pos = 0;
+            _canGrow = canGrow;
         }
 
-        public ValueStringBuilder(int initialCapacity)
+        public ValueStringBuilder(int initialCapacity, bool canGrow = true)
         {
             _arrayToReturnToPool = ArrayPool<char>.Shared.Rent(initialCapacity);
             _chars = _arrayToReturnToPool;
             _pos = 0;
+            _canGrow = canGrow;
         }
 
         public int Length
@@ -295,6 +298,10 @@ namespace System.Text
         {
             Debug.Assert(additionalCapacityBeyondPos > 0);
             Debug.Assert(_pos > _chars.Length - additionalCapacityBeyondPos, "Grow called incorrectly, no resize is needed.");
+
+            // Is this instance allowed to grow into a new, larger, buffer?
+            if (!_canGrow)
+                throw new FormatException($"{nameof(ValueStringBuilder)} is not allowed to grow.");
 
             const uint ArrayMaxLength = 0x7FFFFFC7; // same as Array.MaxLength
 
