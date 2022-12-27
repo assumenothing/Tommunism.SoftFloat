@@ -328,6 +328,9 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     public bool IsInfinity => _exponent == ExceptionalExponent && _mantissa == 0;
 
+    // This does not necessarily mean it is valid if this is true. This is just the sign bit.
+    public bool IsNegative => _sign;
+
     #endregion
 
     #region Methods
