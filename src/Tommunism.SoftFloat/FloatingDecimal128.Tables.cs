@@ -30,6 +30,12 @@ namespace Tommunism.SoftFloat;
 
 partial struct FloatingDecimal128
 {
+    private static readonly uint[] PowersOf10 =
+    {
+        1, 10, 100, 1000, 10000, 100000,
+        1000000, 10000000, 100000000, 1000000000
+    };
+
     private const int FLOAT_128_POW5_INV_BITCOUNT = 249;
     private const int FLOAT_128_POW5_BITCOUNT = 249;
     private const int POW5_TABLE_SIZE = 56;

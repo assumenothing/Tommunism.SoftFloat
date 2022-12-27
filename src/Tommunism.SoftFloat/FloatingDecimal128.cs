@@ -25,7 +25,9 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Tommunism.SoftFloat;
 
@@ -336,10 +338,26 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     public override int GetHashCode() => HashCode.Combine(_mantissa, _exponent, _sign);
 
-    // NOTE: Only one format is currently supported here (an empty string/span or the exponential format code "E" or "e" with default precision).
-    // NOTE: Even if it fails, there may have been characters written to the destination buffer.
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) =>
-        TryFormat(destination, out charsWritten, format, new FormatInfoValues(provider));
+    #region String Formatting
+
+    // NOTE: Even if this fails, there may have been characters written to the destination buffer.
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+    {
+        // NOTE: No need to dispose of builder, because it will never grow.
+        var builder = new ValueStringBuilder(destination, canGrow: false);
+        try
+        {
+            FormatValue(ref builder, format, NumberFormatInfo.GetInstance(provider));
+            charsWritten = builder.Length;
+            return true;
+        }
+        catch (FormatException)
+        {
+            // This exception is thrown if ValueStringBuilder wants to grow but cannot.
+            charsWritten = default;
+            return false;
+        }
+    }
 
     public override string ToString() => ToString(null, null);
 
@@ -349,98 +367,129 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        if (format != null && !string.Equals(format, "E", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Invalid/unsupported format specified.", nameof(format));
-
-        var formatValues = new FormatInfoValues(formatProvider);
-
         // According to the Ryu source code, the maximum char buffer requirement is:
         // sign + mantissa digits + decimal dot + 'E' + exponent sign + exponent digits
         // = 1 + 39 + 1 + 1 + 1 + 10 = 53
-        int maxStringLength =
-            formatValues.NegativeSign.Length +
-            formatValues.DecimalSeparator.Length +
-            Math.Max(formatValues.NegativeSign.Length, formatValues.PositiveSign.Length) +
-            39 + 1 + 10;
 
-        // Just in case the format provider's symbols are longer than the max decimal string.
-        if (maxStringLength < formatValues.NaNSymbol.Length)
-            maxStringLength = formatValues.NaNSymbol.Length;
-        if (maxStringLength < formatValues.PositiveInfinitySymbol.Length)
-            maxStringLength = formatValues.PositiveInfinitySymbol.Length;
-        if (maxStringLength < formatValues.NegativeInfinitySymbol.Length)
-            maxStringLength = formatValues.NegativeInfinitySymbol.Length;
-
-        Span<char> buffer = stackalloc char[maxStringLength];
-        if (!TryFormat(buffer, out int length, format, formatValues))
-            throw new FormatException();
-
-        return new string(buffer[..length]);
+        // NOTE: Theoretically no exceptions should be thrown by ValueStringBuilder, because its internal buffer is
+        // allowed to grow to any reasonable size.
+        var builder = new ValueStringBuilder(stackalloc char[64]);
+        FormatValue(ref builder, format, NumberFormatInfo.GetInstance(formatProvider));
+        return builder.ToString();
     }
 
-    private bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, FormatInfoValues formatValues)
+    // NOTE: Precision may be set to -1 if the format does not specify the precision (use the default precision for the given format code).
+    // NOTE: If the returned value is '\0', then it is not a valid standard format.
+    private static char ParseStandardFormat(ReadOnlySpan<char> format, out int precision, string defaultFormat)
     {
-        // Default format code (if not specified).
+        // Use the general format if not specified.
         if (format.IsEmpty)
-            format = "E";
+            format = defaultFormat;
 
-        int length;
-        switch (format[0])
+        // The first character of the format string is the format code. Make sure it is an ASCII letter.
+        if (!char.IsAsciiLetter(format[0]))
         {
+            precision = default;
+            return '\0';
+        }
+
+        if (format.Length <= 1)
+        {
+            // No precision specified, use -1.
+            precision = -1;
+        }
+        else
+        {
+            // Try to parse the non-negative precision value up to a defined maximum precision.
+            if (!int.TryParse(format[1..], NumberStyles.None, null, out precision) || precision is < 0 or > 999_999_999)
+            {
+                precision = default;
+                return '\0';
+            }
+        }
+
+        return format[0];
+    }
+
+    private void FormatValue(ref ValueStringBuilder builder, ReadOnlySpan<char> format, NumberFormatInfo info)
+    {
+        // TODO: Switch default format to "G" once it is implemented.
+        var formatCode = ParseStandardFormat(format, out var precision, "E");
+        switch (formatCode)
+        {
+            case 'C':
+            case 'c':
+            {
+                FormatCurrency(ref builder, info, precision);
+                break;
+            }
+            case 'P':
+            case 'p':
+            {
+                FormatPercent(ref builder, info, precision);
+                break;
+            }
+            case 'N':
+            case 'n':
+            {
+                FormatNumeric(ref builder, info, precision);
+                break;
+            }
             case 'E':
             case 'e':
             {
-                // This implementation currently does not support custom precision values.
-                if (format.Length > 1)
-                    goto default;
-
-                length = FormatScientific(destination, formatValues, exponentSymbol: format[0]);
+                FormatScientific(ref builder, info, precision, exponentSymbol: formatCode);
+                break;
+            }
+            case 'F':
+            case 'f':
+            {
+                if (_sign) builder.Append(info.NegativeSign);
+                FormatNumericDigits(ref builder, Array.Empty<int>(), string.Empty, info.NumberDecimalSeparator, precision);
+                break;
+            }
+            case 'R':
+            case 'r':
+            {
+                // NOTE: Round-trip is the same as general except it always uses the default (unspecified) preicision value.
+                FormatGeneral(ref builder, info, -1);
+                break;
+            }
+            case 'G':
+            case 'g':
+            {
+                FormatGeneral(ref builder, info, precision);
                 break;
             }
             default:
             {
-                throw new ArgumentException("Invalid/unsupported format specified.", nameof(format));
+                throw new ArgumentException("Invalid format specified.", nameof(format));
             }
         }
-
-        if (length < 0)
-        {
-            charsWritten = default;
-            return false;
-        }
-
-        charsWritten = length;
-        return true;
     }
 
-    // NOTE: If this returns -1, then it failed to format the value (likely means the destination buffer was too small).
-    // NOTE: This always returns the equivalent of "Exponential (scientific)" format ("E" format). The exponent can be
-    // omitted if optionalExponent is true and the calculated exponent value is zero.
-    private int FormatScientific(Span<char> buffer, FormatInfoValues formatValues, bool optionalExponent = false, char exponentSymbol = 'E')
+    private void FormatScientific(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol)
     {
+        // Currently all digits are rendered.
+        if (precision != -1)
+            throw new NotImplementedException("Only default (unspecified) precision is supported for this number format.");
+
         // Handle special floating-point values.
         if (_exponent == ExceptionalExponent)
         {
             var specialValue = (_mantissa != 0)
-                ? formatValues.NaNSymbol
+                ? info.NaNSymbol
                 : (_sign
-                    ? formatValues.NegativeInfinitySymbol
-                    : formatValues.PositiveInfinitySymbol);
+                    ? info.NegativeInfinitySymbol
+                    : info.PositiveInfinitySymbol);
 
-            return specialValue.TryCopyTo(buffer) ? specialValue.Length : -1;
+            builder.Append(specialValue);
+            return;
         }
 
         // Step 5: Print the decimal representation.
-        int count = 0;
         if (_sign)
-        {
-            var negativeSign = formatValues.NegativeSign;
-            if (!negativeSign.TryCopyTo(buffer))
-                return -1;
-
-            buffer = buffer[negativeSign.Length..];
-            count += negativeSign.Length;
-        }
+            builder.Append(info.NegativeSign);
 
         UInt128 output = _mantissa;
         int digitsLength = DecimalLength(output);
@@ -449,13 +498,12 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         bool hasDecimalSeparator = digitsLength > 1;
         int outputLength = digitsLength;
         if (hasDecimalSeparator)
-            outputLength += formatValues.DecimalSeparator.Length;
+            outputLength += info.NumberDecimalSeparator.Length;
 
-        if (buffer.Length < outputLength)
-            return -1;
+        var buffer = builder.AppendSpan(outputLength);
 
         UInt128 ten = 10; // constant
-        for (int i = 1; i < digitsLength; ++i)
+        for (int i = 1; i < digitsLength; i++)
         {
             (output, var c) = UInt128.DivRem(output, ten);
             buffer[outputLength - i] = (char)('0' + (int)c);
@@ -466,37 +514,434 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         // Print decimal point if needed (if there is more than one digit).
         if (hasDecimalSeparator)
-        {
-            formatValues.DecimalSeparator.CopyTo(buffer[1..]);
-            buffer = buffer[outputLength..];
-        }
-        else
-        {
-            Debug.Assert(outputLength == 1);
-            buffer = buffer[1..];
-        }
-
-        count += outputLength;
+            info.NumberDecimalSeparator.CopyTo(buffer[1..]);
 
         // Print the exponent.
         int exp = _exponent + (digitsLength - 1);
-        if (!optionalExponent || exp != 0)
+        builder.Append(exponentSymbol);
+
+        // Always shown the exponent sign.
+        if (exp < 0)
         {
-            if (buffer.Length <= 1)
-                return -1;
-
-            buffer[0] = exponentSymbol;
-            buffer = buffer[1..];
-            count++;
-
-            if (!exp.TryFormat(buffer, out int expLength, default, formatValues.Info))
-                return -1;
-
-            count += expLength;
+            builder.Append(info.NegativeSign);
+            exp = -exp; // absolute value
+        }
+        else
+        {
+            builder.Append(info.PositiveSign);
         }
 
-        return count;
+        // Build the exponent (with a minimum of 3 digits).
+        int expLength = Math.Max(3, DecimalLength((uint)exp));
+        buffer = builder.AppendSpan(expLength);
+        for (int i = 0; i < expLength; i++)
+        {
+            (exp, var c) = Math.DivRem(exp, 10);
+            buffer[expLength - i - 1] = (char)('0' + c);
+        }
     }
+
+    private void FormatCurrency(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
+    {
+        // Set default precision if not defined.
+        if (precision == -1)
+            precision = info.CurrencyDecimalDigits;
+
+        if (_sign)
+        {
+            // Trade off code size and table lookups for a single switch statement.
+            switch (info.CurrencyNegativePattern)
+            {
+                case 0: // ($n)
+                {
+                    builder.Append('(');
+                    builder.Append(info.CurrencySymbol);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(')');
+                    break;
+                }
+                case 1: // -$n
+                {
+                    builder.Append(info.NegativeSign);
+                    builder.Append(info.CurrencySymbol);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 2: // $-n
+                {
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(info.NegativeSign);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 3: // $n-
+                {
+                    builder.Append(info.CurrencySymbol);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 4: // (n$)
+                {
+                    builder.Append('(');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(')');
+                    break;
+                }
+                case 5: // -n$
+                {
+                    builder.Append(info.NegativeSign);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                case 6: // n-$
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                case 7: // n$-
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 8: // -n $
+                {
+                    builder.Append(info.NegativeSign);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                case 9: // -$ n
+                {
+                    builder.Append(info.NegativeSign);
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(' ');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 10: // n $-
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 11: // $ n-
+                {
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(' ');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 12: // $ -n
+                {
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(' ');
+                    builder.Append(info.NegativeSign);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 13: // n- $
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    builder.Append(' ');
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                case 14: // ($ n)
+                {
+                    builder.Append('(');
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(' ');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(')');
+                    break;
+                }
+                case 15: // (n $)
+                {
+                    builder.Append('(');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(')');
+                    break;
+                }
+                default:
+                {
+                    throw new InvalidOperationException("Unexpected negative currency pattern value.");
+                }
+            }
+        }
+        else
+        {
+            // Trade off code size and bit patterns for a single switch statement.
+            switch (info.CurrencyPositivePattern)
+            {
+                case 0: // $n
+                {
+                    builder.Append(info.CurrencySymbol);
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 1: // n$
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                case 2: // $ n
+                {
+                    builder.Append(info.CurrencySymbol);
+                    builder.Append(' ');
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    break;
+                }
+                case 3: // n $
+                {
+                    FormatCurrencyDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.CurrencySymbol);
+                    break;
+                }
+                default:
+                {
+                    throw new InvalidOperationException("Unexpected positive currency pattern value.");
+                }
+            }
+        }
+    }
+
+    private void FormatPercent(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
+    {
+        // Set default precision if not defined.
+        if (precision == -1)
+            precision = info.PercentDecimalDigits;
+
+        if (_sign)
+        {
+            switch (info.PercentNegativePattern)
+            {
+                case 0: // -n %
+                {
+                    builder.Append(info.NegativeSign);
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                case 1: // -n%
+                {
+                    builder.Append(info.NegativeSign);
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                case 2: // -%n
+                {
+                    builder.Append(info.NegativeSign);
+                    builder.Append(info.PercentSymbol);
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                case 3: // %-n
+                {
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(info.NegativeSign);
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                case 4: // %n-
+                {
+                    builder.Append(info.PercentSymbol);
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 5: // n-%
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                case 6: // n%-
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 7: // -% n
+                {
+                    builder.Append(info.NegativeSign);
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(' ');
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                case 8: // n %-
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 9: // % n-
+                {
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(' ');
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 10: // % -n
+                {
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(' ');
+                    builder.Append(info.NegativeSign);
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                case 11: // n- %
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    builder.Append(' ');
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                default:
+                {
+                    throw new InvalidOperationException("Unexpected negative percent pattern value.");
+                }
+            }
+        }
+        else
+        {
+            switch (info.PercentNegativePattern)
+            {
+                case 0: // n %
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                case 1: // n%
+                {
+                    FormatPercentDigits(ref builder, info, precision);
+                    builder.Append(info.PercentSymbol);
+                    break;
+                }
+                case 2: // %n
+                {
+                    builder.Append(info.PercentSymbol);
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                case 3: // % n
+                {
+                    builder.Append(info.PercentSymbol);
+                    builder.Append(' ');
+                    FormatPercentDigits(ref builder, info, precision);
+                    break;
+                }
+                default:
+                {
+                    throw new InvalidOperationException("Unexpected positive percent pattern value.");
+                }
+            }
+        }
+    }
+
+    private void FormatNumeric(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
+    {
+        // Set default precision if not defined.
+        if (precision == -1)
+            precision = info.NumberDecimalDigits;
+
+        if (_sign)
+        {
+            switch (info.NumberNegativePattern)
+            {
+                case 0: // (n)
+                {
+                    builder.Append('(');
+                    FormatNumericDigits(ref builder, info, precision);
+                    builder.Append(')');
+                    break;
+                }
+                case 1: // -n
+                {
+                    builder.Append(info.NegativeSign);
+                    FormatNumericDigits(ref builder, info, precision);
+                    break;
+                }
+                case 2: // - n
+                {
+                    builder.Append(info.NegativeSign);
+                    builder.Append(' ');
+                    FormatNumericDigits(ref builder, info, precision);
+                    break;
+                }
+                case 3: // n-
+                {
+                    FormatNumericDigits(ref builder, info, precision);
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                case 4: // n -
+                {
+                    FormatNumericDigits(ref builder, info, precision);
+                    builder.Append(' ');
+                    builder.Append(info.NegativeSign);
+                    break;
+                }
+                default:
+                {
+                    throw new InvalidOperationException("Unexpected negative number pattern value.");
+                }
+            }
+        }
+        else
+        {
+            FormatNumericDigits(ref builder, info, precision);
+        }
+    }
+
+    private void FormatCurrencyDigits(ref ValueStringBuilder builder, NumberFormatInfo info, int precision) =>
+        FormatNumericDigits(ref builder, info.CurrencyGroupSizes, info.CurrencyGroupSeparator, info.CurrencyDecimalSeparator, precision);
+
+    private void FormatPercentDigits(ref ValueStringBuilder builder, NumberFormatInfo info, int precision) =>
+        FormatNumericDigits(ref builder, info.PercentGroupSizes, info.PercentGroupSeparator, info.PercentDecimalSeparator, precision, exponentModifier: 2);
+
+    private void FormatNumericDigits(ref ValueStringBuilder builder, NumberFormatInfo info, int precision) =>
+        FormatNumericDigits(ref builder, info.NumberGroupSizes, info.NumberGroupSeparator, info.NumberDecimalSeparator, precision);
+
+    // NOTE: This does not emit the negative sign (because it may be in many places, depending on the NumberFormatInfo
+    // instance and whether this is for currency, percent, or general numbers). The exponent modifier is added to the
+    // exponent value before rendering digits (necessary for percentages).
+    private void FormatNumericDigits(ref ValueStringBuilder builder, int[] groupSizes, string groupSeparator, string decimalSeparator, int precision, int exponentModifier = 0)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
 
     // Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 32768.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -568,6 +1013,20 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         r0 += correction;
         if (r0 < correction)
             r1++;
+
+#if false
+        // Make sure the math is correct.
+        var bigNumA = (BigInteger)a;
+        var bigNumB = (BigInteger)(UInt128)b.V000_UI128 | ((BigInteger)(UInt128)b.V128_UI128 << 128);
+        var bigNumResult = ((bigNumA * bigNumB) >> shift) + correction;
+
+        var bigNumMask128 = (BigInteger.One << 128) - 1;
+        var result0 = (UInt128)(bigNumResult & bigNumMask128);
+        var result1 = (UInt128)((bigNumResult >> 128) & bigNumMask128);
+
+        Debug.Assert(r0 == result0);
+        Debug.Assert(r1 == result1);
+#endif
 
         return new(r1, r0);
     }
@@ -651,6 +1110,14 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int DecimalLength(uint v)
+    {
+        // See: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
+        int t = (int)(uint)((((uint)BitOperations.Log2(v) + 1) * 1233UL) >> 12);
+        return t - (v < PowersOf10[t] ? 1 : 0);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int DecimalLength(UInt128 v)
     {
         UInt128 p10 = new(0x4B3B4CA85A86C47A, 0x98A224000000000); // LARGEST_POW10
@@ -686,41 +1153,6 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     public static bool operator ==(FloatingDecimal128 left, FloatingDecimal128 right) => left.Equals(right);
 
     public static bool operator !=(FloatingDecimal128 left, FloatingDecimal128 right) => !(left == right);
-
-    #endregion
-
-    #region Nested Types
-
-    /// <summary>
-    /// Used to cache common values from <see cref="NumberFormatInfo"/>.
-    /// </summary>
-    private sealed class FormatInfoValues
-    {
-        private readonly NumberFormatInfo _info;
-        private string? _negativeSign;
-        private string? _positiveSign;
-        private string? _decimalSeparator;
-        private string? _nanSymbol;
-        private string? _positiveInfinitySymbol;
-        private string? _negativeInfinitySymbol;
-
-        public FormatInfoValues(IFormatProvider? provider) : this(NumberFormatInfo.GetInstance(provider)) { }
-
-        public FormatInfoValues(NumberFormatInfo info) => _info = info;
-
-        public NumberFormatInfo Info => _info;
-
-        public string NegativeSign => _negativeSign ??= GetStringOrDefault(_info.NegativeSign, "-");
-        public string PositiveSign => _positiveSign ??= GetStringOrDefault(_info.PositiveSign, "+");
-        public string DecimalSeparator => _decimalSeparator ??= GetStringOrDefault(_info.NumberDecimalSeparator, ".");
-        public string NaNSymbol => _nanSymbol ??= GetStringOrDefault(_info.NaNSymbol, "NaN");
-        public string PositiveInfinitySymbol => _positiveInfinitySymbol ??= GetStringOrDefault(_info.PositiveInfinitySymbol, "Infinity");
-        public string NegativeInfinitySymbol => _negativeInfinitySymbol ??= GetStringOrDefault(_info.NegativeInfinitySymbol, "-Infinity");
-
-        // NOTE: This will use the default value is the given value is null or empty.
-        private static string GetStringOrDefault(string? value, string defaultValue) =>
-            string.IsNullOrEmpty(value) ? defaultValue : value;
-    }
 
     #endregion
 }
