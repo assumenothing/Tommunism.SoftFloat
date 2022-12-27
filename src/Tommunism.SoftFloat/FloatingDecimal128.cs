@@ -75,7 +75,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         uint bias = (1U << (exponentBits - 1)) - 1;
         bool ieeeSign = ((uint)(bits >> (mantissaBits + exponentBits)) & 1) != 0;
         UInt128 ieeeMantissa = bits & ((UInt128.One << mantissaBits) - 1);
-        uint ieeeExponent = (uint)((ulong)(bits >> mantissaBits) & ((1UL << exponentBits) - 1));
+        uint ieeeExponent = (uint)(bits >> mantissaBits) & (uint)((1UL << exponentBits) - 1);
 
         // Handle +/- zero.
         if (ieeeExponent == 0 && ieeeMantissa == 0)
@@ -142,9 +142,9 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             int k = FLOAT_128_POW5_INV_BITCOUNT + (int)Pow5Bits((int)q) - 1;
             int i = -e2 + (int)q + k;
             UInt256M pow5 = ComputeInvPow5((int)q);
-            vr = MultiplyAndShift(m2 << 2, pow5, i);
-            vp = MultiplyAndShift((m2 << 2) + 2, pow5, i);
-            vm = MultiplyAndShift((m2 << 2) - 1 - mmShift, pow5, i);
+            vr = MultiplyAndShift(mv, pow5, i);
+            vp = MultiplyAndShift(mv + 2, pow5, i);
+            vm = MultiplyAndShift(mv - 1 - mmShift, pow5, i);
 
             // floor(log_5(2^128)) = 55, this is very conservative
             if (q <= 55)
@@ -178,9 +178,9 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             int k = (int)Pow5Bits(i) - FLOAT_128_POW5_BITCOUNT;
             int j = (int)q - k;
             UInt256M pow5 = ComputePow5(i);
-            vr = MultiplyAndShift(m2 << 2, pow5, j);
-            vp = MultiplyAndShift((m2 << 2) + 2, pow5, j);
-            vm = MultiplyAndShift((m2 << 2) - 1 - mmShift, pow5, j);
+            vr = MultiplyAndShift(mv, pow5, j);
+            vp = MultiplyAndShift(mv + 2, pow5, j);
+            vm = MultiplyAndShift(mv - 1 - mmShift, pow5, j);
 
             if (q <= 1)
             {
@@ -222,6 +222,14 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             return quotient;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint DivRem2(UInt128 left, UInt128 right, out UInt128 quotient)
+        {
+            (quotient, var rem) = UInt128.DivRem(left, right);
+            Debug.Assert(rem >= uint.MinValue && rem <= uint.MaxValue);
+            return (uint)rem;
+        }
+
         UInt128 ten = 10; // this is a constant
         UInt128 vpDiv10, vmDiv10, vrDiv10; // avoid performing the same division operations multiple times
         while ((vpDiv10 = vp / ten) > (vmDiv10 = DivRem(vm, ten, out uint vmMod10)))
@@ -237,7 +245,8 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         if (vmIsTrailingZeros)
         {
-            while ((vmDiv10 = vm / ten) == 0)
+            // NOTE: The result of DivRem2 is the remainder, not the quotient!
+            while (DivRem2(vm, ten, out vmDiv10) == 0)
             {
                 vrIsTrailingZeros &= lastRemovedDigit == 0;
                 vrDiv10 = DivRem(vr, ten, out lastRemovedDigit);
@@ -332,6 +341,8 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) =>
         TryFormat(destination, out charsWritten, format, new FormatInfoValues(provider));
 
+    public override string ToString() => ToString(null, null);
+
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         if (format != null && !string.Equals(format, "E", StringComparison.OrdinalIgnoreCase))
@@ -409,8 +420,8 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             var specialValue = (_mantissa != 0)
                 ? formatValues.NaNSymbol
                 : (_sign
-                    ? formatValues.PositiveInfinitySymbol
-                    : formatValues.NegativeInfinitySymbol);
+                    ? formatValues.NegativeInfinitySymbol
+                    : formatValues.PositiveInfinitySymbol);
 
             return specialValue.TryCopyTo(buffer) ? specialValue.Length : -1;
         }
@@ -452,7 +463,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         // Print decimal point if needed (if there is more than one digit).
         if (hasDecimalSeparator)
         {
-            formatValues.DecimalSeparator.CopyTo(buffer);
+            formatValues.DecimalSeparator.CopyTo(buffer[1..]);
             buffer = buffer[outputLength..];
         }
         else
@@ -488,7 +499,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     private static uint Pow5Bits(int e)
     {
         Debug.Assert(e is >= 0 and <= (1 << 15));
-        return (uint)((((uint)e * 163391164108059UL) >> 46) +1);
+        return (uint)((((uint)e * 163391164108059UL) >> 46) + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -520,7 +531,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         UInt128 s2 = b02 + b11;                                 // 128 x
         UInt128 c2 = (s2 < b02) ? UInt128.One : UInt128.Zero;   // 256 x
         UInt128 s3 = b03 + b12;                                 // 192 x
-        UInt128 c3 = (s3 < b03) ? UInt128.One : UInt128.Zero;   // 324 x (TODO: shouldn't this be 320?)
+        UInt128 c3 = (s3 < b03) ? UInt128.One : UInt128.Zero;   // 320
 
         UInt128 p0 = s0 + (s1 << 64);                               // 0
         UInt128 d0 = (p0 < b00) ? UInt128.One : UInt128.Zero;       // 128
@@ -544,8 +555,8 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         }
         else
         {
-            r0 = (p1 >> -shift) | (p2 << (256 - shift));
-            r1 = p2 >> -shift;
+            r0 = (p1 >> (shift - 128)) | (p2 << -shift);
+            r1 = p2 >> (shift - 128);
         }
 
         // Add the correction here instead of doing it above during the shift (no point inlining it, it's exactly the
@@ -571,7 +582,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         int offset = i - base2;
         UInt128 m = GENERIC_POW5_TABLE(offset);
         int delta = (int)Pow5Bits(i) - (int)Pow5Bits(base2);
-        uint corr = (uint)((POW5_ERRORS[i / 32] >> (2 * (i % 32))) & 3);
+        uint corr = GetPow5Error(i);
         return Multiply128By256Shift(m, mul, delta, corr);
     }
 
@@ -585,26 +596,27 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         if (i == base2)
         {
+            // None of the values in the split table have the first 64 bits set, so incrementing the "low" field is safe.
             mul.V000++;
             return mul;
         }
 
-        int offset = i - base2;
+        int offset = base2 - i;
         UInt128 m = GENERIC_POW5_TABLE(offset); // 5^offset
-        int delta = (int)Pow5Bits(i) - (int)Pow5Bits(base2);
-        uint corr = (uint)((POW5_INV_ERRORS[i / 32] >> (2 * (i % 32))) & 3);
+        int delta = (int)Pow5Bits(base2) - (int)Pow5Bits(i);
+        uint corr = GetInvPow5Error(i) + 1;
         return Multiply128By256Shift(m, mul, delta, corr);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint Pow5Factor(UInt128 value)
     {
+        UInt128 five = 5; // constant
         for (uint count = 0; value > 0; ++count)
         {
-            if ((value % 5) != 0)
+            (value, var rem) = UInt128.DivRem(value, five);
+            if (rem != 0)
                 return count;
-
-            value /= 5;
         }
 
         return 0;
@@ -630,7 +642,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     private static UInt128 MultiplyAndShift(UInt128 a, UInt256M b, int shift)
     {
         Debug.Assert(shift > 128);
-        var result = Multiply128By256Shift(a, b, shift, 0);
+        UInt256M result = Multiply128By256Shift(a, b, shift, 0);
         return new(result.V064, result.V000);
     }
 
