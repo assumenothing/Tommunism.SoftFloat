@@ -343,6 +343,10 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     public override string ToString() => ToString(null, null);
 
+    public string ToString(string? format) => ToString(format, null);
+
+    public string ToString(IFormatProvider? formatProvider) => ToString(null, formatProvider);
+
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         if (format != null && !string.Equals(format, "E", StringComparison.OrdinalIgnoreCase))
@@ -527,19 +531,19 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         UInt128 s0 = b00;                                       // 0   x
         UInt128 s1 = b01 + b10;                                 // 64  x
-        UInt128 c1 = (s1 < b01) ? UInt128.One : UInt128.Zero;   // 192 x
+        UInt128 c1x = new((s1 < b01) ? 1U : 0, 0);              // 192 x
         UInt128 s2 = b02 + b11;                                 // 128 x
-        UInt128 c2 = (s2 < b02) ? UInt128.One : UInt128.Zero;   // 256 x
+        UInt128 c2 = new(0, (s2 < b02) ? 1U : 0);               // 256 x
         UInt128 s3 = b03 + b12;                                 // 192 x
-        UInt128 c3 = (s3 < b03) ? UInt128.One : UInt128.Zero;   // 320
+        UInt128 c3x = new((s3 < b03) ? 1U : 0, 0);              // 320
 
         UInt128 p0 = s0 + (s1 << 64);                               // 0
         UInt128 d0 = (p0 < b00) ? UInt128.One : UInt128.Zero;       // 128
         UInt128 q1 = s2 + (s1 >> 64) + (s3 << 64);                  // 128
         UInt128 d1 = (q1 < s2) ? UInt128.One : UInt128.Zero;        // 256
-        UInt128 p1 = q1 + (c1 << 64) + d0;                          // 128
+        UInt128 p1 = q1 + c1x + d0;                                 // 128
         UInt128 d2 = (p1 < q1) ? UInt128.One : UInt128.Zero;        // 256
-        UInt128 p2 = b13 + (s3 >> 64) + c2 + (c3 << 64) + d1 + d2;  // 256
+        UInt128 p2 = b13 + (s3 >> 64) + c2 + c3x + d1 + d2;         // 256
 
         // Perform the shifts.
         UInt128 r0, r1;
