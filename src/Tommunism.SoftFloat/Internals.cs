@@ -61,6 +61,24 @@ internal static partial class Internals
         return false;
     }
 
+    internal static bool IsExpFormatOrDefault(ReadOnlySpan<char> format, out string? replacedFormat, string defaultFormat = "E")
+    {
+        if (format.IsEmpty)
+        {
+            replacedFormat = defaultFormat;
+            return true;
+        }
+
+        if (format[0] == 'E' || format[0] == 'e')
+        {
+            replacedFormat = null;
+            return true;
+        }
+
+        replacedFormat = null;
+        return false;
+    }
+
     #region Rounding
 
     // softfloat_roundToUI32

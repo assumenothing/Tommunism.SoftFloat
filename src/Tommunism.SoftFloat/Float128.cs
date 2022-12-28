@@ -169,10 +169,15 @@ public readonly struct Float128 : ISpanFormattable
                 return false;
             }
         }
-        else
+        else if (IsExpFormatOrDefault(format, out var replacedFormat))
         {
+            // FloatingDecimal128 is only "good" when using compact formats like exponent or possibly general.
             var floatingDecimal = new FloatingDecimal128(this);
             return floatingDecimal.TryFormat(destination, out charsWritten, format, provider);
+        }
+        else
+        {
+            throw new ArgumentException("Given format is not currently implemented or supported.", nameof(format));
         }
     }
 
@@ -190,10 +195,15 @@ public readonly struct Float128 : ISpanFormattable
             FormatValueHex(ref builder, isLowerCase);
             return builder.ToString();
         }
+        else if (IsExpFormatOrDefault(format, out var replacedFormat))
+        {
+            // FloatingDecimal128 is only "good" when using compact formats like exponent or possibly general.
+            var floatingDecimal = new FloatingDecimal128(this);
+            return floatingDecimal.ToString(replacedFormat ?? format, formatProvider);
+        }
         else
         {
-            var floatingDecimal = new FloatingDecimal128(this);
-            return floatingDecimal.ToString(format, formatProvider);
+            throw new ArgumentException("Given format is not currently implemented or supported.", nameof(format));
         }
     }
 
