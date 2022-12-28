@@ -416,8 +416,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     private void FormatValue(ref ValueStringBuilder builder, ReadOnlySpan<char> format, NumberFormatInfo info)
     {
-        // TODO: Switch default format to "G" once it is implemented.
-        var formatCode = ParseStandardFormat(format, out var precision, "E");
+        var formatCode = ParseStandardFormat(format, out var precision, "G");
         switch (formatCode)
         {
             case 'C':
