@@ -38,10 +38,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =============================================================================*/
 #endregion
 
+using System;
+using System.Runtime.CompilerServices;
 
 namespace Tommunism.SoftFloat;
+
 internal static partial class Internals
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsHexFormat(ReadOnlySpan<char> format, out bool isLowerCase)
+    {
+        if (!format.IsEmpty && (format[0] == 'X' || format[0] == 'x'))
+        {
+            if (format.Length > 1)
+                throw new ArgumentException("Floating-point binary hexadecimal format does not currently allow a user-defined precision.", nameof(format));
+
+            isLowerCase = format[0] == 'x';
+            return true;
+        }
+
+        isLowerCase = default;
+        return false;
+    }
+
     #region Rounding
 
     // softfloat_roundToUI32

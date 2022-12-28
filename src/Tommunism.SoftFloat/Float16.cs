@@ -51,7 +51,7 @@ using static Internals;
 using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ushort), Size = sizeof(ushort))]
-public readonly struct Float16
+public readonly struct Float16 : ISpanFormattable
 {
     #region Fields
 
@@ -120,16 +120,60 @@ public readonly struct Float16
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Float16 FromBitsUI16(uint v) => new((ushort)v, dummy: false);
 
-    // NOTE: This is the raw exponent and significand encoded in hexadecimal, separated by a period, and prefixed with the sign.
-    public override string ToString()
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
+        if (IsHexFormat(format, out bool isLowerCase))
+        {
+            var builder = new ValueStringBuilder(destination, canGrow: false);
+            try
+            {
+                FormatValueHex(ref builder, isLowerCase);
+                charsWritten = builder.Length;
+                return true;
+            }
+            catch (FormatException)
+            {
+                // This exception is thrown if ValueStringBuilder wants to grow but cannot.
+                charsWritten = default;
+                return false;
+            }
+        }
+        else
+        {
+            var floatingDecimal = new FloatingDecimal128(this);
+            return floatingDecimal.TryFormat(destination, out charsWritten, format, provider);
+        }
+    }
+
+    public override string ToString() => ToString(null, null);
+
+    public string ToString(string? format) => ToString(format, null);
+
+    public string ToString(IFormatProvider? formatProvider) => ToString(null, formatProvider);
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        if (IsHexFormat(format, out bool isLowerCase))
+        {
+            var builder = new ValueStringBuilder(stackalloc char[7]);
+            FormatValueHex(ref builder, isLowerCase);
+            return builder.ToString();
+        }
+        else
+        {
+            var floatingDecimal = new FloatingDecimal128(this);
+            return floatingDecimal.ToString(format, formatProvider);
+        }
+    }
+
+    private void FormatValueHex(ref ValueStringBuilder builder, bool isLowerCase)
+    {
+        // NOTE: This is the raw exponent and significand encoded in hexadecimal, separated by a period, and prefixed with the sign.
         // Value Format: -1F.3FF
-        var builder = new ValueStringBuilder(stackalloc char[8]);
         builder.Append(GetSignUI(_v) ? '-' : '+');
-        builder.AppendHex((uint)GetExpUI(_v), 5);
+        builder.AppendHex((uint)GetExpUI(_v), 5, isLowerCase);
         builder.Append('.');
-        builder.AppendHex(GetFracUI(_v), 10);
-        return builder.ToString();
+        builder.AppendHex(GetFracUI(_v), 10, isLowerCase);
     }
 
     #region Integer-to-floating-point Conversions
