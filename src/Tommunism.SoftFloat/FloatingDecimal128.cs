@@ -960,9 +960,137 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     // NOTE: This does not emit the negative sign (because it may be in many places, depending on the NumberFormatInfo
     // instance and whether this is for currency, percent, or general numbers). The exponent modifier is added to the
     // exponent value before rendering digits (necessary for percentages).
+    // WARNING: FloatingDecimal128 automatically removes "extra" digits (and thus loses a lot of precision), because it
+    // attempts to get the fewest number of digits that is closest to the actual value (so it should still be able to
+    // round-trip, even with the lost precision). This may also affect the way that rounding is performed.
     private void FormatNumericDigits(ref ValueStringBuilder builder, int[] groupSizes, string groupSeparator, string decimalSeparator, int precision, int exponentModifier = 0)
     {
-        throw new NotImplementedException();
+        Debug.Assert(precision >= 0, "Precision is undefined.");
+        Debug.Assert(!string.IsNullOrEmpty(decimalSeparator), "Decimal separator is null or empty!");
+        Debug.Assert(_exponent != ExceptionalExponent, "Special values cannot be handled here.");
+        Debug.Assert(exponentModifier >= 0 && exponentModifier < PowersOf10.Length, "Unsupported exponent modifier.");
+
+        // Get the length of the mantissa.
+        UInt128 digits = _mantissa;
+
+        // Get the exponent.
+        int exp = _exponent;
+
+        if (exponentModifier != 0)
+        {
+            // Apply exponent modifier.
+            // Precision shouldn't be lost here as long as there are at least 7 unused bits at the top of the mantissa.
+            digits *= PowersOf10[exponentModifier];
+        }
+
+        // Divide digits by 10 (with rounding) until the exponent matches the precision.
+        // TODO: Optimize this to use fewer divide operations?
+        int tempExp = -exp;
+        while (tempExp > precision)
+        {
+            (digits, var rem) = UInt128.DivRem(digits, 10);
+
+            // Apply rounding (away from zero).
+            if (rem >= 5)
+                digits++;
+
+            --tempExp;
+        }
+
+        // Update exponent.
+        exp = -tempExp;
+
+        // Calculate the number of digits.
+        int digitsLength = DecimalLength(digits);
+        Debug.Assert(digitsLength > 0);
+
+        // Figure out how many leading and trailing zeroes there are.
+        int leadingZeroes = 0;
+        int trailingZeroes = 0;
+        if (exp < 0)
+        {
+            if (-exp < precision)
+                trailingZeroes = exp + precision;
+            else
+                leadingZeroes = Math.Max(0, -(digitsLength + exp - 1));
+        }
+        else
+        {
+            trailingZeroes = exp + precision;
+        }
+
+        // Calculate the total length required for the digits and decimal separator (excluding digit separators).
+        var totalLength = digitsLength + leadingZeroes + trailingZeroes;
+        if (precision > 0)
+        {
+            // Add an extra leading zero to fulfill the precision contract.
+            var tempDecimalIndex = totalLength - precision;
+            if (tempDecimalIndex == 0)
+            {
+                leadingZeroes++;
+                totalLength++;
+            }
+
+            totalLength += decimalSeparator.Length;
+        }
+
+        // Make sure space is available in buffer first before appending everything else.
+        int digitsStartIndex = builder.Length;
+        builder.EnsureCapacity(digitsStartIndex + totalLength);
+
+        // Append leading zeroes.
+        builder.Append('0', leadingZeroes);
+
+        // Append digits.
+        var digitsBuffer = builder.AppendSpan(digitsLength);
+        if (!digits.TryFormat(digitsBuffer, out int digitsWritten, default, null) || digitsWritten != digitsLength)
+            throw new FormatException("Unable to format digits.");
+
+        // Append trailing zeroes.
+        builder.Append('0', trailingZeroes);
+
+        // Insert decimal digits if required.
+        int decimalIndex = builder.Length - precision;
+        if (precision > 0)
+            builder.Insert(decimalIndex, decimalSeparator);
+
+        // Insert digit groupings.
+        if (groupSizes.Length > 0 && groupSeparator.Length > 0)
+        {
+            int lastGroupIndex = decimalIndex;
+            int lastGroupSize = 0;
+            for (int i = 0; i < groupSizes.Length; i++)
+            {
+                int groupSize = groupSizes[i];
+                if (groupSize > 0)
+                {
+                    lastGroupIndex -= groupSize;
+                    if (lastGroupIndex > digitsStartIndex)
+                    {
+                        builder.Insert(lastGroupIndex, groupSeparator);
+                    }
+                    else
+                    {
+                        // Set last group size to zero to prevent remaining digits from being checked.
+                        lastGroupSize = 0;
+                        break;
+                    }
+                }
+
+                lastGroupSize = groupSize;
+            }
+
+            // Apply last group size to remaining digits (if last group size was not zero).
+            if (lastGroupSize > 0 && lastGroupIndex > digitsStartIndex)
+            {
+                lastGroupIndex -= lastGroupSize;
+                while (lastGroupIndex > digitsStartIndex)
+                {
+                    builder.Insert(lastGroupIndex, groupSeparator);
+                    lastGroupIndex -= lastGroupSize;
+                }
+            }
+        }
     }
 
     // TODO: Try to improve performance a little bit if there is a decimal point? Currently requires using ValueStringBuilder.Insert.
@@ -994,7 +1122,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         // Output the mantissa digits.
         var digitsBuffer = builder.AppendSpan(digitsLength);
-        if (!digits.TryFormat(digitsBuffer, out _, default, info))
+        if (!digits.TryFormat(digitsBuffer, out int digitsWritten, default, info) || digitsWritten != digitsLength)
             throw new FormatException("Could not append mantissa digits.");
 
         // Shortcut if the exponent is zero (just treat it as an integer value).
@@ -1050,7 +1178,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         // Output the exponent digits (minimum number of digits is two).
         digitsBuffer = builder.AppendSpan(expLength);
-        if (!((uint)expAbs).TryFormat(digitsBuffer, out _, "D2", info))
+        if (!((uint)expAbs).TryFormat(digitsBuffer, out int expDigitsWritten, "D2", info) || expDigitsWritten != expLength)
             throw new FormatException("Could not append exponent digits.");
     }
 
