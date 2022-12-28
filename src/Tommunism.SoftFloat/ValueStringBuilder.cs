@@ -13,7 +13,7 @@ namespace System.Text
         private char[]? _arrayToReturnToPool;
         private Span<char> _chars;
         private int _pos;
-        private readonly bool _canGrow;
+        private bool _canGrow;
 
         public ValueStringBuilder(Span<char> initialBuffer, bool canGrow = true)
         {
@@ -329,7 +329,13 @@ namespace System.Text
         public void Dispose()
         {
             char[]? toReturn = _arrayToReturnToPool;
-            this = default; // for safety, to avoid using pooled array if this instance is erroneously appended to again
+
+            // for safety, to avoid using pooled array if this instance is erroneously appended to again
+            _arrayToReturnToPool = null;
+            _chars = default;
+            _pos = 0;
+            _canGrow = false;
+
             if (toReturn != null)
             {
                 ArrayPool<char>.Shared.Return(toReturn);
