@@ -455,13 +455,13 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             case 'r':
             {
                 // NOTE: Round-trip is the same as general except it always uses the default (unspecified) preicision value.
-                FormatGeneral(ref builder, info, -1);
+                FormatGeneral(ref builder, info, -1, exponentSymbol: formatCode == 'R' ? 'E' : 'e');
                 break;
             }
             case 'G':
             case 'g':
             {
-                FormatGeneral(ref builder, info, precision);
+                FormatGeneral(ref builder, info, precision, exponentSymbol: formatCode == 'G' ? 'E' : 'e');
                 break;
             }
             default:
@@ -469,6 +469,18 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
                 throw new ArgumentException("Invalid format specified.", nameof(format));
             }
         }
+    }
+
+    private void FormatSpecial(ref ValueStringBuilder builder, NumberFormatInfo info)
+    {
+        Debug.Assert(_exponent == ExceptionalExponent, "Decimal value is not special.");
+        var specialValue = (_mantissa != 0)
+                ? info.NaNSymbol
+                : (_sign
+                    ? info.NegativeInfinitySymbol
+                    : info.PositiveInfinitySymbol);
+
+        builder.Append(specialValue);
     }
 
     private void FormatScientific(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol)
@@ -480,13 +492,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         // Handle special floating-point values.
         if (_exponent == ExceptionalExponent)
         {
-            var specialValue = (_mantissa != 0)
-                ? info.NaNSymbol
-                : (_sign
-                    ? info.NegativeInfinitySymbol
-                    : info.PositiveInfinitySymbol);
-
-            builder.Append(specialValue);
+            FormatSpecial(ref builder, info);
             return;
         }
 
@@ -523,7 +529,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         int exp = _exponent + (digitsLength - 1);
         builder.Append(exponentSymbol);
 
-        // Always shown the exponent sign.
+        // Always shown the exponent sign. (Exponent is always positive after this statement.)
         if (exp < 0)
         {
             builder.Append(info.NegativeSign);
@@ -546,6 +552,13 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     private void FormatCurrency(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
     {
+        // Handle special floating-point values.
+        if (_exponent == ExceptionalExponent)
+        {
+            FormatSpecial(ref builder, info);
+            return;
+        }
+
         // Set default precision if not defined.
         if (precision == -1)
             precision = info.CurrencyDecimalDigits;
@@ -726,6 +739,13 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     private void FormatPercent(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
     {
+        // Handle special floating-point values.
+        if (_exponent == ExceptionalExponent)
+        {
+            FormatSpecial(ref builder, info);
+            return;
+        }
+
         // Set default precision if not defined.
         if (precision == -1)
             precision = info.PercentDecimalDigits;
@@ -869,6 +889,13 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
     private void FormatNumeric(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
     {
+        // Handle special floating-point values.
+        if (_exponent == ExceptionalExponent)
+        {
+            FormatSpecial(ref builder, info);
+            return;
+        }
+
         // Set default precision if not defined.
         if (precision == -1)
             precision = info.NumberDecimalDigits;
@@ -939,9 +966,93 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
         throw new NotImplementedException();
     }
 
-    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision)
+    // TODO: Try to improve performance a little bit if there is a decimal point? Currently requires using ValueStringBuilder.Insert.
+    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol)
     {
-        throw new NotImplementedException();
+        // Handle special floating-point values.
+        if (_exponent == ExceptionalExponent)
+        {
+            FormatSpecial(ref builder, info);
+            return;
+        }
+
+        Debug.Assert(!string.IsNullOrEmpty(info.NumberDecimalSeparator), "Decimal separator is null or empty!");
+        Debug.Assert(!string.IsNullOrEmpty(info.PositiveSign), "Positive sign is null or empty!");
+        Debug.Assert(!string.IsNullOrEmpty(info.NegativeSign), "Negative sign is null or empty!");
+
+        // Output the negative sign if needed.
+        int digitsStartIndex = 0;
+        if (_sign)
+        {
+            builder.Append(info.NegativeSign);
+            digitsStartIndex = info.NegativeSign.Length;
+        }
+
+        // Get the length of the mantissa.
+        UInt128 digits = _mantissa;
+        int digitsLength = DecimalLength(digits);
+        Debug.Assert(digitsLength > 0);
+
+        // Output the mantissa digits.
+        var digitsBuffer = builder.AppendSpan(digitsLength);
+        if (!digits.TryFormat(digitsBuffer, out _, default, info))
+            throw new FormatException("Could not append mantissa digits.");
+
+        // Shortcut if the exponent is zero (just treat it as an integer value).
+        if (_exponent == 0)
+            return;
+
+        // Calculate the displayed exponent length (including the symbol and exponent sign).
+        int exp = _exponent + (digitsLength - 1);
+        int expAbs = Math.Abs(exp);
+        int expLength = Math.Max(2, DecimalLength((uint)expAbs));
+        int expTotalLength = expLength + 2; // includes exponent symbol and exponent sign
+
+        if (_exponent < 0)
+        {
+            // Insert the decimal point if it located inside the digits range.
+            if (_exponent > -digitsLength)
+            {
+                // Insert decimal at given decimal index.
+                var decimalIndex = builder.Length + _exponent;
+                builder.Insert(decimalIndex, info.NumberDecimalSeparator);
+                return;
+            }
+
+            // Prepend zeroes and insert decimal point if it is shorter without the exponent.
+            int zeroCount = -(digitsLength + _exponent - 1);
+            if (zeroCount > 0 && zeroCount <= expTotalLength)
+            {
+                builder.Insert(digitsStartIndex, '0', zeroCount);
+                builder.Insert(digitsStartIndex + 1, info.NumberDecimalSeparator);
+                return;
+            }
+        }
+        else
+        {
+            // Append zeroes if it is shorter without the exponent (and decimal separator).
+            if (_exponent <= expTotalLength + info.CurrencyDecimalSeparator.Length)
+            {
+                // Append zeroes to result and omit the exponent.
+                builder.Append('0', _exponent);
+                return;
+            }
+        }
+
+        // Insert the decimal point after the first digit (if there is more than one digit).
+        if (digitsLength > 1)
+            builder.Insert(digitsStartIndex + 1, info.NumberDecimalSeparator);
+
+        // Get the exponent length and output the exponent symbol
+        builder.Append(exponentSymbol);
+
+        // Always show the exponent sign.
+        builder.Append((exp < 0) ? info.NegativeSign : info.PositiveSign);
+
+        // Output the exponent digits (minimum number of digits is two).
+        digitsBuffer = builder.AppendSpan(expLength);
+        if (!((uint)expAbs).TryFormat(digitsBuffer, out _, "D2", info))
+            throw new FormatException("Could not append exponent digits.");
     }
 
     #endregion
