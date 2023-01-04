@@ -1007,7 +1007,7 @@ public readonly struct Float32 : ISpanFormattable
     }
 
     // f32_rem
-    public static Float32 Modulus(SoftFloatContext context, Float32 a, Float32 b)
+    public static Float32 Remainder(SoftFloatContext context, Float32 a, Float32 b)
     {
         uint uiA, sigA, uiB, sigB;
         int expA, expB, expDiff;

@@ -1170,35 +1170,35 @@ internal static class SoftFloatTests
             {
                 f16_a = arguments.Argument1.ToFloat16();
                 f16_b = arguments.Argument2.ToFloat16();
-                f16_z = Float16.Modulus(context, f16_a, f16_b);
+                f16_z = Float16.Remainder(context, f16_a, f16_b);
                 return new TestRunnerResult(f16_z, context.ExceptionFlags);
             }
             case "f32_rem":
             {
                 f32_a = arguments.Argument1.ToFloat32();
                 f32_b = arguments.Argument2.ToFloat32();
-                f32_z = Float32.Modulus(context, f32_a, f32_b);
+                f32_z = Float32.Remainder(context, f32_a, f32_b);
                 return new TestRunnerResult(f32_z, context.ExceptionFlags);
             }
             case "f64_rem":
             {
                 f64_a = arguments.Argument1.ToFloat64();
                 f64_b = arguments.Argument2.ToFloat64();
-                f64_z = Float64.Modulus(context, f64_a, f64_b);
+                f64_z = Float64.Remainder(context, f64_a, f64_b);
                 return new TestRunnerResult(f64_z, context.ExceptionFlags);
             }
             case "extF80_rem":
             {
                 extF80_a = arguments.Argument1.ToExtFloat80();
                 extF80_b = arguments.Argument2.ToExtFloat80();
-                extF80_z = ExtFloat80.Modulus(context, extF80_a, extF80_b);
+                extF80_z = ExtFloat80.Remainder(context, extF80_a, extF80_b);
                 return new TestRunnerResult(extF80_z, context.ExceptionFlags);
             }
             case "f128_rem":
             {
                 f128_a = arguments.Argument1.ToFloat128();
                 f128_b = arguments.Argument2.ToFloat128();
-                f128_z = Float128.Modulus(context, f128_a, f128_b);
+                f128_z = Float128.Remainder(context, f128_a, f128_b);
                 return new TestRunnerResult(f128_z, context.ExceptionFlags);
             }
 

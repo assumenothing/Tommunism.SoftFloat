@@ -1107,7 +1107,7 @@ public readonly struct ExtFloat80 : ISpanFormattable
     }
 
     // extF80_rem
-    public static ExtFloat80 Modulus(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
+    public static ExtFloat80 Remainder(SoftFloatContext context, ExtFloat80 a, ExtFloat80 b)
     {
         uint uiA64, uiB64, q, recip32;
         ulong uiA0, sigA, uiB0, sigB, q64;

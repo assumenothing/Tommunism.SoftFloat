@@ -1011,7 +1011,7 @@ public readonly struct Float16 : ISpanFormattable
     }
 
     // f16_rem
-    public static Float16 Modulus(SoftFloatContext context, Float16 a, Float16 b)
+    public static Float16 Remainder(SoftFloatContext context, Float16 a, Float16 b)
     {
         uint uiA, sigA, uiB, sigB, q;
         int expA, expB, expDiff;

@@ -1205,7 +1205,7 @@ public readonly struct Float128 : ISpanFormattable
     }
 
     // f128_rem
-    public static Float128 Modulus(SoftFloatContext context, Float128 a, Float128 b)
+    public static Float128 Remainder(SoftFloatContext context, Float128 a, Float128 b)
     {
         ulong uiA64, uiA0, uiB64, uiB0, q64;
         int expA, expB, expDiff;

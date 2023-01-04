@@ -236,7 +236,7 @@ public class SoftFloatContext
     public Float16 Multiply(Float16 a, Float16 b) => Float16.Multiply(this, a, b);
     public Float16 MultiplyAndAdd(Float16 a, Float16 b, Float16 c) => Float16.MultiplyAndAdd(this, a, b, c);
     public Float16 Divide(Float16 a, Float16 b) => Float16.Divide(this, a, b);
-    public Float16 Modulus(Float16 a, Float16 b) => Float16.Modulus(this, a, b);
+    public Float16 Remainder(Float16 a, Float16 b) => Float16.Remainder(this, a, b);
     public Float16 SquareRoot(Float16 value) => value.SquareRoot(this);
 
     public bool CompareEqual(Float16 a, Float16 b, bool signaling) => Float16.CompareEqual(this, a, b, signaling);
@@ -281,7 +281,7 @@ public class SoftFloatContext
     public Float32 Multiply(Float32 a, Float32 b) => Float32.Multiply(this, a, b);
     public Float32 MultiplyAndAdd(Float32 a, Float32 b, Float32 c) => Float32.MultiplyAndAdd(this, a, b, c);
     public Float32 Divide(Float32 a, Float32 b) => Float32.Divide(this, a, b);
-    public Float32 Modulus(Float32 a, Float32 b) => Float32.Modulus(this, a, b);
+    public Float32 Remainder(Float32 a, Float32 b) => Float32.Remainder(this, a, b);
     public Float32 SquareRoot(Float32 value) => value.SquareRoot(this);
 
     public bool CompareEqual(Float32 a, Float32 b, bool signaling) => Float32.CompareEqual(this, a, b, signaling);
@@ -326,7 +326,7 @@ public class SoftFloatContext
     public Float64 Multiply(Float64 a, Float64 b) => Float64.Multiply(this, a, b);
     public Float64 MultiplyAndAdd(Float64 a, Float64 b, Float64 c) => Float64.MultiplyAndAdd(this, a, b, c);
     public Float64 Divide(Float64 a, Float64 b) => Float64.Divide(this, a, b);
-    public Float64 Modulus(Float64 a, Float64 b) => Float64.Modulus(this, a, b);
+    public Float64 Remainder(Float64 a, Float64 b) => Float64.Remainder(this, a, b);
     public Float64 SquareRoot(Float64 value) => value.SquareRoot(this);
 
     public bool CompareEqual(Float64 a, Float64 b, bool signaling) => Float64.CompareEqual(this, a, b, signaling);
@@ -370,7 +370,7 @@ public class SoftFloatContext
     public ExtFloat80 Subtract(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Subtract(this, a, b);
     public ExtFloat80 Multiply(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Multiply(this, a, b);
     public ExtFloat80 Divide(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Divide(this, a, b);
-    public ExtFloat80 Modulus(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Modulus(this, a, b);
+    public ExtFloat80 Remainder(ExtFloat80 a, ExtFloat80 b) => ExtFloat80.Remainder(this, a, b);
     public ExtFloat80 SquareRoot(ExtFloat80 value) => value.SquareRoot(this);
 
     public bool CompareEqual(ExtFloat80 a, ExtFloat80 b, bool signaling) => ExtFloat80.CompareEqual(this, a, b, signaling);
@@ -415,7 +415,7 @@ public class SoftFloatContext
     public Float128 Multiply(Float128 a, Float128 b) => Float128.Multiply(this, a, b);
     public Float128 MultiplyAndAdd(Float128 a, Float128 b, Float128 c) => Float128.MultiplyAndAdd(this, a, b, c);
     public Float128 Divide(Float128 a, Float128 b) => Float128.Divide(this, a, b);
-    public Float128 Modulus(Float128 a, Float128 b) => Float128.Modulus(this, a, b);
+    public Float128 Remainder(Float128 a, Float128 b) => Float128.Remainder(this, a, b);
     public Float128 SquareRoot(Float128 value) => value.SquareRoot(this);
 
     public bool CompareEqual(Float128 a, Float128 b, bool signaling) => Float128.CompareEqual(this, a, b, signaling);

@@ -1038,7 +1038,7 @@ public readonly struct Float64 : ISpanFormattable
     }
 
     // f64_rem
-    public static Float64 Modulus(SoftFloatContext context, Float64 a, Float64 b)
+    public static Float64 Remainder(SoftFloatContext context, Float64 a, Float64 b)
     {
         ulong uiA, sigA, uiB, sigB, q64;
         int expA, expB, expDiff;
