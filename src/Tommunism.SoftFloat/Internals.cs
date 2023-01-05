@@ -69,7 +69,8 @@ internal static partial class Internals
             return true;
         }
 
-        if (format[0] == 'E' || format[0] == 'e')
+        // Round-trip should only use either exponent form or simplified decimal form.
+        if (format[0] is 'E' or 'e' or 'R' or 'r')
         {
             replacedFormat = null;
             return true;

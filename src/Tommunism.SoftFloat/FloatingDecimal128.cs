@@ -454,7 +454,8 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             case 'r':
             {
                 // NOTE: Round-trip is the same as general except it always uses the default (unspecified) preicision value.
-                FormatGeneral(ref builder, info, -1, exponentSymbol: formatCode == 'R' ? 'E' : 'e');
+                // Additionally, no trailing zeroes will ever be emitted, to reduce the chances of rounding errors.
+                FormatGeneral(ref builder, info, -1, exponentSymbol: formatCode == 'R' ? 'E' : 'e', roundTrip: true);
                 break;
             }
             case 'G':
@@ -1094,7 +1095,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     }
 
     // TODO: Try to improve performance a little bit if there is a decimal point? Currently requires using ValueStringBuilder.Insert.
-    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol)
+    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol, bool roundTrip = false)
     {
         // Handle special floating-point values.
         if (_exponent == ExceptionalExponent)
@@ -1155,7 +1156,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
                 return;
             }
         }
-        else
+        else if (!roundTrip || _exponent == 0)
         {
             // Append zeroes if it is shorter without the exponent (and decimal separator).
             if (_exponent <= expTotalLength + info.CurrencyDecimalSeparator.Length)
