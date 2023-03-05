@@ -38,7 +38,7 @@ namespace Tommunism.SoftFloat;
 /// <summary>
 /// A floating decimal representing (-1)^s * m * 10^e.
 /// </summary>
-public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable<FloatingDecimal128>
+public readonly partial struct FloatingDecimal128 : ISpanFormattable, IFormattable, IEquatable<FloatingDecimal128>
 {
     #region Fields
 
@@ -453,15 +453,15 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
             case 'R':
             case 'r':
             {
-                // NOTE: Round-trip is the same as general except it always uses the default (unspecified) preicision value.
+                // NOTE: Round-trip is the same as general except it always uses the default (unspecified) precision value.
                 // Additionally, no trailing zeroes will ever be emitted, to reduce the chances of rounding errors.
-                FormatGeneral(ref builder, info, -1, exponentSymbol: formatCode == 'R' ? 'E' : 'e', roundTrip: true);
+                FormatGeneral(ref builder, info, exponentSymbol: formatCode == 'R' ? 'E' : 'e', roundTrip: true);
                 break;
             }
             case 'G':
             case 'g':
             {
-                FormatGeneral(ref builder, info, precision, exponentSymbol: formatCode == 'G' ? 'E' : 'e');
+                FormatGeneral(ref builder, info, exponentSymbol: formatCode == 'G' ? 'E' : 'e');
                 break;
             }
             default:
@@ -1095,7 +1095,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
     }
 
     // TODO: Try to improve performance a little bit if there is a decimal point? Currently requires using ValueStringBuilder.Insert.
-    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, int precision, char exponentSymbol, bool roundTrip = false)
+    private void FormatGeneral(ref ValueStringBuilder builder, NumberFormatInfo info, char exponentSymbol, bool roundTrip = false)
     {
         // Handle special floating-point values.
         if (_exponent == ExceptionalExponent)
@@ -1138,7 +1138,7 @@ public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable
 
         if (_exponent < 0)
         {
-            // Insert the decimal point if it located inside the digits range.
+            // Insert the decimal point if it is located inside the digits range.
             if (_exponent > -digitsLength)
             {
                 // Insert decimal at given decimal index.
