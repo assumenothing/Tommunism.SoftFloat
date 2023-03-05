@@ -1509,7 +1509,7 @@ internal ref struct ThreefryRandom
     /// <remarks>
     /// Note that the returned value may be equal to <see cref="long.MaxValue"/> (this differs from <see cref="Random.NextInt64()"/>). If you want that behavior, then call <c>NextInt64(long.MaxValue)</c>.
     /// </remarks>
-    public long NextInt64() => (int)(NextUInt64Core() >> 1);
+    public long NextInt64() => (long)(NextUInt64Core() >> 1);
 
     /// <summary>
     /// Returns a non-negative random integer that is less than the specified maximum.
@@ -1525,8 +1525,8 @@ internal ref struct ThreefryRandom
             while (true)
             {
                 ulong result = NextUInt64Core() >> (sizeof(ulong) * 8 - bits);
-                if (result < (uint)maxValue)
-                    return (int)result;
+                if (result < (ulong)maxValue)
+                    return (long)result;
             }
         }
 
