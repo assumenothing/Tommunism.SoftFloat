@@ -51,7 +51,7 @@ using static Internals;
 using static Primitives;
 
 [StructLayout(LayoutKind.Sequential, Pack = sizeof(ulong), Size = sizeof(ulong))]
-public readonly struct Float64 : ISpanFormattable, IFormattable
+public readonly struct Float64 : ISpanFormattable
 {
     #region Fields
 

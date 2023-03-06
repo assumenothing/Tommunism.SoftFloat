@@ -51,7 +51,7 @@ using static Internals;
 using static Primitives;
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct ExtFloat80 : ISpanFormattable, IFormattable
+public readonly struct ExtFloat80 : ISpanFormattable
 {
     #region Fields
 

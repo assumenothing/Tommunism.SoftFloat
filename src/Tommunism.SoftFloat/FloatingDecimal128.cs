@@ -38,7 +38,7 @@ namespace Tommunism.SoftFloat;
 /// <summary>
 /// A floating decimal representing (-1)^s * m * 10^e.
 /// </summary>
-public readonly partial struct FloatingDecimal128 : ISpanFormattable, IFormattable, IEquatable<FloatingDecimal128>
+public readonly partial struct FloatingDecimal128 : ISpanFormattable, IEquatable<FloatingDecimal128>
 {
     #region Fields
 
